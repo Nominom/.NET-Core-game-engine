@@ -3,7 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECSCore", "ECSCore\ECSCore.csproj", "{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECSCore", "ECSCore\ECSCore.csproj", "{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECSCoreTests", "ECSCoreTests\ECSCoreTests.csproj", "{2904C945-AE09-42DE-A83B-32DBA433EEBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1} = {C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECSCoreBenchmarks", "ECSCoreBenchmarks\ECSCoreBenchmarks.csproj", "{DDA84B28-93FA-4EFA-A665-06A51F0D248D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +22,14 @@ Global
 		{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6014EF8-801D-4D6E-AF1D-46BB9903B9A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2904C945-AE09-42DE-A83B-32DBA433EEBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2904C945-AE09-42DE-A83B-32DBA433EEBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2904C945-AE09-42DE-A83B-32DBA433EEBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2904C945-AE09-42DE-A83B-32DBA433EEBD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDA84B28-93FA-4EFA-A665-06A51F0D248D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDA84B28-93FA-4EFA-A665-06A51F0D248D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDA84B28-93FA-4EFA-A665-06A51F0D248D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDA84B28-93FA-4EFA-A665-06A51F0D248D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
