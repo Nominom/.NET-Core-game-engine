@@ -65,7 +65,7 @@ namespace ECSCore {
 	}
 
 
-	internal unsafe class BlockAllocator{
+	internal class BlockAllocator{
 		private const int bigChunkSizeKb = 2048;
 
 		public static BlockAllocator KB16 { get; } = new BlockAllocator(16);

@@ -5,4 +5,7 @@ using System.Text;
 namespace ECSCore {
 	public class InvalidEntityException : Exception {
 	}
+
+	public class ComponentNotFoundException : Exception {
+	}
 }

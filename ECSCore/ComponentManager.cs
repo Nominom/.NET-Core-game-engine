@@ -48,7 +48,7 @@ namespace ECSCore {
 
 		private EntityBlockIndex[] entityList;
 		private readonly List<EntityArchetypeBlock> archetypeBlocks;
-		private readonly CustomHashMap<int> archetypeHashIndices;
+		private readonly Dictionary<int, int> archetypeHashIndices;
 
 		#endregion
 
@@ -168,7 +168,7 @@ namespace ECSCore {
 				entityList[i] = EntityBlockIndex.Invalid;
 			}
 			archetypeBlocks = new List<EntityArchetypeBlock>();
-			archetypeHashIndices = new CustomHashMap<int>();
+			archetypeHashIndices = new Dictionary<int, int>();
 
 			//add default archetype with hash zero
 			archetypeBlocks.Add(new EntityArchetypeBlock(EntityArchetype.Empty));
@@ -176,7 +176,7 @@ namespace ECSCore {
 		}
 
 		public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent {
-			Debug.Assert(IsEntityValid(entity));
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
@@ -199,7 +199,7 @@ namespace ECSCore {
 		}
 
 		public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent {
-			Debug.Assert(IsEntityValid(entity));
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
@@ -221,19 +221,19 @@ namespace ECSCore {
 		}
 
 		public ref T GetComponent<T>(in Entity entity) where T : unmanaged, IComponent {
-			Debug.Assert(IsEntityValid(entity));
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);
 
-			Debug.Assert(block.archetype.Has<T>());
+			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
 
 			return ref block.GetComponentData<T>()[index.elementIndex];
 		}
 		#endregion
 
 		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent {
-			Debug.Assert(IsEntityValid(entity));
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);

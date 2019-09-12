@@ -10,7 +10,7 @@ namespace ECSCoreTests {
 	public class ComponentTests {
 
 
-		const int loop_amount = 100_000;
+		const int loop_amount = 1_000;
 
 		public struct TestEmptyComponent : IComponent { }
 
@@ -78,8 +78,10 @@ namespace ECSCoreTests {
 				Assert.True(world.componentManager.HasComponent<TestComponentWithInt>(entities[i]));
 				world.componentManager.RemoveComponent<TestComponentWithInt>(entities[i]);
 				Assert.False(world.componentManager.HasComponent<TestComponentWithInt>(entities[i]));
-				Assert.Throws<Exception>(() => { world.componentManager.GetComponent<TestComponentWithInt>(entities[i]); });
-			}
+#if DEBUG
+				Assert.Throws<ComponentNotFoundException>(() => { world.componentManager.GetComponent<TestComponentWithInt>(entities[i]); });
+#endif
+}
 
 		}
 	}

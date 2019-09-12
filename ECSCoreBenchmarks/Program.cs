@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Intrinsics.X86;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using ECSCore;
@@ -41,7 +42,12 @@ namespace ECSCoreBenchmarks {
 			sw.Stop();
 			Console.WriteLine(sw.ElapsedMilliseconds + "ms");*/
 
-			BenchmarkRunner.Run<PooledArrayBenchmarks>();
+			Console.WriteLine("SSE supported: " + Sse.IsSupported);
+			Console.WriteLine("SSE2 supported: " + Sse2.IsSupported);
+			Console.WriteLine("AVX supported: " + Avx.IsSupported);
+			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
+
+			BenchmarkRunner.Run<MemoryStackBenchmarks>();
 
 			/*
 			Stopwatch sw = new Stopwatch();

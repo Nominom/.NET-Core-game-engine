@@ -27,7 +27,7 @@ namespace ECSCore {
 		private readonly BlockMemory _data;
 		//private Dictionary<System.Type, SliceValues> _typeLocations;
 		//private Dictionary<int, SliceValues> _typeLocations;
-		private readonly CustomHashMap<SliceValues> _typeLocations;
+		private readonly Dictionary<int, SliceValues> _typeLocations;
 
 
 
@@ -40,7 +40,7 @@ namespace ECSCore {
 			this.archetype = archetype;
 			//_typeLocations = new Dictionary<Type, SliceValues>();
 			//_typeLocations = new Dictionary<int, SliceValues>();
-			_typeLocations = new CustomHashMap<SliceValues>();
+			_typeLocations = new Dictionary<int, SliceValues>();
 
 
 			_data = allocator.Rent();
@@ -75,14 +75,20 @@ namespace ECSCore {
 		}
 
 		internal Span<T> GetComponentData<T>() where T : unmanaged, IComponent {
-			//Type type = typeof(T);
-			//Debug.Assert(_typeLocations.ContainsKey(type), $"No type of {type} found on this block");
-			//SliceValues values = _typeLocations[type];
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
 
-			SliceValues values = _typeLocations[TypeHelper<T>.hashCode];
-			Span <byte> bytes = _data.Memory.Span.Slice(values.start, values.length);
+			SliceValues slice = _typeLocations[TypeHelper<T>.hashCode];
+			Span <byte> bytes = _data.Memory.Span.Slice(slice.start, slice.length);
 			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
+		}
+
+		internal Span<byte> GetRawComponentData<T>() where T : unmanaged, IComponent {
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+
+			SliceValues slice = _typeLocations[TypeHelper<T>.hashCode];
+			Span<byte> bytes = _data.Memory.Span.Slice(slice.start, slice.length);
+			return bytes;
 		}
 
 		~ComponentMemoryBlock() {
@@ -99,8 +105,8 @@ namespace ECSCore {
 		}
 
 		public int AddEntity(in Entity entity) {
-			Debug.Assert(!entity.IsNull());
-			Debug.Assert(_size < _maxSize);
+			DebugHelper.AssertThrow<InvalidEntityException>(!entity.IsNull());
+			DebugHelper.AssertThrow<InvalidOperationException>(_size < _maxSize);
 
 			int idx = _size;
 			GetEntityData()[idx] = entity;
@@ -112,7 +118,7 @@ namespace ECSCore {
 
 		//returns true if last entity was moved
 		public bool RemoveEntityMoveLast(int e_idx, out Entity moved) {
-			Debug.Assert(e_idx < _size);
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(e_idx < _size);
 
 			Span<Entity> entityData = GetEntityData();
 			Span<byte> wholeMemory = _data.Memory.Span;
@@ -157,9 +163,9 @@ namespace ECSCore {
 		}
 
 		public int CopyEntityTo(int e_idx, in Entity e, ComponentMemoryBlock other) {
-			Debug.Assert(e_idx < _size);
-			Debug.Assert(!e.IsNull());
-			Debug.Assert(GetEntityData()[e_idx] == e);
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(e_idx < _size);
+			DebugHelper.AssertThrow<InvalidEntityException>(!e.IsNull());
+			DebugHelper.AssertThrow<ArgumentException>(GetEntityData()[e_idx] == e);
 
 			Span<byte> srcMemory = _data.Memory.Span;
 			Span<byte> destMemory = other._data.Memory.Span;
