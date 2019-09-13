@@ -16,10 +16,12 @@ namespace ECSCore {
 	}
 
 	public abstract class ComponentSystemBase : ISystem {
+		public bool Enabled { get; set; }
 		public virtual void OnCreateSystem () { }
 		public virtual void OnDestroySystem () { }
-		public virtual void OnStartSystem () { }
-		public virtual void OnStopSystem () { }
+		public virtual void OnEnableSystem () { }
+		public virtual void OnDisableSystem () { }
+		public abstract void Update(float deltaTime, ECSWorld world);
 	}
 	public abstract class ComponentSystem : ComponentSystemBase {
 		public abstract ComponentQuery GetQuery();

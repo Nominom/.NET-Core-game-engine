@@ -43,23 +43,28 @@ namespace ECSCoreBenchmarks
 			}
 		}
 
-		[Params(10, 100, 1000, 10_000, 100_000)]
+		[Params(10, 100, 1000, 10_000)]
 		public int numElements;
 
 		[Benchmark(Baseline = true)]
 		public void Array() {
-			float[] array = new float[numElements];
-
-			array[0] = 1;
+			for (int i = 0; i < 10; i++) {
+				float[] array = new float[numElements];
+				array[0] = 1;
+			}
+			
 		}
 
 		[Benchmark]
 		public void ArrayPool() {
 			var pool = ArrayPool<float>.Shared;
-			float[] array = pool.Rent(numElements);
 
-			array[0] = 1;
-			pool.Return(array);
+			for (int i = 0; i < 10; i++) {
+				float[] array = pool.Rent(numElements);
+
+				array[0] = 1;
+				pool.Return(array);
+			}
 		}
 
 		[Benchmark]
@@ -67,9 +72,10 @@ namespace ECSCoreBenchmarks
 			var stack = ECSCore.MemoryStack.Default;
 			stack.Reset();
 
-			Span<float> floats = stack.Get<float>(numElements);
-
-			floats[0] = 1;
+			for (int i = 0; i < 10; i++) {
+				Span<float> floats = stack.Get<float>(numElements);
+				floats[0] = 1;
+			}
 		}
 
 		[Benchmark]
@@ -78,9 +84,10 @@ namespace ECSCoreBenchmarks
 			var stack = ECSCore.MemoryStack.Default;
 			stack.Reset();
 
-			Span<float> floats = stack.GetAligned<float>(numElements);
-
-			floats[0] = 1;
+			for (int i = 0; i < 10; i++) {
+				Span<float> floats = stack.GetAligned<float>(numElements);
+				floats[0] = 1;
+			}
 		}
 	}
 }

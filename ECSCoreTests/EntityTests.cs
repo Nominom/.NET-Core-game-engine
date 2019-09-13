@@ -14,8 +14,8 @@ namespace ECSCoreTests {
 		[Fact]
 		public void CreateEntity() {
 			ECSWorld world = new ECSWorld();
-			ComponentManager cm = world.componentManager;
-			EntityManager em = world.entityManager;
+			ComponentManager cm = world.ComponentManager;
+			EntityManager em = world.EntityManager;
 
 			Entity e1 = em.CreateEntity();
 			Entity e2 = em.CreateEntity();

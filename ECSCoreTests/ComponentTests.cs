@@ -50,13 +50,13 @@ namespace ECSCoreTests {
 			ECSWorld world = new ECSWorld();
 
 			for (int i = 0; i < loop_amount; i++) {
-				Entity entity = world.entityManager.CreateEntity();
-				world.componentManager.AddComponent(entity, new TestComponentWithInt { someInt = 10 });
-				TestComponentWithInt test = world.componentManager.GetComponent<TestComponentWithInt>(entity);
+				Entity entity = world.EntityManager.CreateEntity();
+				world.ComponentManager.AddComponent(entity, new TestComponentWithInt { someInt = 10 });
+				TestComponentWithInt test = world.ComponentManager.GetComponent<TestComponentWithInt>(entity);
 				Assert.Equal(10, test.someInt);
-				world.componentManager.GetComponent<TestComponentWithInt>(entity).someInt = 12;
+				world.ComponentManager.GetComponent<TestComponentWithInt>(entity).someInt = 12;
 
-				Assert.Equal(12, world.componentManager.GetComponent<TestComponentWithInt>(entity).someInt);
+				Assert.Equal(12, world.ComponentManager.GetComponent<TestComponentWithInt>(entity).someInt);
 			}
 			
 		}
@@ -68,18 +68,18 @@ namespace ECSCoreTests {
 			Entity[] entities = new Entity[loop_amount];
 
 			for (int i = 0; i < loop_amount; i++) {
-				Entity entity = world.entityManager.CreateEntity();
-				world.componentManager.AddComponent(entity, new TestComponentWithInt { someInt = 10 });
-				Assert.True(world.componentManager.HasComponent<TestComponentWithInt>(entity));
+				Entity entity = world.EntityManager.CreateEntity();
+				world.ComponentManager.AddComponent(entity, new TestComponentWithInt { someInt = 10 });
+				Assert.True(world.ComponentManager.HasComponent<TestComponentWithInt>(entity));
 				entities[i] = entity;
 			}
 
 			for (int i = 0; i < loop_amount; i++) {
-				Assert.True(world.componentManager.HasComponent<TestComponentWithInt>(entities[i]));
-				world.componentManager.RemoveComponent<TestComponentWithInt>(entities[i]);
-				Assert.False(world.componentManager.HasComponent<TestComponentWithInt>(entities[i]));
+				Assert.True(world.ComponentManager.HasComponent<TestComponentWithInt>(entities[i]));
+				world.ComponentManager.RemoveComponent<TestComponentWithInt>(entities[i]);
+				Assert.False(world.ComponentManager.HasComponent<TestComponentWithInt>(entities[i]));
 #if DEBUG
-				Assert.Throws<ComponentNotFoundException>(() => { world.componentManager.GetComponent<TestComponentWithInt>(entities[i]); });
+				Assert.Throws<ComponentNotFoundException>(() => { world.ComponentManager.GetComponent<TestComponentWithInt>(entities[i]); });
 #endif
 }
 
