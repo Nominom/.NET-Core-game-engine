@@ -156,7 +156,7 @@ namespace ECSCoreTests.Numerics
 		{
 			Assert.True(Avx.IsSupported);
 
-			vec1 = new Vector3[8] {new Vector3(0,0,0), new Vector3(1,1,1), new Vector3(2, 3, 4), new Vector3(2, 3, 4), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(6, 5, 2), new Vector3(0,0,0)};
+			vec1 = new Vector3[8] { new Vector3(0, 0, 0), new Vector3(1, 1, 1), new Vector3(2, 3, 4), new Vector3(2, 3, 4), new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(6, 5, 2), new Vector3(0, 0, 0) };
 			vec2 = new Vector3[8] { new Vector3(1, 1, 1), new Vector3(0, 0, 0), new Vector3(0, 0, 0), Vector3.backward, Vector3.forward, Vector3.left, Vector3.down, Vector3.up };
 			result = new Vector3[8];
 			actual = new Vector3[8];

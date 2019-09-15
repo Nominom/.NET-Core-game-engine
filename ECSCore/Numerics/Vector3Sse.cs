@@ -272,7 +272,7 @@ namespace ECSCore.Numerics
 
 				int i = 0;
 				int j = 0;
-				for (i = 0; i < length - leftovers; i += inc, j += 4)
+				for (i = 0; i < length - (leftovers * 3); i += inc, j += 4)
 				{
 					Vector128<float> x, y, z;
 					Load4xyz(&lfP[i], out x, out y, out z, aligned);

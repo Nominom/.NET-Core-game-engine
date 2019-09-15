@@ -32,7 +32,7 @@ namespace ECSCoreTests.Numerics
 			for (int i = 0; i < arrLength; i++)
 			{
 				vec1[i] = new Vector3(i, i + 1, i + 2);
-				vec2[i] = new Vector3(i +3, i +4, i +5);
+				vec2[i] = new Vector3(i + 3, i + 4, i + 5);
 				inputF[i] = i;
 			}
 		}

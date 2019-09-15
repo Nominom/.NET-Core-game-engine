@@ -283,10 +283,10 @@ namespace ECSCore.Numerics
 
 				int i = 0;
 				int j = 0;
-				for (i = 0; i < length - leftovers; i += inc, j += 8)
+				for (i = 0; i < length - (leftovers * 3); i += inc, j += 8)
 				{
 					Vector256<float> x, y, z;
-					Load8xyz(&lfP[i], out x, out y, out z, aligned);
+					Load8xyz(&lfP[i], out x, out y, out z);
 
 					var r = Avx.LoadVector256(&rfP[j]);
 
@@ -333,7 +333,7 @@ namespace ECSCore.Numerics
 
 				int i = 0;
 
-				Vector256<float> r = Vector256.Create(right, right, right, right, right, right, right, right);
+				Vector256<float> r = Avx.BroadcastScalarToVector256(&right);
 
 				if (aligned)
 				{
