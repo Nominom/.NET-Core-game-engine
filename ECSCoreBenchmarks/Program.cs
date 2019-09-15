@@ -47,7 +47,7 @@ namespace ECSCoreBenchmarks {
 			Console.WriteLine("AVX supported: " + Avx.IsSupported);
 			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
 
-			BenchmarkRunner.Run<MemoryStackBenchmarks>();
+			BenchmarkRunner.Run<BitSet256Benchmarks>();
 
 			/*
 			Stopwatch sw = new Stopwatch();

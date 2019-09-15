@@ -48,6 +48,7 @@ namespace ECSCore
 
 		private void RegisterSystemsWithAttribute()
 		{
+			//TODO: Cache these because enumerating all the assemblies is pretty slow.
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(ass => ass.IsDynamic == false);
 			foreach (var assembly in assemblies) {
 				string name = assembly.FullName;

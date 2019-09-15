@@ -34,8 +34,8 @@ namespace ECSCoreBenchmarks
 					.Default
 					.With(Runtime.Core)
 					.WithWarmupCount(2)
-					.WithIterationCount(20)
-					.WithIterationTime(TimeInterval.FromMilliseconds(100))
+					.WithIterationCount(50)
+					.WithIterationTime(TimeInterval.FromMilliseconds(300))
 					.WithLaunchCount(1)
 			);
 		}

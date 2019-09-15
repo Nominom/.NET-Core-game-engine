@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using ECSCore.Collections;
 
 namespace ECSCore {
 	public class EntityArchetype {
@@ -14,32 +15,34 @@ namespace ECSCore {
 		private int _hash = 0;
 
 		public int Hash => _hash;
+		internal BitSet256 componentMask;
+		internal BitSet256 sharedComponentMask;
 
 		public EntityArchetype Add<T>() where T : unmanaged, IComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
 			archetype.components.Add(typeof(T), Marshal.SizeOf<T>());
-			archetype.CalculateHash();
+			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
 		public EntityArchetype Remove<T> () where T : unmanaged, IComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
 			archetype.components.Remove(typeof(T));
-			archetype.CalculateHash();
+			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
 		public EntityArchetype AddShared<T> (in SharedComponentHandle<T> handle) where T : ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
 			archetype.sharedComponents.Add(typeof(T), handle);
-			archetype.CalculateHash();
+			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
 		public EntityArchetype RemoveShared<T> () where T : ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
 			archetype.components.Remove(typeof(T));
-			archetype.CalculateHash();
+			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
@@ -48,31 +51,36 @@ namespace ECSCore {
 			return handle is SharedComponentHandle<T> shared ? shared : throw new NullReferenceException();
 		}
 
-		public EntityArchetype Clone() {
+		private EntityArchetype Clone() {
 			EntityArchetype archetype = new EntityArchetype();
 			archetype.components = new Dictionary<System.Type, int>(components);
 			archetype.sharedComponents = new Dictionary<Type, ISharedComponentHandle>(sharedComponents);
+			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
-		private void CalculateHash() {
+		private void CalculateHashAndMask() {
 			_hash = 0;
 			foreach (var kp in components) {
 				_hash ^= kp.Key.GetHashCode();
+				componentMask.Set(ComponentMask.GetComponentIndex(kp.Key));
 			}
 
 			foreach (var kp in sharedComponents) {
 				_hash ^= kp.Key.GetHashCode();
 				_hash ^= kp.Value.GetHashCode();
+				sharedComponentMask.Set(SharedComponentMask.GetSharedComponentIndex(kp.Key));
 			}
 		}
 
 		public bool Has<T>() where T : unmanaged, IComponent {
-			return components.ContainsKey(typeof(T));
+			return componentMask.Get(ComponentMask.GetComponentIndex<T>());
+			//return components.ContainsKey(typeof(T));
 		}
 
 		public bool HasShared<T> () where T : ISharedComponent {
-			return sharedComponents.ContainsKey(typeof(T));
+			return sharedComponentMask.Get(SharedComponentMask.GetSharedComponentIndex<T>());
+			//return sharedComponents.ContainsKey(typeof(T));
 		}
 	}
 }

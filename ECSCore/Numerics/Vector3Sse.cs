@@ -283,7 +283,7 @@ namespace ECSCore.Numerics
 					y = Sse.Multiply(y, r);
 					z = Sse.Multiply(z, r);
 
-					Store4xyz(&dst[i], x, y, z);
+					Store4xyz(&dst[i], x, y, z, aligned);
 				}
 
 

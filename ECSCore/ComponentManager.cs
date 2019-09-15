@@ -4,21 +4,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 
-namespace ECSCore {
+namespace ECSCore
+{
 
-	internal struct EntityArchetypeBlock {
+	internal struct EntityArchetypeBlock
+	{
 		public EntityArchetype archetype;
 		public List<ComponentMemoryBlock> blocks;
 		private int lastUsedIndex;
 
-		public EntityArchetypeBlock(EntityArchetype archetype) {
+		public EntityArchetypeBlock(EntityArchetype archetype)
+		{
 			this.archetype = archetype;
 			blocks = new List<ComponentMemoryBlock>();
 			lastUsedIndex = -1;
 		}
 
-		public int GetOrCreateFreeBlockIndex() {
-			for (int i = 0; i < blocks.Count; i++) {
+		public int GetOrCreateFreeBlockIndex()
+		{
+			for (int i = 0; i < blocks.Count; i++)
+			{
 				if (blocks[i].HasRoom) return i;
 			}
 			blocks.Add(new ComponentMemoryBlock(archetype));
@@ -26,8 +31,10 @@ namespace ECSCore {
 		}
 	}
 
-	public class ComponentManager {
-		internal struct EntityBlockIndex {
+	public class ComponentManager
+	{
+		internal struct EntityBlockIndex
+		{
 			public int entityVersion;
 			public int archetypeIndex;
 			public int blockIndex;
@@ -35,11 +42,13 @@ namespace ECSCore {
 
 			public static EntityBlockIndex Invalid => new EntityBlockIndex() { entityVersion = -1 };
 
-			public bool ValidateEntityCorrect (in Entity e) {
+			public bool ValidateEntityCorrect(in Entity e)
+			{
 				return e.version == entityVersion;
 			}
 
-			public bool IsValid () {
+			public bool IsValid()
+			{
 				return entityVersion >= 0;
 			}
 		}
@@ -56,78 +65,100 @@ namespace ECSCore {
 
 		#region private
 
-		private void GrowEntityList() {
+		private void GrowEntityList()
+		{
 			var newList = new EntityBlockIndex[entityList.Length * 2];
 			Array.Copy(entityList, newList, entityList.Length);
-			Span<EntityBlockIndex> span = newList.AsSpan(start:entityList.Length);
+			Span<EntityBlockIndex> span = newList.AsSpan(start: entityList.Length);
 			span.Fill(EntityBlockIndex.Invalid);
 			entityList = newList;
 		}
 
-		private int CreateNewArchetypeBlock(in EntityArchetype archetype) {
+		private int CreateNewArchetypeBlock(in EntityArchetype archetype)
+		{
 			archetypeBlocks.Add(new EntityArchetypeBlock(archetype));
 			int idx = archetypeBlocks.Count - 1;
 			archetypeHashIndices.Add(archetype.Hash, idx);
 			return idx;
 		}
 
-		private int FindOrCreateArchetypeBlockIndex (in EntityArchetype archetype) {
-			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int found)) {
+		private int FindOrCreateArchetypeBlockIndex(in EntityArchetype archetype)
+		{
+			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int found))
+			{
 				return found;
-			} else {
+			}
+			else
+			{
 				return CreateNewArchetypeBlock(archetype);
 			}
 		}
 
-		private EntityBlockIndex GetFreeBlockOf(in EntityArchetype archetype) {
+		private EntityBlockIndex GetFreeBlockOf(in EntityArchetype archetype)
+		{
 			EntityBlockIndex newIndex = new EntityBlockIndex();
 			newIndex.archetypeIndex = FindOrCreateArchetypeBlockIndex(archetype);
 			newIndex.blockIndex = archetypeBlocks[newIndex.archetypeIndex].GetOrCreateFreeBlockIndex();
 			return newIndex;
 		}
 
-		private int ArchetypeAddComponent<T>(in EntityArchetype archetype) where T : unmanaged, IComponent{
+		private int ArchetypeAddComponent<T>(in EntityArchetype archetype) where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<InvalidOperationException>(!archetype.Has<T>());
+
 			int newHash = archetype.Hash ^ TypeHelper<T>.hashCode;
 
-			if(archetypeHashIndices.TryGetValue(newHash, out int found)) {
+			if (archetypeHashIndices.TryGetValue(newHash, out int found))
+			{
 				return found;
 			}
-			else {
+			else
+			{
 				EntityArchetype newArchetype = archetype.Add<T>();
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
 			}
 		}
 
-		private int ArchetypeRemoveComponent<T> (in EntityArchetype archetype) where T : unmanaged, IComponent {
+		private int ArchetypeRemoveComponent<T>(in EntityArchetype archetype) where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<InvalidOperationException>(archetype.Has<T>());
 			int newHash = archetype.Hash ^ TypeHelper<T>.hashCode;
 
-			if (archetypeHashIndices.TryGetValue(newHash, out int found)) {
+			if (archetypeHashIndices.TryGetValue(newHash, out int found))
+			{
 				return found;
-			} else {
+			}
+			else
+			{
 				EntityArchetype newArchetype = archetype.Remove<T>();
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
 			}
 		}
 
-		private ComponentMemoryBlock GetMemoryBlock (in EntityBlockIndex index) {
+		private ComponentMemoryBlock GetMemoryBlock(in EntityBlockIndex index)
+		{
 			return archetypeBlocks[index.archetypeIndex].blocks[index.blockIndex];
 		}
 
-		private EntityArchetype GetArchetype(in EntityBlockIndex index) {
+		private EntityArchetype GetArchetype(in EntityBlockIndex index)
+		{
 			return archetypeBlocks[index.archetypeIndex].archetype;
 		}
 
 		#endregion
 
 		#region internal
-		internal void AddEntity(in Entity entity, EntityArchetype archetype) {
-			if(entity.IsNull()) {
+		internal void AddEntity(in Entity entity, EntityArchetype archetype)
+		{
+			if (entity.IsNull())
+			{
 				throw new InvalidEntityException();
 			}
 
-			if (entityList.Length <= entity.id) {
+			if (entityList.Length <= entity.id)
+			{
 				GrowEntityList();
 			}
 			var idx = GetFreeBlockOf(archetype);
@@ -137,22 +168,26 @@ namespace ECSCore {
 			entityList[entity.id] = idx;
 		}
 
-		internal void RemoveEntity(in Entity entity) {
-			if (!IsEntityValid(entity)) {
+		internal void RemoveEntity(in Entity entity)
+		{
+			if (!IsEntityValid(entity))
+			{
 				throw new InvalidEntityException();
 			}
 
 			EntityBlockIndex old = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(old);
 
-			if (block.RemoveEntityMoveLast(old.elementIndex, out Entity moved)) {
+			if (block.RemoveEntityMoveLast(old.elementIndex, out Entity moved))
+			{
 				entityList[moved.id].elementIndex = old.elementIndex;
 			}
 
 			entityList[entity.id] = EntityBlockIndex.Invalid;
 		}
 
-		internal bool IsEntityValid(in Entity entity) {
+		internal bool IsEntityValid(in Entity entity)
+		{
 			if (entity.id >= entityList.Length) return false;
 			if (entity.IsNull()) return false;
 			return entityList[entity.id].ValidateEntityCorrect(entity);
@@ -162,9 +197,11 @@ namespace ECSCore {
 
 		#region public
 
-		public ComponentManager() {
+		public ComponentManager()
+		{
 			entityList = new EntityBlockIndex[16];
-			for (var i = 0; i < entityList.Length; i++) {
+			for (var i = 0; i < entityList.Length; i++)
+			{
 				entityList[i] = EntityBlockIndex.Invalid;
 			}
 			archetypeBlocks = new List<EntityArchetypeBlock>();
@@ -175,34 +212,52 @@ namespace ECSCore {
 			archetypeHashIndices.Add(0, 0);
 		}
 
-		public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent {
+		public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
 			ComponentMemoryBlock oldBlock = GetMemoryBlock(oldIndex);
 
-			EntityBlockIndex newIndex = oldIndex;
-			newIndex.archetypeIndex = ArchetypeAddComponent<T>(oldArchetype);
-			newIndex.blockIndex = archetypeBlocks[newIndex.archetypeIndex].GetOrCreateFreeBlockIndex();
 
-			ComponentMemoryBlock newBlock = GetMemoryBlock(newIndex);
+			if (oldArchetype.Has<T>()) // Entity already has component. Just set new value.
+			{
+				oldBlock.GetComponentData<T>()[oldIndex.elementIndex] = component;
+			}
+			else
+			{
 
-			newIndex.elementIndex = oldBlock.CopyEntityTo(oldIndex.elementIndex, entity, newBlock);
+				EntityBlockIndex newIndex = oldIndex;
+				newIndex.archetypeIndex = ArchetypeAddComponent<T>(oldArchetype);
+				newIndex.blockIndex = archetypeBlocks[newIndex.archetypeIndex].GetOrCreateFreeBlockIndex();
 
-			if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved)) {
-				entityList[moved.id].elementIndex = oldIndex.elementIndex;
+				ComponentMemoryBlock newBlock = GetMemoryBlock(newIndex);
+
+				newIndex.elementIndex = oldBlock.CopyEntityTo(oldIndex.elementIndex, entity, newBlock);
+
+				if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved))
+				{
+					entityList[moved.id].elementIndex = oldIndex.elementIndex;
+				}
+
+				newBlock.GetComponentData<T>()[newIndex.elementIndex] = component;
+				entityList[entity.id] = newIndex;
 			}
 
-			newBlock.GetComponentData<T>()[newIndex.elementIndex] = component;
-			entityList[entity.id] = newIndex;
 		}
 
-		public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent {
+		public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
+		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
+
+			if (!oldArchetype.Has<T>()) //Entity doesn't have this component. Do nothing.
+			{
+				return;
+			}
 			ComponentMemoryBlock oldBlock = GetMemoryBlock(oldIndex);
 
 			EntityBlockIndex newIndex = oldIndex;
@@ -213,14 +268,16 @@ namespace ECSCore {
 
 			newIndex.elementIndex = oldBlock.CopyEntityTo(oldIndex.elementIndex, entity, newBlock);
 
-			if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved)) {
+			if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved))
+			{
 				entityList[moved.id].elementIndex = oldIndex.elementIndex;
 			}
 
 			entityList[entity.id] = newIndex;
 		}
 
-		public ref T GetComponent<T>(in Entity entity) where T : unmanaged, IComponent {
+		public ref T GetComponent<T>(in Entity entity) where T : unmanaged, IComponent
+		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -232,7 +289,8 @@ namespace ECSCore {
 		}
 		#endregion
 
-		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent {
+		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
+		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
