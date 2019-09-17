@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ECSCore;
+using ECSCore.Numerics;
 
 namespace ECSCore {
 	public struct Entity {
@@ -13,7 +15,7 @@ namespace ECSCore {
 			return id == NULL_ID;
 		}
 
-		#region equalityComp
+		#region equalityComparison
 
 		public bool Equals (Entity other) {
 			return id == other.id && version == other.version;

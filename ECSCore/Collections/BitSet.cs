@@ -179,14 +179,27 @@ namespace ECSCore.Collections
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		private ulong murmur64(ulong l) {
+			unchecked {
+				l ^= l >> 33;
+				l *= 0xff51afd7ed558ccdL;
+				l ^= l >> 33;
+				l *= 0xc4ceb9fe1a85ec53L;
+				l ^= l >> 33;
+				return l;
+			}
+		}
+
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 		public override int GetHashCode() {
 			unchecked {
-				int b0 = (int)((bits[0] * 17) ^ (bits[0] >> 32));
-				int b1 = b0 + (int)((bits[1] * 17) ^ (bits[1] >> 32)) * 31;
-				int b2 = b1 + (int)((bits[2] * 17) ^ (bits[2] >> 32)) * 31;
-				int b3 = b2 + (int)((bits[3] * 17) ^ (bits[3] >> 32)) * 31;
+				ulong b0 = murmur64((ulong)bits[0]);
+				ulong b1 = (b0 * 359) ^ murmur64((ulong)bits[1]);
+				ulong b2 = (b1 * 359) ^ murmur64((ulong)bits[2]);
+				ulong b3 = (b2 * 359) ^ murmur64((ulong)bits[3]);
 
-				return b3;
+				return (int)((b3 >> 32) ^ b3);
 			}
 		}
 

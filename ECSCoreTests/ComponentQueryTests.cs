@@ -141,5 +141,108 @@ namespace ECSCoreTests
 			Assert.True(query.Matches(archetypeC1S1));
 			Assert.False(query.Matches(archetypeC2S1));
 		}
+
+		[Fact]
+		public void HashCodeZero()
+		{
+			ComponentQuery query1 = new ComponentQuery();
+			Assert.Equal(0, query1.GetHashCode());
+		}
+
+		[Fact]
+		public void HashCodeNotZero() {
+			ComponentQuery query1 = new ComponentQuery();
+			query1.Include<TestComponent1>();
+			Assert.NotEqual(0, query1.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.Exclude<TestComponent1>();
+			Assert.NotEqual(0, query1.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.IncludeShared<SharedComponent1>();
+			Assert.NotEqual(0, query1.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.ExcludeShared<SharedComponent1>();
+			Assert.NotEqual(0, query1.GetHashCode());
+		}
+
+		[Fact]
+		public void HashCodeSame() {
+			ComponentQuery query1 = new ComponentQuery();
+			query1.Include<TestComponent1>();
+			ComponentQuery query2 = new ComponentQuery();
+			query2.Include<TestComponent1>();
+
+			Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.Exclude<TestComponent1>();
+			query2 = new ComponentQuery();
+			query2.Exclude<TestComponent1>();
+
+			Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.IncludeShared<SharedComponent1>();
+			query2 = new ComponentQuery();
+			query2.IncludeShared<SharedComponent1>();
+
+			Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.ExcludeShared<SharedComponent1>();
+			query2 = new ComponentQuery();
+			query2.ExcludeShared<SharedComponent1>();
+
+			Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
+		}
+
+		[Fact]
+		public void HashCodeDifferent()
+		{
+			ComponentQuery query1 = new ComponentQuery();
+			query1.Include<TestComponent1>();
+			ComponentQuery query2 = new ComponentQuery();
+			query2.Include<TestComponent2>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.Exclude<TestComponent1>();
+			query2 = new ComponentQuery();
+			query2.Exclude<TestComponent2>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.IncludeShared<SharedComponent1>();
+			query2 = new ComponentQuery();
+			query2.IncludeShared<SharedComponent2>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.ExcludeShared<SharedComponent1>();
+			query2 = new ComponentQuery();
+			query2.ExcludeShared<SharedComponent2>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.Include<TestComponent1>();
+			query2 = new ComponentQuery();
+			query2.Exclude<TestComponent1>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+
+			query1 = new ComponentQuery();
+			query1.IncludeShared<SharedComponent1>();
+			query2 = new ComponentQuery();
+			query2.ExcludeShared<SharedComponent1>();
+
+			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
+		}
 	}
 }

@@ -59,11 +59,7 @@ namespace ECSCore {
 
 		public void ForceFixedUpdate()
 		{
-			BeforeRender?.Invoke(fixedUpdateStep, this);
-			Render?.Invoke(fixedUpdateStep, this);
-			AfterRender?.Invoke(fixedUpdateStep, this);
+			FixedUpdate?.Invoke(fixedUpdateStep, this);
 		}
-
-
 	}
 }

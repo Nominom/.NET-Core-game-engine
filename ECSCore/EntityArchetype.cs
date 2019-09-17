@@ -34,14 +34,14 @@ namespace ECSCore {
 
 		public EntityArchetype AddShared<T> (in SharedComponentHandle<T> handle) where T : ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
-			archetype.sharedComponents.Add(typeof(T), handle);
+			archetype.sharedComponents[typeof(T)] = handle;
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
 		public EntityArchetype RemoveShared<T> () where T : ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
-			archetype.components.Remove(typeof(T));
+			archetype.sharedComponents.Remove(typeof(T));
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
@@ -74,12 +74,12 @@ namespace ECSCore {
 		}
 
 		public bool Has<T>() where T : unmanaged, IComponent {
-			return componentMask.Get(ComponentMask.GetComponentIndex<T>());
+			return componentMask.Get(TypeHelper.Component<T>.componentIndex);
 			//return components.ContainsKey(typeof(T));
 		}
 
 		public bool HasShared<T> () where T : ISharedComponent {
-			return sharedComponentMask.Get(SharedComponentMask.GetSharedComponentIndex<T>());
+			return sharedComponentMask.Get(TypeHelper.SharedComponent<T>.componentIndex);
 			//return sharedComponents.ContainsKey(typeof(T));
 		}
 	}

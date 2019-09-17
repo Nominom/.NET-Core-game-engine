@@ -8,26 +8,27 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace ECSCore {
-	
+
+	internal struct ComponentSliceValues
+	{
+		public int start;
+		public int length;
+		public int componentSize;
+	}
+
 	internal class ComponentMemoryBlock : IDisposable {
 		private static readonly BlockAllocator allocator = BlockAllocator.KB16;
-
-		private struct SliceValues {
-			public int start;
-			public int length;
-			public int componentSize;
-		}
 
 		private int _size;
 		private readonly int _maxSize;
 
-		private readonly SliceValues _entitySlice;
+		private readonly ComponentSliceValues entityComponentSlice;
 
 		//private fixed byte _data[16384];
 		private readonly BlockMemory _data;
-		//private Dictionary<System.Type, SliceValues> _typeLocations;
-		//private Dictionary<int, SliceValues> _typeLocations;
-		private readonly Dictionary<int, SliceValues> _typeLocations;
+		//private Dictionary<System.Type, ComponentSliceValues> _typeLocations;
+		//private Dictionary<int, ComponentSliceValues> _typeLocations;
+		private readonly Dictionary<int, ComponentSliceValues> _typeLocations;
 
 
 
@@ -38,9 +39,9 @@ namespace ECSCore {
 
 		public ComponentMemoryBlock(EntityArchetype archetype) {
 			this.archetype = archetype;
-			//_typeLocations = new Dictionary<Type, SliceValues>();
-			//_typeLocations = new Dictionary<int, SliceValues>();
-			_typeLocations = new Dictionary<int, SliceValues>();
+			//_typeLocations = new Dictionary<Type, ComponentSliceValues>();
+			//_typeLocations = new Dictionary<int, ComponentSliceValues>();
+			_typeLocations = new Dictionary<int, ComponentSliceValues>();
 
 
 			_data = allocator.Rent();
@@ -58,18 +59,18 @@ namespace ECSCore {
 			_size = 0;
 
 			//place entities as the first "component"
-			_entitySlice = new SliceValues { start = 0, length = entitySize * _maxSize, componentSize = entitySize};
+			entityComponentSlice = new ComponentSliceValues { start = 0, length = entitySize * _maxSize, componentSize = entitySize};
 
 			int nextIdx = entitySize * _maxSize; //start from after entities
 			foreach (var component in archetype.components) {
 				int componentLength = component.Value * _maxSize;
-				_typeLocations.Add(component.Key.GetHashCode(), new SliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
+				_typeLocations.Add(component.Key.GetHashCode(), new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
 				nextIdx += componentLength;
 			}
 		}
 
 		internal Span<Entity> GetEntityData() {
-			Span<byte> bytes = _data.Memory.Span.Slice(_entitySlice.start, _entitySlice.length);
+			Span<byte> bytes = _data.Memory.Span.Slice(entityComponentSlice.start, entityComponentSlice.length);
 			Span<Entity> span = MemoryMarshal.Cast<byte, Entity>(bytes);
 			return span;
 		}
@@ -77,8 +78,8 @@ namespace ECSCore {
 		internal Span<T> GetComponentData<T>() where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
 
-			SliceValues slice = _typeLocations[TypeHelper<T>.hashCode];
-			Span <byte> bytes = _data.Memory.Span.Slice(slice.start, slice.length);
+			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			Span <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
 		}
@@ -86,8 +87,8 @@ namespace ECSCore {
 		internal Span<byte> GetRawComponentData<T>() where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
 
-			SliceValues slice = _typeLocations[TypeHelper<T>.hashCode];
-			Span<byte> bytes = _data.Memory.Span.Slice(slice.start, slice.length);
+			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			return bytes;
 		}
 
@@ -174,8 +175,8 @@ namespace ECSCore {
 			foreach (var slice in other._typeLocations) {
 				int hash = slice.Key;
 
-				if (_typeLocations.TryGetValue(hash, out SliceValues src)) {
-					SliceValues dest = slice.Value;
+				if (_typeLocations.TryGetValue(hash, out ComponentSliceValues src)) {
+					ComponentSliceValues dest = slice.Value;
 
 					int cSize = slice.Value.componentSize; //component size in bytes
 					int srcStart = src.start;
@@ -192,6 +193,10 @@ namespace ECSCore {
 			}
 
 			return newIdx;
+		}
+
+		public BlockAccessor GetAccessor() {
+			return new BlockAccessor(this);
 		}
 	}
 }

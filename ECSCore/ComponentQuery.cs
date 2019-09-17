@@ -5,7 +5,7 @@ using System.Text;
 using ECSCore.Collections;
 
 namespace ECSCore {
-	public struct ComponentQuery {
+	public struct ComponentQuery : IEquatable<ComponentQuery> {
 		private BitSet256 includeMask;
 		private BitSet256 excludeMask;
 
@@ -14,22 +14,22 @@ namespace ECSCore {
 
 		public void Include<T>() where T : IComponent
 		{
-			includeMask.Set(ComponentMask.GetComponentIndex<T>());
+			includeMask.Set(TypeHelper.Component<T>.componentIndex);
 		}
 
 		public void Exclude<T>() where T : IComponent
 		{
-			excludeMask.Set(ComponentMask.GetComponentIndex<T>());
+			excludeMask.Set(TypeHelper.Component<T>.componentIndex);
 		}
 
 		public void IncludeShared<T>() where T : ISharedComponent
 		{
-			sharedIncludeMask.Set(SharedComponentMask.GetSharedComponentIndex<T>());
+			sharedIncludeMask.Set(TypeHelper.SharedComponent<T>.componentIndex);
 		}
 
 		public void ExcludeShared<T>() where T : ISharedComponent
 		{
-			sharedExcludeMask.Set(SharedComponentMask.GetSharedComponentIndex<T>());
+			sharedExcludeMask.Set(TypeHelper.SharedComponent<T>.componentIndex);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
@@ -40,6 +40,32 @@ namespace ECSCore {
 			if (archetype.sharedComponentMask.ContainsAny(sharedExcludeMask)) return false;
 
 			return true;
+		}
+
+		public bool Equals(ComponentQuery other) {
+			return includeMask.Equals(other.includeMask) && excludeMask.Equals(other.excludeMask) && sharedIncludeMask.Equals(other.sharedIncludeMask) && sharedExcludeMask.Equals(other.sharedExcludeMask);
+		}
+
+		public override bool Equals(object obj) {
+			return obj is ComponentQuery other && Equals(other);
+		}
+
+		public override int GetHashCode() {
+			unchecked {
+				int hashCode = includeMask.GetHashCode();
+				hashCode = (hashCode * 397) ^ excludeMask.GetHashCode();
+				hashCode = (hashCode * 397) ^ sharedIncludeMask.GetHashCode();
+				hashCode = (hashCode * 397) ^ sharedExcludeMask.GetHashCode();
+				return hashCode;
+			}
+		}
+
+		public static bool operator ==(ComponentQuery left, ComponentQuery right) {
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(ComponentQuery left, ComponentQuery right) {
+			return !left.Equals(right);
 		}
 	}
 }

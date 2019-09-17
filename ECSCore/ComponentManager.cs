@@ -129,8 +129,7 @@ namespace ECSCore
 			{
 				return found;
 			}
-			else
-			{
+			else {
 				EntityArchetype newArchetype = archetype.Remove<T>();
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
@@ -191,6 +190,18 @@ namespace ECSCore
 			if (entity.id >= entityList.Length) return false;
 			if (entity.IsNull()) return false;
 			return entityList[entity.id].ValidateEntityCorrect(entity);
+		}
+
+		internal IEnumerable<ComponentMemoryBlock> FilterBlocks(ComponentQuery query) {
+			foreach (EntityArchetypeBlock archetypeBlock in archetypeBlocks) {
+				if (query.Matches(archetypeBlock.archetype)) {
+					foreach (ComponentMemoryBlock block in archetypeBlock.blocks) {
+						if (block.Size > 0) {
+							yield return block;
+						}
+					}
+				}
+			}
 		}
 		#endregion
 
@@ -287,7 +298,6 @@ namespace ECSCore
 
 			return ref block.GetComponentData<T>()[index.elementIndex];
 		}
-		#endregion
 
 		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
@@ -298,5 +308,19 @@ namespace ECSCore
 
 			return block.archetype.Has<T>();
 		}
+		#endregion
+
+
+
+
+		#region block_accessing
+		public IEnumerable<BlockAccessor> GetBlocks(ComponentQuery query)
+		{
+			foreach (var block in FilterBlocks(query))
+			{
+				yield return block.GetAccessor();
+			}
+		}
+		#endregion
 	}
 }

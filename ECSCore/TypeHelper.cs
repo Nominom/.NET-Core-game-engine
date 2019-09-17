@@ -15,6 +15,16 @@ namespace ECSCore
 
 	internal static class TypeHelper
 	{
+
+		internal static class Component<T> where T : IComponent {
+			public static readonly int componentIndex = ComponentMask.GetComponentIndex<T>();
+		}
+
+		internal static class SharedComponent<T> where T : ISharedComponent
+		{
+			public static readonly int componentIndex = SharedComponentMask.GetSharedComponentIndex<T>();
+		}
+
 		public static IEnumerable<Type> GetTypesWithAttribute(Assembly assembly, System.Type attributeType, bool inherit = false)
 		{
 			Type[] types;
