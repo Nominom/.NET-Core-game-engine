@@ -11,7 +11,7 @@ namespace ECSCore {
 		//Component Type and size in bytes
 		internal Dictionary<System.Type, int> components = new Dictionary<System.Type, int>();
 		//SharedComponent Type and index into array
-		internal Dictionary<System.Type, ISharedComponentHandle> sharedComponents = new Dictionary<Type, ISharedComponentHandle>();
+		internal Dictionary<System.Type, ISharedComponent> sharedComponents = new Dictionary<Type, ISharedComponent>();
 		private int _hash = 0;
 
 		public int Hash => _hash;
@@ -32,29 +32,31 @@ namespace ECSCore {
 			return archetype;
 		}
 
-		public EntityArchetype AddShared<T> (in SharedComponentHandle<T> handle) where T : ISharedComponent {
+		public EntityArchetype AddShared<T>(T component) where T : class, ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
-			archetype.sharedComponents[typeof(T)] = handle;
+			archetype.sharedComponents[typeof(T)] = component;
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
-		public EntityArchetype RemoveShared<T> () where T : ISharedComponent {
+		public EntityArchetype RemoveShared<T> () where T : class, ISharedComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
 			archetype.sharedComponents.Remove(typeof(T));
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
 
-		public SharedComponentHandle<T> GetShared<T>() where T : ISharedComponent {
-			ISharedComponentHandle handle = sharedComponents[typeof(T)];
-			return handle is SharedComponentHandle<T> shared ? shared : throw new NullReferenceException();
+		public T GetShared<T>() where T : class, ISharedComponent {
+			if (!sharedComponents.TryGetValue(typeof(T), out ISharedComponent component)) {
+				throw new ComponentNotFoundException();
+			}
+			return component as T;
 		}
 
 		private EntityArchetype Clone() {
 			EntityArchetype archetype = new EntityArchetype();
 			archetype.components = new Dictionary<System.Type, int>(components);
-			archetype.sharedComponents = new Dictionary<Type, ISharedComponentHandle>(sharedComponents);
+			archetype.sharedComponents = new Dictionary<Type, ISharedComponent>(sharedComponents);
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
@@ -78,7 +80,7 @@ namespace ECSCore {
 			//return components.ContainsKey(typeof(T));
 		}
 
-		public bool HasShared<T> () where T : ISharedComponent {
+		public bool HasShared<T> () where T : class, ISharedComponent {
 			return sharedComponentMask.Get(TypeHelper.SharedComponent<T>.componentIndex);
 			//return sharedComponents.ContainsKey(typeof(T));
 		}

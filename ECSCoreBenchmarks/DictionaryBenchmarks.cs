@@ -39,7 +39,6 @@ namespace ECSCoreBenchmarks {
 			typeof(ArrayPool<Entity>),
 			typeof(ISharedComponent),
 			typeof(ISystem),
-			typeof(SharedComponentHandle<ISharedComponent>),
 			typeof(EntityManager),
 			typeof(EntityArchetype),
 			typeof(byte),

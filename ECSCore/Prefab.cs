@@ -61,8 +61,7 @@ namespace ECSCore
 
 		public void AddSharedComponent<T>(T value) where T : class, ISharedComponent {
 			sharedComponents[typeof(T)] = value;
-			//archetype = archetype.AddShared(value);
+			archetype = archetype.AddShared(value);
 		}
-
 	}
 }

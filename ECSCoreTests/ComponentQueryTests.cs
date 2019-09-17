@@ -17,8 +17,8 @@ namespace ECSCoreTests
 		public EntityArchetype archetypeC2S1;
 
 		public ComponentQueryTests() {
-			var shared1 = new SharedComponentHandle<SharedComponent1>(0);
-			var shared2 = new SharedComponentHandle<SharedComponent2>(0);
+			var shared1 = new SharedComponent1();
+			var shared2 = new SharedComponent2();
 
 			archetypeC1 = EntityArchetype.Empty.Add<TestComponent1>();
 			archetypeC1C2 = archetypeC1.Add<TestComponent2>();
