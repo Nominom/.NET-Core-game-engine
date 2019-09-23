@@ -5,30 +5,13 @@ using System.Text;
 namespace ECSCore
 {
 
-	public struct BlockAccessor
-	{
-		private readonly ComponentMemoryBlock block;
-
-		internal BlockAccessor(ComponentMemoryBlock block)
-		{
-			this.block = block;
-		}
-#if DEBUG
-
-#else
-	public ReadOnlySpan<Entity> GetEntityData () => block.GetEntityData();
-	public Span<T> GetComponentData<T> () where T : unmanaged, IComponent => block.GetComponentData<T>();
-	public T GetSharedComponentData<T> () where T : ISharedComponent => throw new NotImplementedException();
-#endif
-	}
-
 	public abstract class ComponentSystemBase : ISystem
 	{
 		public bool Enabled { get; set; }
-		public virtual void OnCreateSystem() { }
-		public virtual void OnDestroySystem() { }
-		public virtual void OnEnableSystem() { }
-		public virtual void OnDisableSystem() { }
+		public virtual void OnCreateSystem(ECSWorld world) { }
+		public virtual void OnDestroySystem(ECSWorld world) { }
+		public virtual void OnEnableSystem(ECSWorld world) { }
+		public virtual void OnDisableSystem(ECSWorld world) { }
 		public abstract void Update(float deltaTime, ECSWorld world);
 	}
 	public abstract class ComponentSystem : ComponentSystemBase

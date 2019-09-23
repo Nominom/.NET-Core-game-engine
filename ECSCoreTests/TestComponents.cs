@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Text;
 using ECSCore;
 
@@ -36,7 +35,7 @@ namespace ECSCoreTests
 	}
 
 	public struct TestComponentVector3 : IComponent {
-		public Vector3 value;
+		public ECSCore.Numerics.Vector3 value;
 	}
 
 	public class SharedComponent1 : ISharedComponent {

@@ -92,6 +92,15 @@ namespace ECSCore {
 			return bytes;
 		}
 
+		internal Span<byte> GetRawComponentData(System.Type type) {
+			int hash = type.GetHashCode();
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(hash));
+
+			ComponentSliceValues componentSlice = _typeLocations[hash];
+			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
+			return bytes;
+		}
+
 		~ComponentMemoryBlock() {
 			Free();
 		}

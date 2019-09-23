@@ -42,7 +42,7 @@ namespace ECSCore
 
 			public static EntityBlockIndex Invalid => new EntityBlockIndex() { entityVersion = -1 };
 
-			public bool ValidateEntityCorrect(in Entity e)
+			public bool ValidateEntityCorrect(Entity e)
 			{
 				return e.version == entityVersion;
 			}
@@ -74,7 +74,7 @@ namespace ECSCore
 			entityList = newList;
 		}
 
-		private int CreateNewArchetypeBlock(in EntityArchetype archetype)
+		private int CreateNewArchetypeBlock(EntityArchetype archetype)
 		{
 			archetypeBlocks.Add(new EntityArchetypeBlock(archetype));
 			int idx = archetypeBlocks.Count - 1;
@@ -82,7 +82,7 @@ namespace ECSCore
 			return idx;
 		}
 
-		private int FindOrCreateArchetypeBlockIndex(in EntityArchetype archetype)
+		private int FindOrCreateArchetypeBlockIndex(EntityArchetype archetype)
 		{
 			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int found))
 			{
@@ -94,7 +94,7 @@ namespace ECSCore
 			}
 		}
 
-		private EntityBlockIndex GetFreeBlockOf(in EntityArchetype archetype)
+		private EntityBlockIndex GetFreeBlockOf(EntityArchetype archetype)
 		{
 			EntityBlockIndex newIndex = new EntityBlockIndex();
 			newIndex.archetypeIndex = FindOrCreateArchetypeBlockIndex(archetype);
@@ -102,7 +102,7 @@ namespace ECSCore
 			return newIndex;
 		}
 
-		private int ArchetypeAddComponent<T>(in EntityArchetype archetype) where T : unmanaged, IComponent
+		private int ArchetypeAddComponent<T>(EntityArchetype archetype) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<InvalidOperationException>(!archetype.Has<T>());
 
@@ -120,7 +120,7 @@ namespace ECSCore
 			}
 		}
 
-		private int ArchetypeRemoveComponent<T>(in EntityArchetype archetype) where T : unmanaged, IComponent
+		private int ArchetypeRemoveComponent<T>(EntityArchetype archetype) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<InvalidOperationException>(archetype.Has<T>());
 			int newHash = archetype.Hash ^ TypeHelper<T>.hashCode;
@@ -131,6 +131,34 @@ namespace ECSCore
 			}
 			else {
 				EntityArchetype newArchetype = archetype.Remove<T>();
+				int idx = CreateNewArchetypeBlock(newArchetype);
+				return idx;
+			}
+		}
+
+		private int ArchetypeAddSharedComponent<T>(EntityArchetype archetype, T value) where T : class, ISharedComponent
+		{
+			EntityArchetype newArchetype = archetype.AddShared<T>(value);
+
+			if (archetypeHashIndices.TryGetValue(newArchetype.Hash, out int found))
+			{
+				return found;
+			}
+			else
+			{
+				int idx = CreateNewArchetypeBlock(newArchetype);
+				return idx;
+			}
+		}
+
+		private int ArchetypeRemoveSharedComponent<T>(EntityArchetype archetype) where T : class, ISharedComponent {
+			DebugHelper.AssertThrow<InvalidOperationException>(archetype.HasShared<T>());
+			EntityArchetype newArchetype = archetype.RemoveShared<T>();
+
+			if (archetypeHashIndices.TryGetValue(newArchetype.Hash, out int found)) {
+				return found;
+			}
+			else {
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
 			}
@@ -185,7 +213,7 @@ namespace ECSCore
 			entityList[entity.id] = EntityBlockIndex.Invalid;
 		}
 
-		internal bool IsEntityValid(in Entity entity)
+		internal bool IsEntityValid(Entity entity)
 		{
 			if (entity.id >= entityList.Length) return false;
 			if (entity.IsNull()) return false;
@@ -203,6 +231,26 @@ namespace ECSCore
 				}
 			}
 		}
+
+		internal void AddPrefabComponents(Entity entity, Prefab prefab) {
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			EntityBlockIndex index = entityList[entity.id];
+			ComponentMemoryBlock block = GetMemoryBlock(index);
+
+			Span<byte> prefabBytes = prefab.componentData;
+
+			for (int i = 0; i < prefab.componentTypes.Count; i++) {
+				Type componentType = prefab.componentTypes[i];
+				var slice = prefab.componentSizes[i];
+
+				Span<byte> rawBlockData = block.GetRawComponentData(componentType);
+				Span<byte> source = prefabBytes.Slice(slice.start, slice.length);
+				Span<byte> destination = rawBlockData.Slice(index.elementIndex * slice.componentSize, slice.length);
+
+				source.CopyTo(destination);
+			}
+		}
+
 		#endregion
 
 
@@ -223,7 +271,7 @@ namespace ECSCore
 			archetypeHashIndices.Add(0, 0);
 		}
 
-		public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
+		public void AddComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
@@ -258,7 +306,22 @@ namespace ECSCore
 
 		}
 
-		public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
+		public void SetComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+
+			EntityBlockIndex index = entityList[entity.id];
+			EntityArchetype archetype = GetArchetype(index);
+			ComponentMemoryBlock block = GetMemoryBlock(index);
+
+
+			if (archetype.Has<T>())
+			{
+				block.GetComponentData<T>()[index.elementIndex] = component;
+			}
+		}
+
+		public void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
@@ -287,7 +350,7 @@ namespace ECSCore
 			entityList[entity.id] = newIndex;
 		}
 
-		public ref T GetComponent<T>(in Entity entity) where T : unmanaged, IComponent
+		public ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
@@ -308,6 +371,80 @@ namespace ECSCore
 
 			return block.archetype.Has<T>();
 		}
+
+
+		public void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent
+		{
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+
+			EntityBlockIndex oldIndex = entityList[entity.id];
+			EntityArchetype oldArchetype = GetArchetype(oldIndex);
+			ComponentMemoryBlock oldBlock = GetMemoryBlock(oldIndex);
+
+			EntityBlockIndex newIndex = oldIndex;
+			newIndex.archetypeIndex = ArchetypeAddSharedComponent<T>(oldArchetype, component);
+
+			if (oldIndex.archetypeIndex != newIndex.archetypeIndex) {
+				newIndex.blockIndex = archetypeBlocks[newIndex.archetypeIndex].GetOrCreateFreeBlockIndex();
+
+				ComponentMemoryBlock newBlock = GetMemoryBlock(newIndex);
+
+				newIndex.elementIndex = oldBlock.CopyEntityTo(oldIndex.elementIndex, entity, newBlock);
+
+				if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved))
+				{
+					entityList[moved.id].elementIndex = oldIndex.elementIndex;
+				}
+
+				entityList[entity.id] = newIndex;
+			}
+		}
+
+		public void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		{
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+
+			EntityBlockIndex oldIndex = entityList[entity.id];
+			EntityArchetype oldArchetype = GetArchetype(oldIndex);
+
+			if (!oldArchetype.HasShared<T>()) //Entity doesn't have this component. Do nothing.
+			{
+				return;
+			}
+			ComponentMemoryBlock oldBlock = GetMemoryBlock(oldIndex);
+
+			EntityBlockIndex newIndex = oldIndex;
+			newIndex.archetypeIndex = ArchetypeRemoveSharedComponent<T>(oldArchetype);
+			newIndex.blockIndex = archetypeBlocks[newIndex.archetypeIndex].GetOrCreateFreeBlockIndex();
+
+			ComponentMemoryBlock newBlock = GetMemoryBlock(newIndex);
+
+			newIndex.elementIndex = oldBlock.CopyEntityTo(oldIndex.elementIndex, entity, newBlock);
+
+			if (oldBlock.RemoveEntityMoveLast(oldIndex.elementIndex, out Entity moved))
+			{
+				entityList[moved.id].elementIndex = oldIndex.elementIndex;
+			}
+
+			entityList[entity.id] = newIndex;
+		}
+
+		public T GetSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		{
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+
+			EntityBlockIndex index = entityList[entity.id];
+			var archetype = archetypeBlocks[index.archetypeIndex].archetype;
+			return archetype.GetShared<T>();
+		}
+
+		public bool HasSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		{
+			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+
+			EntityBlockIndex index = entityList[entity.id];
+			return archetypeBlocks[index.archetypeIndex].archetype.HasShared<T>();
+		}
 		#endregion
 
 
@@ -321,6 +458,25 @@ namespace ECSCore
 				yield return block.GetAccessor();
 			}
 		}
+
+		public IEnumerable<BlockAccessor> GetBlocks(EntityArchetype archetype)
+		{
+			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
+				foreach (var block in archetypeBlocks[index].blocks)
+				{
+					yield return block.GetAccessor();
+				}
+			}
+		}
 		#endregion
+
+		internal void CleanUp() {
+			foreach (var archetypeBlock in archetypeBlocks) {
+				foreach (var block in archetypeBlock.blocks) {
+					block.Dispose();
+				}
+				archetypeBlock.blocks.Clear();
+			}
+		}
 	}
 }

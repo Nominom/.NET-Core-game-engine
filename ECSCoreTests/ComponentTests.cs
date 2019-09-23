@@ -8,8 +8,6 @@ using Xunit;
 
 namespace ECSCoreTests {
 	public class ComponentTests {
-
-
 		const int loop_amount = 1_000;
 
 		public struct TestEmptyComponent : IComponent { }
@@ -24,7 +22,6 @@ namespace ECSCoreTests {
 
 				Assert.Equal(4, Marshal.SizeOf<TestComponentWithInt>());
 				Assert.Equal(sizeof(TestComponentWithInt), Marshal.SizeOf<TestComponentWithInt>());
-
 			}
 		}
 

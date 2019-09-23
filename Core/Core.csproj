@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ECSCore\Core.ECS.csproj" />
+    <ProjectReference Include="..\GraphicsCore\Core.Graphics.csproj" />
+  </ItemGroup>
+
+</Project>

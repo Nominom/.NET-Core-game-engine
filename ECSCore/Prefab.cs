@@ -9,18 +9,20 @@ namespace ECSCore
 {
 	public class Prefab {
 		public string name;
-		private List<ComponentSliceValues> componentSizes;
-		private List<Type> componentTypes;
-		private byte[] componentData;
-		private Dictionary<Type, ISharedComponent> sharedComponents;
-		private EntityArchetype archetype;
+		internal List<ComponentSliceValues> componentSizes;
+		internal List<Type> componentTypes;
+		internal byte[] componentData;
+		internal EntityArchetype archetype;
+
+		public EntityArchetype Archetype {
+			get => archetype;
+		} 
 
 		public Prefab() {
 			name = "Empty prefab";
 			componentSizes = new List<ComponentSliceValues>();
 			componentTypes = new List<Type>();
 			componentData = Array.Empty<byte>();
-			sharedComponents = new Dictionary<Type, ISharedComponent>();
 			archetype = EntityArchetype.Empty;
 		}
 
@@ -42,6 +44,7 @@ namespace ECSCore
 				span[0] = value;
 			}
 			else {
+				archetype = archetype.Add<T>();
 				int cSize = Marshal.SizeOf<T>();
 				ComponentSliceValues slice = new ComponentSliceValues() {
 					componentSize = cSize,
@@ -55,12 +58,10 @@ namespace ECSCore
 
 				componentTypes.Add(type);
 				componentSizes.Add(slice);
-				archetype = archetype.Add<T>();
 			}
 		}
 
 		public void AddSharedComponent<T>(T value) where T : class, ISharedComponent {
-			sharedComponents[typeof(T)] = value;
 			archetype = archetype.AddShared(value);
 		}
 	}

@@ -48,14 +48,9 @@ namespace ECSCore
 
 		private void RegisterSystemsWithAttribute()
 		{
-			//TODO: Cache these because enumerating all the assemblies is pretty slow.
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(ass => ass.IsDynamic == false);
-			foreach (var assembly in assemblies) {
-				string name = assembly.FullName;
-				if (name.StartsWith("Microsoft")) {
-					continue;
-				}
-				foreach (Type type in TypeHelper.GetTypesWithAttribute(assembly, typeof(ECSSystemAttribute)))
+			foreach (var assembly in AssemblyHelper.GetAllUserAssemblies()) {
+
+				foreach (Type type in AssemblyHelper.GetTypesWithAttribute(assembly, typeof(ECSSystemAttribute)))
 				{
 					try
 					{
@@ -185,17 +180,18 @@ namespace ECSCore
 		internal void InitializeSystems()
 		{
 			foreach (var system in systems) {
-				system.Value.OnCreateSystem();
+				system.Value.OnCreateSystem(world);
 				system.Value.Enabled = true;
+				system.Value.OnEnableSystem(world);
 			}
 		}
 
-		internal void CleanUpSystems()
+		internal void CleanUp()
 		{
 			foreach (var system in systems)
 			{
-				system.Value.OnDisableSystem();
-				system.Value.OnDestroySystem();
+				system.Value.OnDisableSystem(world);
+				system.Value.OnDestroySystem(world);
 			}
 		}
 

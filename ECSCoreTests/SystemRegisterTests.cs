@@ -13,10 +13,10 @@ namespace ECSCoreTests
 		[ECSSystem(updateBefore: typeof(TestSystem2))]
 		public class TestSystem1 : ISystem {
 			public bool Enabled { get; set; }
-			public void OnCreateSystem() { }
-			public void OnDestroySystem() { }
-			public void OnEnableSystem() { }
-			public void OnDisableSystem() { }
+			public void OnCreateSystem(ECSWorld world) { }
+			public void OnDestroySystem(ECSWorld world) { }
+			public void OnEnableSystem(ECSWorld world) { }
+			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world) 
 			{
 				updateOrder.Add(this.GetType());
@@ -27,10 +27,10 @@ namespace ECSCoreTests
 		public class TestSystem2 : ISystem
 		{
 			public bool Enabled { get; set; }
-			public void OnCreateSystem() { }
-			public void OnDestroySystem() { }
-			public void OnEnableSystem() { }
-			public void OnDisableSystem() { }
+			public void OnCreateSystem(ECSWorld world) { }
+			public void OnDestroySystem(ECSWorld world) { }
+			public void OnEnableSystem(ECSWorld world) { }
+			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world)
 			{
 				updateOrder.Add(this.GetType());
@@ -41,10 +41,10 @@ namespace ECSCoreTests
 		public class TestSystem3 : ISystem
 		{
 			public bool Enabled { get; set; }
-			public void OnCreateSystem() { }
-			public void OnDestroySystem() { }
-			public void OnEnableSystem() { }
-			public void OnDisableSystem() { }
+			public void OnCreateSystem(ECSWorld world) { }
+			public void OnDestroySystem(ECSWorld world) { }
+			public void OnEnableSystem(ECSWorld world) { }
+			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world)
 			{
 				updateOrder.Add(this.GetType());
@@ -57,7 +57,7 @@ namespace ECSCoreTests
 
 			ECSWorld world = new ECSWorld();
 			world.Initialize();
-			world.ForceUpdate(1);
+			world.InvokeUpdate(1);
 
 			Assert.Equal(3, updateOrder.Count);
 			Assert.Equal(typeof(TestSystem1), updateOrder[0]);

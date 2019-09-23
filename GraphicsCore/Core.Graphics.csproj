@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Veldrid" Version="4.7.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.5.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.7" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ECSCore\Core.ECS.csproj" />
+  </ItemGroup>
+
+</Project>

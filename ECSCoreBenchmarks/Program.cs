@@ -5,6 +5,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
+using CoreBenchmarks;
 using ECSCore;
 
 
@@ -47,7 +48,7 @@ namespace ECSCoreBenchmarks {
 			Console.WriteLine("AVX supported: " + Avx.IsSupported);
 			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
 
-			BenchmarkRunner.Run<BitSet256Benchmarks>();
+			BenchmarkRunner.Run<Matrix4x4TransposeBenchmarks>();
 
 			/*
 			Stopwatch sw = new Stopwatch();

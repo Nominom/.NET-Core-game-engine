@@ -24,26 +24,5 @@ namespace ECSCore
 		{
 			public static readonly int componentIndex = SharedComponentMask.GetSharedComponentIndex<T>();
 		}
-
-		public static IEnumerable<Type> GetTypesWithAttribute(Assembly assembly, System.Type attributeType, bool inherit = false)
-		{
-			Type[] types;
-			try
-			{
-				types = assembly.GetTypes();
-			}
-			catch (ReflectionTypeLoadException e)
-			{
-				types = Array.Empty<Type>();
-			}
-			foreach (Type type in types)
-			{
-				if (type.GetCustomAttributes(attributeType, inherit).Length > 0)
-				{
-					yield return type;
-				}
-			}
-
-		}
 	}
 }

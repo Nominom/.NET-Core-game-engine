@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
-namespace ECSCore {
-	public class ECSWorld {
-		public float fixedUpdateStep = 1 / 30f;
-
+namespace ECSCore
+{
+	public class ECSWorld
+	{
 		public delegate void UpdateDelegate(float deltaTime, ECSWorld world);
 
 		public event UpdateDelegate EarlyUpdate;
@@ -15,6 +17,8 @@ namespace ECSCore {
 		public event UpdateDelegate BeforeRender;
 		public event UpdateDelegate Render;
 		public event UpdateDelegate AfterRender;
+
+		public event Action OnWorldDispose;
 
 		public EntityManager EntityManager { get; }
 		public ComponentManager ComponentManager { get; }
@@ -26,40 +30,90 @@ namespace ECSCore {
 		public bool IsMainWorld { get; }
 
 		private bool initialized = false;
+		public ECSWorld()
+		{
+			ComponentManager = new ComponentManager();
+			EntityManager = new EntityManager(ComponentManager);
+			SystemManager = new SystemManager(this);
+			IsMainWorld = false;
+		}
 
-		public ECSWorld(bool mainWorld = true) {
+		internal ECSWorld(bool mainWorld = true)
+		{
 			ComponentManager = new ComponentManager();
 			EntityManager = new EntityManager(ComponentManager);
 			SystemManager = new SystemManager(this);
 			IsMainWorld = mainWorld;
 		}
 
-		public void Initialize(bool autoRegisterSystems = true) {
+		internal static ECSWorld CreateMain() {
+			ECSWorld world = new ECSWorld(true);
+			return world;
+		}
+
+		public void Initialize(bool autoRegisterSystems = true)
+		{
 			initialized = true;
 
-			if (autoRegisterSystems) {
+			if (autoRegisterSystems)
+			{
 				SystemManager.AutoRegisterSystems();
 			}
 
 			SystemManager.InitializeSystems();
 		}
 
-		public void ForceUpdate(float deltaTime) {
-			EarlyUpdate?.Invoke(deltaTime, this);
-			Update?.Invoke(deltaTime, this);
-			LateUpdate?.Invoke(deltaTime, this);
+		public void CleanUp()
+		{
+			SystemManager.CleanUp();
+			ComponentManager.CleanUp();
+			OnWorldDispose?.Invoke();
 		}
 
-		public void ForceRender(float deltaTime)
-		{
-			BeforeRender?.Invoke(deltaTime, this);
-			Render?.Invoke(deltaTime, this);
-			AfterRender?.Invoke(deltaTime, this);
+		private void InvokeAllLogExceptions(float deltaTime, UpdateDelegate evt) {
+			if (evt != null) {
+				foreach (var @delegate in evt.GetInvocationList()) {
+					try {
+						var del = (UpdateDelegate)@delegate;
+						del.Invoke(deltaTime, this);
+					}catch(Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+
+				}
+			}
 		}
 
-		public void ForceFixedUpdate()
+		public void InvokeUpdate(float deltaTime)
 		{
-			FixedUpdate?.Invoke(fixedUpdateStep, this);
+			InvokeAllLogExceptions(deltaTime, EarlyUpdate); 
+			InvokeAllLogExceptions(deltaTime, Update); 
+			InvokeAllLogExceptions(deltaTime, LateUpdate);
+		}
+
+		public void InvokeRender(float deltaTime)
+		{
+			InvokeAllLogExceptions(deltaTime, BeforeRender);
+			InvokeAllLogExceptions(deltaTime, Render);
+			InvokeAllLogExceptions(deltaTime, AfterRender);
+		}
+
+		public void InvokeFixedUpdate(float fixedUpdateStep) {
+			InvokeAllLogExceptions(fixedUpdateStep, FixedUpdate);
+		}
+
+		public Entity Instantiate(EntityArchetype archetype)
+		{
+			Entity entity = EntityManager.CreateEntity(archetype);
+			return entity;
+		}
+
+		public Entity Instantiate(Prefab prefab)
+		{
+			Entity entity = EntityManager.CreateEntity(prefab.archetype);
+			ComponentManager.AddPrefabComponents(entity, prefab);
+			return entity;
 		}
 	}
 }
