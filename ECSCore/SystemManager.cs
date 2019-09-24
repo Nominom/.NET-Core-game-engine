@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-namespace ECSCore
+namespace Core.ECS
 {
 
 	struct SystemHolder

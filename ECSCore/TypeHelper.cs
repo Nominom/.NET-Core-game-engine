@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 	internal static class TypeHelper<T>
 	{

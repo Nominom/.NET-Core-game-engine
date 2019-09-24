@@ -5,11 +5,10 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.Intrinsics.X86;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
-using CoreBenchmarks;
-using ECSCore;
+using Core.ECS;
 
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 	class Program {
 
 		public struct TestComponentWithInt : IComponent {
@@ -48,7 +47,7 @@ namespace ECSCoreBenchmarks {
 			Console.WriteLine("AVX supported: " + Avx.IsSupported);
 			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
 
-			BenchmarkRunner.Run<Matrix4x4TransposeBenchmarks>();
+			BenchmarkRunner.Run<MemoryStackBenchmarks>();
 
 			/*
 			Stopwatch sw = new Stopwatch();

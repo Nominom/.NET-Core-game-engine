@@ -5,7 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public class ECSArrayPool<T> {
 		public static ECSArrayPool<T> Shared { get; } = new ECSArrayPool<T>();
 

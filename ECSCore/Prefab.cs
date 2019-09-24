@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 	public class Prefab {
 		public string name;

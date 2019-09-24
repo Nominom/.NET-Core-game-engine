@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
-using GraphicsCore;
 using Microsoft.VisualBasic;
 using Veldrid;
 

@@ -9,9 +9,9 @@ using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.Roslyn;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 
 	[Config(typeof(Config))]
 	public class ComponentMemoryBlockBenchmarks {

@@ -6,9 +6,9 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 
 	[Config(typeof(Config))]
 	public class BlockAllocatorBenchmarks {
@@ -31,7 +31,7 @@ namespace ECSCoreBenchmarks {
 		}
 
 
-		private BlockAllocator allocator = ECSCore.BlockAllocator.KB32;
+		private BlockAllocator allocator = Core.ECS.BlockAllocator.KB32;
 		private int bytes = 1024 * 32;
 
 		[Benchmark]

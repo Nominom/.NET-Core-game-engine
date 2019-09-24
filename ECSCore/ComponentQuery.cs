@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using ECSCore.Collections;
+using Core.ECS.Collections;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public struct ComponentQuery : IEquatable<ComponentQuery> {
 		private BitSet256 includeMask;
 		private BitSet256 excludeMask;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 	public static class AssemblyHelper {
 		private static Assembly[] cachedUserAssemblies;

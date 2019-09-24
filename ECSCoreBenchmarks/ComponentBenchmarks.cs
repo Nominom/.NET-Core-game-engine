@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 
 	struct TestComponent : IComponent {
 		public int x;

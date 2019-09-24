@@ -6,7 +6,8 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	internal class BigChunk {
 		public readonly byte[] data;
 		public readonly int length;

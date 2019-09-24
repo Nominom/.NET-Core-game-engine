@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
-using ECSCore.Numerics;
 
 namespace Core.Graphics
 {
@@ -10,10 +10,10 @@ namespace Core.Graphics
 		public static Mesh FullScreenQuad() {
 			VertexData[] quadVertices =
 			{
-				new VertexData(new ECSCore.Numerics.Vector3(-1f, 1f, 0), new Color(1, 0, 0)),
-				new VertexData(new ECSCore.Numerics.Vector3(1f, 1f, 0), new Color(0, 1, 0)),
-				new VertexData(new ECSCore.Numerics.Vector3(-1f, -1f, 0), new Color(0, 0, 1)),
-				new VertexData(new ECSCore.Numerics.Vector3(1f, -1f, 0), new Color(1, 1, 0))
+				new VertexData(new Vector3(-1f, 1f, 0), new Color(1, 0, 0)),
+				new VertexData(new Vector3(1f, 1f, 0), new Color(0, 1, 0)),
+				new VertexData(new Vector3(-1f, -1f, 0), new Color(0, 0, 1)),
+				new VertexData(new Vector3(1f, -1f, 0), new Color(1, 1, 0))
 			};
 
 			ushort[] quadIndices = { 0, 1, 2, 2, 1, 3 };

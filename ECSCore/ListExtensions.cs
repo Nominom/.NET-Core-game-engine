@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 	public static class ListExtensions
 	{

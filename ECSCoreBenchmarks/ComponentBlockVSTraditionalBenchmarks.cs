@@ -12,10 +12,10 @@ using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
-using ECSCore;
+using Core.ECS;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 	[Config(typeof(Config))]
 	public class ComponentBlockVSTraditionalBenchmarks {
 		private class Config : ManualConfig {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
-using ECSCore;
-using ECSCore.Numerics;
+using Core.ECS;
 using Xunit;
 
-namespace ECSCoreTests
+namespace CoreTests
 {
 	public class EntityCommandBufferTests
 	{
@@ -66,23 +66,23 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up});
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY});
 			prefab.AddSharedComponent(shared1);
 
 
 			buffer.CreateEntity(prefab);
 			buffer.CreateEntity(prefab);
-			buffer.SetComponent(new TestComponentVector3 { value = Vector3.right });
+			buffer.SetComponent(new TestComponentVector3 { value = Vector3.UnitX });
 			buffer.CreateEntity(prefab.Archetype);
-			buffer.SetComponent(new TestComponentVector3{value = Vector3.left});
+			buffer.SetComponent(new TestComponentVector3{value = Vector3.UnitZ});
 			buffer.Playback();
 
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
 				Assert.Equal(3, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
-				Assert.Equal(Vector3.right, cData[1].value);
-				Assert.Equal(Vector3.left, cData[2].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
+				Assert.Equal(Vector3.UnitX, cData[1].value);
+				Assert.Equal(Vector3.UnitZ, cData[2].value);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -97,7 +97,7 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up });
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 			prefab.AddSharedComponent(shared1);
 
 
@@ -111,7 +111,7 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -120,7 +120,7 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.Add<TestComponent2>()), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
 				var cData2 = accessor.GetComponentData<TestComponent2>();
 				Assert.Equal(1, cData2[0].i);
 				Assert.Equal(2, cData2[0].d, 3);
@@ -133,7 +133,7 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.Add<TestComponent1>()), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.zero, cData[0].value);
+				Assert.Equal(Vector3.Zero, cData[0].value);
 				var cData2 = accessor.GetComponentData<TestComponent1>();
 				Assert.Equal(1, cData2[0].i);
 				Assert.Equal(2, cData2[0].d,3);
@@ -152,7 +152,7 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up });
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 
 
 			buffer.CreateEntity(prefab);
@@ -163,7 +163,7 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
 
 				Assert.Throws<ComponentNotFoundException>(accessor.GetSharedComponentData<SharedComponent1>);
 			});
@@ -171,7 +171,7 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.AddShared(shared1)), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -189,7 +189,7 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up });
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 			prefab.AddSharedComponent(shared1);
 
 
@@ -204,9 +204,9 @@ namespace ECSCoreTests
 			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
 				Assert.Equal(3, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
-				Assert.Equal(Vector3.up, cData[0].value);
-				Assert.Equal(Vector3.up, cData[1].value);
-				Assert.Equal(Vector3.zero, cData[2].value);
+				Assert.Equal(Vector3.UnitY, cData[0].value);
+				Assert.Equal(Vector3.UnitY, cData[1].value);
+				Assert.Equal(Vector3.Zero, cData[2].value);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -337,7 +337,7 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up });
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 			prefab.AddSharedComponent(shared1);
 
 			Assert.True(buffer.Empty());
@@ -360,7 +360,7 @@ namespace ECSCoreTests
 
 			SharedComponent1 shared1 = new SharedComponent1();
 			Prefab prefab = new Prefab();
-			prefab.AddComponent(new TestComponentVector3() { value = Vector3.up });
+			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 			prefab.AddSharedComponent(shared1);
 
 			Assert.Throws<InvalidOperationException>(() => buffer.AddComponent(new TestComponent1()));

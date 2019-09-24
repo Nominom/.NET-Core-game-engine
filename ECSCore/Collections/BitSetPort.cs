@@ -42,7 +42,7 @@
 // Source ported to C# from: http://fuseyism.com/classpath/doc/java/util/BitSet-source.html
 // C# source code from: https://gist.github.com/NightOwl888/12abed2c1a68330ac57d
 
-namespace ECSCore.Collections.JavaPort
+namespace Core.ECS.Collections.JavaPort
 {
 	using System;
 	using System.Text;

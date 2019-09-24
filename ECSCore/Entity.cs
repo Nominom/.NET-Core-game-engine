@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ECSCore;
-using ECSCore.Numerics;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public struct Entity {
 		public const int NULL_ID = 0;
 

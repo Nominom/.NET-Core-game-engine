@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreTests {
+namespace CoreTests {
 	public class EntityTests {
 		[Fact]
 		public void Size () {

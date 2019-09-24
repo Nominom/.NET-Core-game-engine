@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreBenchmarks
+namespace CoreBenchmarks
 {
 	[Config(typeof(NormalAsmConfig))]
 	public class TypeHelperBenchmarks

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using ECSCore;
+using Core.ECS;
 using Xunit;
 
-namespace ECSCoreTests
+namespace CoreTests
 {
 	public class MemoryStackTests
 	{

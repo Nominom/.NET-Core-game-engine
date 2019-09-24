@@ -12,7 +12,7 @@ using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 
-namespace ECSCoreBenchmarks
+namespace CoreBenchmarks
 {
 	[Config(typeof(Config))]
 	public class MemoryStackBenchmarks
@@ -69,7 +69,7 @@ namespace ECSCoreBenchmarks
 
 		[Benchmark]
 		public void MemoryStack() {
-			var stack = ECSCore.MemoryStack.Default;
+			var stack = Core.ECS.MemoryStack.Default;
 			stack.Reset();
 
 			for (int i = 0; i < 10; i++) {
@@ -81,7 +81,7 @@ namespace ECSCoreBenchmarks
 		[Benchmark]
 		public void MemoryStackAligned()
 		{
-			var stack = ECSCore.MemoryStack.Default;
+			var stack = Core.ECS.MemoryStack.Default;
 			stack.Reset();
 
 			for (int i = 0; i < 10; i++) {

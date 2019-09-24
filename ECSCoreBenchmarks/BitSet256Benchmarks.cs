@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using ECSCore.Collections;
-using ECSCore.Collections.JavaPort;
+using Core.ECS.Collections;
+using Core.ECS.Collections.JavaPort;
 
-namespace ECSCoreBenchmarks
+namespace CoreBenchmarks
 {
 	[Config(typeof(NormalAsmConfig))]
 	public class BitSet256Benchmarks {

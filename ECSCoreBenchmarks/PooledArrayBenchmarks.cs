@@ -7,9 +7,9 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
-using ECSCore;
+using Core.ECS;
 
-namespace ECSCoreBenchmarks {
+namespace CoreBenchmarks {
 	[Config(typeof(Config))]
 	public class PooledArrayBenchmarks {
 

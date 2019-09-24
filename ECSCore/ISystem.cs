@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public interface ISystem {
 		bool Enabled { get; set; }
 		void OnCreateSystem(ECSWorld world);

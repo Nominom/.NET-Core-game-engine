@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using ECSCore;
-using GraphicsCore;
+using Core.ECS;
+using Core.Graphics;
 
 namespace Core
 {

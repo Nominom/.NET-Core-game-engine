@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ECSCore;
+using Core.ECS;
 using Xunit;
 
-namespace ECSCoreTests {
+namespace CoreTests {
 	public class BlockAllocatorTests {
 
 		[Fact]

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
-using ECSCore;
-using ECSCore.Numerics;
+using Core.ECS;
 using Xunit;
 
-namespace ECSCoreTests
+namespace CoreTests
 {
 	public class PrefabTests {
 		private Prefab prefab1, prefab2;
@@ -22,7 +22,7 @@ namespace ECSCoreTests
 			prefab1.AddSharedComponent(shared);
 
 			prefab2 = new Prefab();
-			prefab2.AddComponent(new TestComponentVector3(){value = Vector3.one});
+			prefab2.AddComponent(new TestComponentVector3(){value = Vector3.One});
 		}
 		[Fact]
 		public void CreateWithComponent() {
@@ -34,7 +34,7 @@ namespace ECSCoreTests
 
 			TestComponentVector3 component = world.ComponentManager.GetComponent<TestComponentVector3>(instantiated);
 			
-			Assert.Equal(component.value, Vector3.one);
+			Assert.Equal(component.value, Vector3.One);
 		}
 
 		[Fact]

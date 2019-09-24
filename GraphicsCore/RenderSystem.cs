@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Core.Graphics;
-using ECSCore;
+using Core.ECS;
 using Veldrid;
 
-namespace GraphicsCore
+namespace Core.Graphics
 {
 	[ECSSystem(UpdateEvent.Render)]
 	public class RenderSystem : ISystem

@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 
 	internal struct EntityArchetypeBlock

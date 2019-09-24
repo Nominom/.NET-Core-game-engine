@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using ECSCore.Collections;
+using Core.ECS.Collections;
 
-namespace ECSCore
+namespace Core.ECS
 {
 	public static class ComponentMask {
 		private static Dictionary<int, int> CreateComponentDictionary() {

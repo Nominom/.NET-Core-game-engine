@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public class DebugHelper {
 
 		[Conditional("DEBUG")]

@@ -4,12 +4,12 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.Graphics;
-using ECSCore;
+using Core.ECS;
 using Veldrid;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
 
-namespace GraphicsCore
+namespace Core.Graphics
 {
 	public static class GraphicsContext
 	{

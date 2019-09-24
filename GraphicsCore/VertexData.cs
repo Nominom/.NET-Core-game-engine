@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
-using ECSCore.Numerics;
 using Veldrid;
 
 namespace Core.Graphics

@@ -6,7 +6,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using Microsoft.VisualBasic.CompilerServices;
 
-namespace ECSCore.Collections
+namespace Core.ECS.Collections
 {
 	public unsafe struct BitSet256
 	{

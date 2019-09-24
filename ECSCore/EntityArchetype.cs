@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
-using ECSCore.Collections;
+using Core.ECS.Collections;
 
-namespace ECSCore {
+namespace Core.ECS
+{
 	public class EntityArchetype {
 
 		public static readonly EntityArchetype Empty = new EntityArchetype();

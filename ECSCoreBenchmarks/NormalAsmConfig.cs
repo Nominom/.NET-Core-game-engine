@@ -9,7 +9,7 @@ using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 
-namespace ECSCoreBenchmarks
+namespace CoreBenchmarks
 {
 	public class NormalAsmConfig : ManualConfig
 	{

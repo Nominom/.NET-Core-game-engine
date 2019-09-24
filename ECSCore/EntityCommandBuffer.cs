@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ECSCore
+namespace Core.ECS
 {
 
 	public sealed class EntityCommandBuffer

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ECSCore.Collections;
+using Core.ECS.Collections;
 using Xunit;
 
-namespace ECSCoreTests
+namespace CoreTests
 {
 	public class BitSetTests
 	{

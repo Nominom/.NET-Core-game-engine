@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using ECSCore;
+using Core.ECS;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-namespace GraphicsCore
+namespace Core.Graphics
 {
 	public static class Window {
 		internal static Sdl2Window window;
