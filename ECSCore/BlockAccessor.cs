@@ -8,9 +8,12 @@ namespace Core.ECS
 	{
 		private readonly ComponentMemoryBlock block;
 
+		public readonly int Length { get; }
 		internal BlockAccessor(ComponentMemoryBlock block)
 		{
 			this.block = block;
+
+			Length = block.Size;
 		}
 
 		public ReadOnlySpan<Entity> GetEntityData() {

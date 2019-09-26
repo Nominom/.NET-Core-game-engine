@@ -11,7 +11,7 @@ namespace Core.ECS
 		public static readonly EntityArchetype Empty = new EntityArchetype();
 		//Component Type and size in bytes
 		internal Dictionary<System.Type, int> components = new Dictionary<System.Type, int>();
-		//SharedComponent Type and index into array
+		//SharedComponent Type and reference to component
 		internal Dictionary<System.Type, ISharedComponent> sharedComponents = new Dictionary<Type, ISharedComponent>();
 		private int _hash = 0;
 

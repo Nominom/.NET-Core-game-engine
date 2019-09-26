@@ -27,24 +27,25 @@ namespace Core.Graphics
 
 			Mesh quad = RenderUtilities.FullScreenQuad;
 
-			//if (!quad.IsLoaded) {
-			//	quad.LoadToGpu();
-			//}
+			if (!quad.subMeshes[0].IsLoaded)
+			{
+				quad.subMeshes[0].LoadToGpu();
+			}
 
 
 			GraphicsContext._commandList.Begin();
 			GraphicsContext._commandList.SetFramebuffer(GraphicsContext._graphicsDevice.SwapchainFramebuffer);
 			GraphicsContext._commandList.ClearColorTarget(0, RgbaFloat.Black);
 
-			//GraphicsContext._commandList.SetVertexBuffer(0, quad.vertexBuffer);
-			//GraphicsContext._commandList.SetIndexBuffer(quad.indexBuffer, IndexFormat.UInt16);
-			//GraphicsContext._commandList.SetPipeline(GraphicsContext._pipeline);
-			//GraphicsContext._commandList.DrawIndexed(
-			//	indexCount: quad.IndexCount,
-			//	instanceCount: 1,
-			//	indexStart: 0,
-			//	vertexOffset: 0,
-			//	instanceStart: 0);
+			GraphicsContext._commandList.SetVertexBuffer(0, quad.subMeshes[0].vertexBuffer);
+			GraphicsContext._commandList.SetIndexBuffer(quad.subMeshes[0].indexBuffer, IndexFormat.UInt16);
+			GraphicsContext._commandList.SetPipeline(GraphicsContext._pipeline);
+			GraphicsContext._commandList.DrawIndexed(
+				indexCount: quad.subMeshes[0].IndexCount,
+				instanceCount: 1,
+				indexStart: 0,
+				vertexOffset: 0,
+				instanceStart: 0);
 
 			GraphicsContext._commandList.End();
 			GraphicsContext._graphicsDevice.SubmitCommands(GraphicsContext._commandList);

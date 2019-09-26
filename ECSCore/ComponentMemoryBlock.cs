@@ -17,7 +17,7 @@ namespace Core.ECS
 		public int componentSize;
 	}
 
-	internal class ComponentMemoryBlock : IDisposable {
+	internal sealed class ComponentMemoryBlock : IDisposable {
 		private static readonly BlockAllocator allocator = BlockAllocator.KB16;
 
 		private int _size;

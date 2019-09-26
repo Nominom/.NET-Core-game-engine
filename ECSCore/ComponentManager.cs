@@ -22,11 +22,18 @@ namespace Core.ECS
 
 		public int GetOrCreateFreeBlockIndex()
 		{
-			for (int i = 0; i < blocks.Count; i++)
+			if (lastUsedIndex != -1 && blocks[lastUsedIndex].HasRoom) {
+				return lastUsedIndex;
+			}
+			for (int i = blocks.Count - 1; i >= 0 ; i--)
 			{
-				if (blocks[i].HasRoom) return i;
+				if (blocks[i].HasRoom) {
+					lastUsedIndex = i;
+					return i;
+				}
 			}
 			blocks.Add(new ComponentMemoryBlock(archetype));
+			lastUsedIndex = blocks.Count - 1;
 			return blocks.Count - 1;
 		}
 	}

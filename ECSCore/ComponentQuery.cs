@@ -68,5 +68,7 @@ namespace Core.ECS
 		public static bool operator !=(ComponentQuery left, ComponentQuery right) {
 			return !left.Equals(right);
 		}
+
+
 	}
 }
