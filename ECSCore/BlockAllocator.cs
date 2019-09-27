@@ -101,4 +101,70 @@ namespace Core.ECS
 			return m;
 		}
 	}
+
+
+
+
+
+
+
+	internal unsafe class UnsafeBlockMemory : IDisposable {
+		private readonly IntPtr ptr;
+		private readonly int size;
+
+		public Span<byte> Span => new Span<byte>(ptr.ToPointer(), size);
+
+		public UnsafeBlockMemory(IntPtr ptr, int size) {
+			this.ptr = ptr;
+			this.size = size;
+		}
+
+		public void Dispose()
+		{
+			GC.SuppressFinalize(this);
+			Free();
+		}
+
+		public int Size()
+		{
+			return size;
+		}
+
+		public void* GetPointer() {
+			return ptr.ToPointer();
+		}
+
+		~UnsafeBlockMemory() {
+			Free();
+		}
+
+		private void Free() {
+			Marshal.FreeHGlobal(ptr);
+		}
+	}
+
+
+	internal unsafe class UnsafeBlockAllocator
+	{
+		private const int bigChunkSizeKb = 2048;
+
+		public static UnsafeBlockAllocator KB16 { get; } = new UnsafeBlockAllocator(16);
+		public static UnsafeBlockAllocator KB32 { get; } = new UnsafeBlockAllocator(32);
+
+
+		private int numKB;
+
+		public int NumBytes => numKB * 1024;
+
+
+		public UnsafeBlockAllocator(int numKB)
+		{
+			this.numKB = numKB;
+		}
+
+		public UnsafeBlockMemory Rent() {
+			var ptr = Marshal.AllocHGlobal(NumBytes);
+			return new UnsafeBlockMemory(ptr, NumBytes);
+		}
+	}
 }

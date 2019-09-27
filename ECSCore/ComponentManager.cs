@@ -7,7 +7,7 @@ using System.Text;
 namespace Core.ECS
 {
 
-	internal struct EntityArchetypeBlock
+	internal sealed class EntityArchetypeBlock
 	{
 		public EntityArchetype archetype;
 		public List<ComponentMemoryBlock> blocks;

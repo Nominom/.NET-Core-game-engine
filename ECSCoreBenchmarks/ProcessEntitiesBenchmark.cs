@@ -51,7 +51,7 @@ namespace CoreBenchmarks
 				var scale = block.GetReadOnlyComponentData<Scale>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;

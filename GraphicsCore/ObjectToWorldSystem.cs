@@ -54,7 +54,7 @@ namespace Core.Graphics
 				var position = block.GetReadOnlyComponentData<Position>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++) {
+				for (int i = 0; i < block.length; i++) {
 					Vector3 pos = position[i].value;
 					oToW[i].value = Matrix4x4.CreateTranslation(pos);
 				}
@@ -66,7 +66,7 @@ namespace Core.Graphics
 				var rotation = block.GetReadOnlyComponentData<Rotation>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;
@@ -83,7 +83,7 @@ namespace Core.Graphics
 				var scale = block.GetReadOnlyComponentData<Scale>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;
@@ -104,7 +104,7 @@ namespace Core.Graphics
 				var scale = block.GetReadOnlyComponentData<Scale>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Vector3 scl = scale[i].value;

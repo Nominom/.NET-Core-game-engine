@@ -57,7 +57,7 @@ namespace Core.ECS
 				}
 			}
 			/*
-			for (int i = 0; i < arrays.Length; i++) {
+			for (int i = 0; i < arrays.length; i++) {
 				T[] arr = arrays[i];
 				if (arr != null) {
 					return arr;

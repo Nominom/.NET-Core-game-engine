@@ -47,7 +47,7 @@ namespace CoreBenchmarks
 				var scale = block.GetReadOnlyComponentData<Scale>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;
@@ -73,7 +73,7 @@ namespace CoreBenchmarks
 				var scale = block.GetReadOnlyComponentData<Scale>();
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
-				for (int i = block.Length - 1; i >= 0; i--)
+				for (int i = block.length - 1; i >= 0; i--)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;
@@ -100,12 +100,12 @@ namespace CoreBenchmarks
 				var oToW = block.GetComponentData<ObjectToWorld>();
 
 
-				var _ = position[block.Length - 1];
-				var __ = rotation[block.Length - 1];
-				var ___ = scale[block.Length - 1];
-				var ____ = oToW[block.Length - 1];
+				var _ = position[block.length - 1];
+				var __ = rotation[block.length - 1];
+				var ___ = scale[block.length - 1];
+				var ____ = oToW[block.length - 1];
 
-				for (int i = 0; i < block.Length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 					Vector3 pos = position[i].value;
 					Quaternion rot = rotation[i].value;

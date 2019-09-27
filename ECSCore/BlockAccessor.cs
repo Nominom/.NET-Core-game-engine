@@ -8,12 +8,12 @@ namespace Core.ECS
 	{
 		private readonly ComponentMemoryBlock block;
 
-		public readonly int Length { get; }
+		public readonly int length;
 		internal BlockAccessor(ComponentMemoryBlock block)
 		{
 			this.block = block;
 
-			Length = block.Size;
+			length = block.Size;
 		}
 
 		public ReadOnlySpan<Entity> GetEntityData() {
@@ -30,6 +30,39 @@ namespace Core.ECS
 		}
 
 		public T GetSharedComponentData<T> () where T : class, ISharedComponent {
+			return block.archetype.GetShared<T>();
+		}
+	}
+
+	public struct UnsafeBlockAccessor
+	{
+		private readonly UnsafeComponentMemoryBlock block;
+
+		public readonly int length;
+		internal UnsafeBlockAccessor(UnsafeComponentMemoryBlock block)
+		{
+			this.block = block;
+
+			length = block.Size;
+		}
+
+		public ReadOnlySpan<Entity> GetEntityData()
+		{
+			return block.GetEntityData().Slice(0, block.Size);
+		}
+		public Span<T> GetComponentData<T>() where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
+			return block.GetComponentData<T>().Slice(0, block.Size);
+		}
+		public ReadOnlySpan<T> GetReadOnlyComponentData<T>() where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
+			return block.GetComponentData<T>().Slice(0, block.Size);
+		}
+
+		public T GetSharedComponentData<T>() where T : class, ISharedComponent
+		{
 			return block.archetype.GetShared<T>();
 		}
 	}
