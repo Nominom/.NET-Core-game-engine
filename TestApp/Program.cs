@@ -43,6 +43,8 @@ namespace TestApp
 		{
 			Random random = new Random();
 			CoreEngine.Initialize();
+			CoreEngine.targetFps = 0;
+
 
 			Prefab cube = new Prefab();
 			cube.AddComponent(new Position(){value = Vector3.Zero});
@@ -56,15 +58,15 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 100;
+			const int numThings = 10_000;
 
 			for (int i = 0; i < numThings; i++) {
 				var entity = world.Instantiate(cube);
 				cm.SetComponent(entity, new Position() {
 					value = new Vector3(
-						random.Next(-(int)Math.Sqrt(numThings), (int)Math.Sqrt(numThings)),
+						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
 						0, 
-						random.Next(-(int)Math.Sqrt(numThings), (int)Math.Sqrt(numThings)))
+						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 			}
 			

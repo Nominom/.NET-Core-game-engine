@@ -14,6 +14,7 @@ namespace Core.Graphics
 
 		private ComponentQuery query;
 		private DeviceBuffer instanceMatrices;
+		private int instanceMatricesBufferSize = 1;
 
 		public void OnCreate(ECSWorld world) {
 			query.Include<ObjectToWorld>();
@@ -21,10 +22,21 @@ namespace Core.Graphics
 			query.IncludeShared<OpaqueRenderTag>();
 
 			instanceMatrices = GraphicsContext.factory.CreateBuffer(new BufferDescription((uint) Marshal.SizeOf<Matrix4x4>(), BufferUsage.VertexBuffer|BufferUsage.Dynamic));
+			instanceMatricesBufferSize = 1;
 		}
 
 		public void OnDestroy(ECSWorld world) {
 			instanceMatrices.Dispose();
+		}
+
+		private void GrowInstanceMatrices(int newAmount) {
+			if (instanceMatrices != null) {
+				instanceMatrices.Dispose();
+			}
+
+			instanceMatrices = GraphicsContext.factory.CreateBuffer(
+				new BufferDescription((uint) (Marshal.SizeOf<Matrix4x4>() * newAmount), BufferUsage.VertexBuffer|BufferUsage.Dynamic));
+			instanceMatricesBufferSize = newAmount;
 		}
 
 		public void Render(ECSWorld world, in RenderContext context) {
@@ -35,9 +47,15 @@ namespace Core.Graphics
 				Mesh mesh = renderer.mesh;
 				mesh.LoadSubMeshes();
 
-				var objectToWorld = block.GetComponentData<ObjectToWorld>();
+				if (block.length > instanceMatricesBufferSize) {
+					GrowInstanceMatrices(block.length);
+				}
+
+				var objectToWorld = block.GetReadOnlyComponentData<ObjectToWorld>();
 
 				var cmd = context.CreateCommandList();
+
+				context.UpdateBuffer(instanceMatrices, 0, objectToWorld);
 
 				cmd.Begin();
 
@@ -51,17 +69,12 @@ namespace Core.Graphics
 					cmd.SetIndexBuffer(subMesh.indexBuffer, IndexFormat.UInt16);
 					cmd.SetVertexBuffer(1, instanceMatrices);
 
-					for (int i = 0; i < objectToWorld.Length; i++) {
-						ObjectToWorld ow = objectToWorld[i];
-						cmd.UpdateBuffer(instanceMatrices,0, ow); //Only for small buffers. Will imply a double copy?
-
-						cmd.DrawIndexed(
-							indexCount: subMesh.IndexCount,
-							instanceCount: 1,
-							indexStart: 0,
-							vertexOffset: 0,
-							instanceStart: 0);
-					}
+					cmd.DrawIndexed(
+						indexCount: subMesh.IndexCount,
+						instanceCount: (uint)block.length,
+						indexStart: 0,
+						vertexOffset: 0,
+						instanceStart: 0);
 				}
 
 				cmd.End();

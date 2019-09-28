@@ -171,7 +171,7 @@ void main()
 				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
-			VertexLayoutDescription matrixLayout = new VertexLayoutDescription(stride:16,instanceStepRate:1,
+			VertexLayoutDescription matrixLayout = new VertexLayoutDescription(stride:64,instanceStepRate:1,
 				new VertexElementDescription("model1", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 				new VertexElementDescription("model2", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 				new VertexElementDescription("model3", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
