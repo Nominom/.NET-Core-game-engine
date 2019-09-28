@@ -14,7 +14,24 @@ namespace Core.Graphics
 			this.subMeshes = subMeshes;
 		}
 
+		public void LoadSubMeshes() {
+			foreach (SubMesh subMesh in subMeshes) {
+				if (!subMesh.IsLoaded) {
+					subMesh.LoadToGpu();
+				}
+			}
+		}
+
+		~Mesh() {
+			Free();
+		}
+
 		public void Dispose() {
+			Free();
+			GC.SuppressFinalize(this);
+		}
+
+		private void Free() {
 			if (subMeshes == null) return;
 			foreach (SubMesh subMesh in subMeshes) {
 				subMesh.Dispose();

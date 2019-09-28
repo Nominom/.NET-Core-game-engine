@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Core.ECS;
+using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
@@ -13,6 +14,7 @@ namespace Core.Graphics
 		private static ECSWorld world;
 
 		public static event Action OnWindowClose;
+		public static event Action<int,int> OnWindowResize;
 
 
 		public static void Initialize(ECSWorld world) {
@@ -26,11 +28,13 @@ namespace Core.Graphics
 				Y = 100,
 				WindowWidth = 960,
 				WindowHeight = 540,
-				WindowTitle = "Veldrid Tutorial"
+				WindowTitle = "Veldrid Tutorial",
+				WindowInitialState = WindowState.Normal
 			};
 
 			window = VeldridStartup.CreateWindow(ref windowCI);
 			window.Closed += () => OnWindowClose?.Invoke();
+			window.Resized += () => OnWindowResize?.Invoke(window.Width, window.Height);
 
 			world.EarlyUpdate += WorldOnEarlyUpdate;
 

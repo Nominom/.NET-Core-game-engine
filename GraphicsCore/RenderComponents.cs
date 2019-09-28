@@ -7,6 +7,7 @@ namespace Core.Graphics
 {
 	public class MeshRenderer : ISharedComponent {
 		public Mesh mesh;
+
 		//public Material material;
 	}
 }

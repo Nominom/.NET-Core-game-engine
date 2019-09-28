@@ -16,7 +16,7 @@ namespace Core.ECS
 			get {
 				if (_default == null)
 				{
-					_default = new MemoryStack(1024 * 1024);
+					_default = new MemoryStack(1024 * 64);
 				}
 
 				return _default;
