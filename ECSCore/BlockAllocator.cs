@@ -71,6 +71,8 @@ namespace Core.ECS
 
 		public static BlockAllocator KB16 { get; } = new BlockAllocator(16);
 		public static BlockAllocator KB32 { get; } = new BlockAllocator(32);
+		public static BlockAllocator KB64 { get; } = new BlockAllocator(64);
+		public static BlockAllocator KB128 { get; } = new BlockAllocator(128);
 
 
 		private int numKB;
@@ -85,20 +87,22 @@ namespace Core.ECS
 		}
 
 		public BlockMemory Rent() {
-			foreach (BigChunk chunk in datablocks) {
-				if (chunk.HasFreeBlocks()) {
-					int index = chunk.Reserve();
-					BlockMemory memory = new BlockMemory(chunk, index, NumBytes);
-					return memory;
+			lock (this) {
+				foreach (BigChunk chunk in datablocks) {
+					if (chunk.HasFreeBlocks()) {
+						int index = chunk.Reserve();
+						BlockMemory memory = new BlockMemory(chunk, index, NumBytes);
+						return memory;
+					}
 				}
+
+				BigChunk newChunk = new BigChunk(numKB, bigChunkSizeKb / numKB);
+				datablocks.Add(newChunk);
+
+				int i = newChunk.Reserve();
+				BlockMemory m = new BlockMemory(newChunk, i, NumBytes);
+				return m;
 			}
-
-			BigChunk newChunk = new BigChunk(numKB, bigChunkSizeKb / numKB);
-			datablocks.Add(newChunk);
-
-			int i = newChunk.Reserve();
-			BlockMemory m = new BlockMemory(newChunk, i, NumBytes);
-			return m;
 		}
 	}
 

@@ -26,6 +26,25 @@ namespace CoreTests {
 				Assert.Equal(1024 * 32, block.Size());
 				Assert.Equal(1024 * 32, block.Memory.Length);
 			}
+
+
+			BlockAllocator kb64 = BlockAllocator.KB64;
+
+			Assert.Equal(1024 * 64, kb64.NumBytes);
+
+			using (var block = kb64.Rent()) {
+				Assert.Equal(1024 * 64, block.Size());
+				Assert.Equal(1024 * 64, block.Memory.Length);
+			}
+
+			BlockAllocator kb128 = BlockAllocator.KB128;
+
+			Assert.Equal(1024 * 128, kb128.NumBytes);
+
+			using (var block = kb128.Rent()) {
+				Assert.Equal(1024 * 128, block.Size());
+				Assert.Equal(1024 * 128, block.Memory.Length);
+			}
 		}
 
 		[Theory]

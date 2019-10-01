@@ -19,7 +19,14 @@ namespace Core.Graphics
 
 		public Matrix4x4 ProjectionMatrix() {
 			float fowRadians = (MathF.PI / 180) * fow;
-			return Matrix4x4.CreatePerspectiveFieldOfView(fowRadians, aspect, nearPlane, farPlane);
+			var proj = Matrix4x4.CreatePerspectiveFieldOfView(fowRadians, aspect, nearPlane, farPlane);
+			if (GraphicsContext._graphicsDevice.IsClipSpaceYInverted) {
+				//proj.M22 = -proj.M22;
+				return proj;
+			}
+			else {
+				return proj;
+			}
 		}
 	}
 }

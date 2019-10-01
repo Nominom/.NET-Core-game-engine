@@ -24,6 +24,8 @@ namespace Core.ECS
 		public ComponentManager ComponentManager { get; }
 		public SystemManager SystemManager { get; }
 
+		internal Thread mainThread;
+
 		/// <summary>
 		/// Indicates whether this world is the main world. Only the main world will call Render events.
 		/// </summary>
@@ -32,18 +34,20 @@ namespace Core.ECS
 		private bool initialized = false;
 		public ECSWorld()
 		{
-			ComponentManager = new ComponentManager();
-			EntityManager = new EntityManager(ComponentManager);
+			ComponentManager = new ComponentManager(this);
+			EntityManager = new EntityManager(this, ComponentManager);
 			SystemManager = new SystemManager(this);
 			IsMainWorld = false;
+			mainThread = Thread.CurrentThread;
 		}
 
 		internal ECSWorld(bool mainWorld = true)
 		{
-			ComponentManager = new ComponentManager();
-			EntityManager = new EntityManager(ComponentManager);
+			ComponentManager = new ComponentManager(this);
+			EntityManager = new EntityManager(this, ComponentManager);
 			SystemManager = new SystemManager(this);
 			IsMainWorld = mainWorld;
+			mainThread = Thread.CurrentThread;
 		}
 
 		internal static ECSWorld CreateMain() {
@@ -53,6 +57,7 @@ namespace Core.ECS
 
 		public void Initialize(bool autoRegisterSystems = true)
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			initialized = true;
 
 			if (autoRegisterSystems)
@@ -65,6 +70,7 @@ namespace Core.ECS
 
 		public void CleanUp()
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			SystemManager.CleanUp();
 			ComponentManager.CleanUp();
 			OnWorldDispose?.Invoke();
@@ -87,6 +93,7 @@ namespace Core.ECS
 
 		public void InvokeUpdate(float deltaTime)
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			InvokeAllLogExceptions(deltaTime, EarlyUpdate); 
 			InvokeAllLogExceptions(deltaTime, Update); 
 			InvokeAllLogExceptions(deltaTime, LateUpdate);
@@ -94,26 +101,34 @@ namespace Core.ECS
 
 		public void InvokeRender(float deltaTime)
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			InvokeAllLogExceptions(deltaTime, BeforeRender);
 			InvokeAllLogExceptions(deltaTime, Render);
 			InvokeAllLogExceptions(deltaTime, AfterRender);
 		}
 
 		public void InvokeFixedUpdate(float fixedUpdateStep) {
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			InvokeAllLogExceptions(fixedUpdateStep, FixedUpdate);
 		}
 
 		public Entity Instantiate(EntityArchetype archetype)
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			Entity entity = EntityManager.CreateEntity(archetype);
 			return entity;
 		}
 
 		public Entity Instantiate(Prefab prefab)
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			Entity entity = EntityManager.CreateEntity(prefab.archetype);
 			ComponentManager.AddPrefabComponents(entity, prefab);
 			return entity;
+		}
+
+		internal bool CheckThreadIsMainThread() {
+			return Thread.CurrentThread.ManagedThreadId == mainThread.ManagedThreadId;
 		}
 	}
 }

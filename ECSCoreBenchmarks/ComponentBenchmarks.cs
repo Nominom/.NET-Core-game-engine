@@ -20,7 +20,8 @@ namespace CoreBenchmarks {
 		private Entity[] entities;
 
 		public ComponentBenchmarks() {
-			cm = new ComponentManager();
+			ECSWorld world = new ECSWorld(false);
+			cm = world.ComponentManager;
 			entities = new Entity[numEntities];
 
 			for (int i = 0; i < numEntities; i++) {

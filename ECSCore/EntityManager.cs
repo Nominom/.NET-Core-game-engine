@@ -9,14 +9,17 @@ namespace Core.ECS
 		private int nextIdx;
 		private readonly Stack<Entity> freeEntities;
 		private readonly ComponentManager componentManager;
+		private ECSWorld world;
 
-		public EntityManager(ComponentManager cm) {
+		public EntityManager(ECSWorld world, ComponentManager cm) {
+			this.world = world;
 			componentManager = cm;
 			freeEntities = new Stack<Entity>();
 			nextIdx = 1;
 		}
 
 		public Entity CreateEntity(EntityArchetype archetype = null) {
+			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
 			if (archetype == null) {
 				archetype = EntityArchetype.Empty;
 			}
@@ -33,6 +36,7 @@ namespace Core.ECS
 		}
 
 		public Entity[] CreateEntities(int numEntities, EntityArchetype archetype = null) {
+			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
 			if (archetype == null) {
 				archetype = EntityArchetype.Empty;
 			}
@@ -54,6 +58,7 @@ namespace Core.ECS
 		}
 
 		public void DestroyEntity(in Entity e) {
+			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
 			if (!componentManager.IsEntityValid(e)) {
 				throw new InvalidEntityException();
 			}

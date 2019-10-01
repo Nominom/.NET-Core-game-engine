@@ -229,17 +229,19 @@ namespace Core.Graphics
 
 			//Create context
 			RenderContext context = new RenderContext();
-			context.mainFrameBuffer = GraphicsContext._graphicsDevice.SwapchainFramebuffer;
+			context.mainFrameBuffer = GraphicsContext._graphicsDevice.MainSwapchain.Framebuffer;
 
 			CommandList cmd = context.CreateCommandList();
 			cmd.Begin();
 			cmd.SetFramebuffer(context.mainFrameBuffer);
 			cmd.ClearColorTarget(0, RgbaFloat.Black);
+			cmd.ClearDepthStencil(1f);
 
-			cmd.UpdateBuffer(GraphicsContext._cameraProjViewBuffer, 0, 
-				Matrix4x4.CreateLookAt(new Vector3(4, 10, -20),Vector3.Zero, Vector3.UnitY )
+
+			context.SetViewProjMatrix(cmd, 
+				Matrix4x4.CreateLookAt(new Vector3(4, 10, -20), Vector3.Zero, Vector3.UnitY),
+				camera.ProjectionMatrix()
 				);
-			cmd.UpdateBuffer(GraphicsContext._cameraProjViewBuffer, 64, camera.ProjectionMatrix());
 
 			cmd.End();
 			context.SubmitCommands(cmd);

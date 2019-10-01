@@ -18,11 +18,13 @@ namespace Core.ECS
 	{
 		private ComponentQuery query;
 		private bool initialized = false;
+		protected EntityCommandBuffer afterUpdateCommands;
 
 		public override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
 			{
+				afterUpdateCommands = new EntityCommandBuffer(world);
 				query = GetQuery();
 			}
 
@@ -31,6 +33,8 @@ namespace Core.ECS
 			{
 				ProcessBlock(deltaTime, block);
 			}
+
+			afterUpdateCommands.Playback();
 		}
 
 		public abstract ComponentQuery GetQuery();

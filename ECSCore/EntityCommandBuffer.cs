@@ -310,6 +310,7 @@ namespace Core.ECS
 
 		public void Playback()
 		{
+			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
 			if (!Empty()) {
 				int i = 0;
 				while (i < modList.Length)

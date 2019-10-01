@@ -83,6 +83,7 @@ namespace Core
 			if (Window.window.Exists) {
 				Window.Close();
 			}
+			GraphicsContext.DisposeResources(); // Needs to be called after everything else has been cleaned up
 		}
 
 		public static void Stop()

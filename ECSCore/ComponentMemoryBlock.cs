@@ -18,7 +18,7 @@ namespace Core.ECS
 	}
 
 	internal sealed class ComponentMemoryBlock : IDisposable {
-		private static readonly BlockAllocator allocator = BlockAllocator.KB16;
+		private static readonly BlockAllocator defaultAllocator = BlockAllocator.KB16;
 
 		private int _size;
 		private readonly int _maxSize;
@@ -38,7 +38,9 @@ namespace Core.ECS
 		public int Size => _size;
 		public int MaxSize => _maxSize;
 
-		public ComponentMemoryBlock(EntityArchetype archetype) {
+		public ComponentMemoryBlock(EntityArchetype archetype) : this(archetype, defaultAllocator){}
+
+		public ComponentMemoryBlock(EntityArchetype archetype, BlockAllocator allocator) {
 			this.archetype = archetype;
 			//_typeLocations = new Dictionary<Type, ComponentSliceValues>();
 			//_typeLocations = new Dictionary<int, ComponentSliceValues>();

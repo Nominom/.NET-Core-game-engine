@@ -12,8 +12,8 @@ namespace Core.Graphics
 		public Vector3 activeCameraPosition;
 		public Quaternion activeCameraRotation;
 		public Framebuffer mainFrameBuffer;
-		public Matrix4x4 viewMatrix;
-		public Matrix4x4 projectionMatrix;
+		public Matrix4x4 cameraViewMatrix;
+		public Matrix4x4 cameraProjectionMatrix;
 
 		public readonly CommandList CreateCommandList() {
 			//TODO: Not thread-safe. Create a new CommandList from a pool?
@@ -37,7 +37,11 @@ namespace Core.Graphics
 						)
 				);
 			}
-			
+		}
+
+		public void SetViewProjMatrix(CommandList commandList, Matrix4x4 view, Matrix4x4 projection) {
+			commandList.UpdateBuffer(GraphicsContext._cameraProjViewBuffer, 0, view);
+			commandList.UpdateBuffer(GraphicsContext._cameraProjViewBuffer, 64, projection);
 		}
 	}
 }

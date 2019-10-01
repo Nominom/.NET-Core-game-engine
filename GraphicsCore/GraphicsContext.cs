@@ -114,11 +114,28 @@ void main()
 			if (!Window.initialized) throw new InvalidOperationException("Window should be initialized before initializing Graphics.");
 			initialized = true;
 
-			_graphicsDevice = VeldridStartup.CreateGraphicsDevice(Window.window, new GraphicsDeviceOptions() { PreferDepthRangeZeroToOne = true });
+			if (GraphicsDevice.IsBackendSupported(GraphicsBackend.OpenGL)) {
+				_graphicsDevice =
+					VeldridStartup.CreateGraphicsDevice(Window.window,
+						new GraphicsDeviceOptions()
+						{
+							PreferDepthRangeZeroToOne = true,
+							SwapchainDepthFormat = PixelFormat.R16_UNorm,
+							SyncToVerticalBlank = true
+						},
+						GraphicsBackend.OpenGL);
+
+				//_graphicsDevice =
+				//	VeldridStartup.CreateGraphicsDevice(Window.window,
+				//		GraphicsBackend.OpenGL);
+			}
+			else {
+				_graphicsDevice = VeldridStartup.CreateGraphicsDevice(Window.window, new GraphicsDeviceOptions() { PreferDepthRangeZeroToOne = true, SwapchainDepthFormat = PixelFormat.R32_Float, SyncToVerticalBlank = true });
+			}
+
 			
 			CreateResources();
 
-			Window.OnWindowClose += DisposeResources;
 			Window.OnWindowResize += (w, h) => { _graphicsDevice.ResizeMainWindow((uint)w,(uint)h); };
 		}
 
@@ -211,7 +228,8 @@ void main()
 				fillMode: PolygonFillMode.Solid,
 				frontFace: FrontFace.Clockwise,
 				depthClipEnabled: true,
-				scissorTestEnabled: false);
+				scissorTestEnabled: true);
+
 
 			pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleList;
 			pipelineDescription.ResourceLayouts = new[] {
@@ -244,6 +262,8 @@ void main()
 			try
 			{
 				RenderUtilities.DisposeAllUtils();
+				_cameraProjViewBuffer.Dispose();
+				_sharedResourceSet.Dispose();
 				_pipeline_normal.Dispose();
 				_pipeline_instanced.Dispose();
 				_shaders_normal[0].Dispose();
@@ -251,9 +271,7 @@ void main()
 				_shaders_instanced[0].Dispose();
 				_shaders_instanced[1].Dispose();
 				_commandList.Dispose();
-				_graphicsDevice.Dispose();
-				_cameraProjViewBuffer.Dispose();
-				_sharedResourceSet.Dispose();
+				_graphicsDevice.Dispose(); //Graphics device needs to be disposed of last. Or things will blow up!
 				initialized = false;
 			}
 			catch(Exception ex) {
