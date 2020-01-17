@@ -2,23 +2,21 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.Graphics.VulkanBackend;
+using Core.Shared;
 using Microsoft.VisualBasic;
 using Veldrid;
 
 namespace Core.Graphics
 {
 	public class Mesh : IDisposable {
-		public SubMesh[] subMeshes;
+		public GpuMesh[] subMeshes;
 
-		public Mesh(params SubMesh[] subMeshes) {
-			this.subMeshes = subMeshes;
-		}
-
-		public void LoadSubMeshes() {
-			foreach (SubMesh subMesh in subMeshes) {
-				if (!subMesh.IsLoaded) {
-					subMesh.LoadToGpu();
-				}
+		public Mesh(GraphicsDevice device, MeshData meshData) {
+			subMeshes = new GpuMesh[meshData.subMeshes.Length];
+			for (int i = 0; i < meshData.subMeshes.Length; i++) {
+				var subMesh = meshData.subMeshes[i];
+				subMeshes[i] = new GpuMesh(device, subMesh.vertices, subMesh.indices);
 			}
 		}
 
@@ -33,7 +31,7 @@ namespace Core.Graphics
 
 		private void Free() {
 			if (subMeshes == null) return;
-			foreach (SubMesh subMesh in subMeshes) {
+			foreach (GpuMesh subMesh in subMeshes) {
 				subMesh.Dispose();
 			}
 		}

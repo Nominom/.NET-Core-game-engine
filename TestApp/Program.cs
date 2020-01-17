@@ -6,6 +6,7 @@ using Core;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics;
+using Core.Graphics.VulkanBackend;
 
 namespace TestApp
 {
@@ -72,7 +73,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 10;
+			const int numThings = 10000;
 
 			for (int i = 0; i < numThings; i++)
 			{
@@ -95,7 +96,7 @@ namespace TestApp
 						0,
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
-				cm.SetComponent(entity, new RotateComponent(){rotationSpeed =  (float)random.NextDouble() * 4});
+				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
 			}
 
 

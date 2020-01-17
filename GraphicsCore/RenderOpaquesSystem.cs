@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS;
 using Core.ECS.Components;
+using Core.Graphics.VulkanBackend;
 using Veldrid;
 
 namespace Core.Graphics
@@ -14,53 +16,80 @@ namespace Core.Graphics
 	{
 
 		private ComponentQuery query;
-		private DeviceBuffer instanceMatrices;
+		private List<DeviceBuffer> instanceMatricesBuffers;
 		private readonly uint instanceMatricesBufferSize = 16384;
+		private Material defaultMaterial;
+		private ShaderPair defaultShader;
 
 		public void OnCreate(ECSWorld world)
 		{
 			query.Include<ObjectToWorld>();
 			query.IncludeShared<MeshRenderer>();
 			query.IncludeShared<OpaqueRenderTag>();
+			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
+			defaultMaterial = new Material(GraphicsContext.graphicsDevice,
+				GraphicsContext.uniform0, defaultShader);
 
-			instanceMatrices = GraphicsContext.factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Matrix4x4>() * instanceMatricesBufferSize, BufferUsage.VertexBuffer | BufferUsage.Dynamic));
+			instanceMatricesBuffers = new List<DeviceBuffer>(1);
+			GrowInstanceMatrices();
 		}
 
 		public void OnDestroy(ECSWorld world)
 		{
-			instanceMatrices.Dispose();
+			foreach (DeviceBuffer buffer in instanceMatricesBuffers) {
+				buffer.Dispose();
+			}
+			instanceMatricesBuffers.Clear();
 		}
 
-		//private void GrowInstanceMatrices(int newAmount) {
-		//	instanceMatrices?.Dispose();
-
-		//	instanceMatrices = GraphicsContext.factory.CreateBuffer(
-		//		new BufferDescription((uint) (Marshal.SizeOf<Matrix4x4>() * newAmount), BufferUsage.VertexBuffer|BufferUsage.Dynamic));
-		//	instanceMatricesBufferSize = newAmount;
-		//}
-
-		private void RenderMeshInstances(Mesh mesh, uint instanceAmount, uint instanceIndex, RenderContext context)
+		private void GrowInstanceMatrices()
 		{
-			var cmd = context.CreateCommandList();
-			cmd.Begin();
+			instanceMatricesBuffers.Add(new DeviceBuffer(GraphicsContext.graphicsDevice, instanceMatricesBufferSize,
+				BufferUsageFlags.VertexBuffer, BufferMemoryUsageHint.Dynamic));
+		}
 
-			foreach (SubMesh subMesh in mesh.subMeshes)
-			{
+		private void RenderMeshInstances(MeshRenderer mesh, DeviceBuffer instanceBuffer, uint instanceAmount, uint instanceIndex, RenderContext context) {
+			
+			
+			var cmd = context.GetCommandBuffer();
+			cmd.BeginAndContinueRenderPass(context);
 
-				cmd.SetFramebuffer(context.mainFrameBuffer);
+			int matIndex = 0;
+			foreach (var subMesh in mesh.mesh.subMeshes) {
 
-				cmd.SetPipeline(GraphicsContext._pipeline_instanced);
-				cmd.SetGraphicsResourceSet(0, GraphicsContext._sharedResourceSet);
-				cmd.SetVertexBuffer(0, subMesh.vertexBuffer);
-				cmd.SetIndexBuffer(subMesh.indexBuffer, IndexFormat.UInt16);
-				cmd.SetVertexBuffer(1, instanceMatrices);
+				var material = 
+					mesh.materials.Length == 0
+					? defaultMaterial
+					:(matIndex < mesh.materials.Length ? mesh.materials[matIndex] : mesh.materials[0]);
 
-				cmd.DrawIndexed(
-					indexCount: subMesh.IndexCount,
-					instanceCount: instanceAmount,
-					indexStart: 0,
-					vertexOffset: 0,
-					instanceStart: instanceIndex - instanceAmount);
+				var pipeline = material.GetPipeline();
+
+				cmd.UsePipeline(pipeline);
+
+				if (pipeline.instanced) {
+					cmd.BindVertexBuffer(instanceBuffer, Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID);
+					cmd.DrawIndexed(subMesh, instanceAmount, instanceIndex - instanceAmount);
+				}
+				else {
+
+					//TODO: Non-instanced rendering
+				}
+				
+				
+				//cmd.SetFramebuffer(context.mainFrameBuffer);
+
+				//cmd.SetPipeline(GraphicsContext._pipeline_instanced);
+				//cmd.SetGraphicsResourceSet(0, GraphicsContext._sharedResourceSet);
+				//cmd.SetVertexBuffer(0, subMesh.vertexBuffer);
+				//cmd.SetIndexBuffer(subMesh.indexBuffer, IndexFormat.UInt16);
+				//cmd.SetVertexBuffer(1, instanceMatrices);
+
+				//cmd.DrawIndexed(
+				//	indexCount: subMesh.IndexCount,
+				//	instanceCount: instanceAmount,
+				//	indexStart: 0,
+				//	vertexOffset: 0,
+				//	instanceStart: instanceIndex - instanceAmount);
 			}
 
 			cmd.End();
@@ -74,7 +103,7 @@ namespace Core.Graphics
 			var blocks = world.ComponentManager.GetBlocks(query);
 
 			MeshRenderer lastMeshRenderer = null;
-			Mesh mesh = null;
+			int bufferIndex = 0;
 			uint instanceAmount = 0;
 			uint instanceIndex = 0;
 
@@ -84,33 +113,32 @@ namespace Core.Graphics
 
 				if (lastMeshRenderer == null)
 				{
-					mesh = renderer.mesh;
-					mesh.LoadSubMeshes();
 					lastMeshRenderer = renderer;
 					instanceAmount = 0;
 				}
-				else if (renderer.mesh != mesh)
+				else if (renderer.mesh != lastMeshRenderer.mesh)
 				{
-					RenderMeshInstances(mesh, instanceAmount, instanceIndex, context);
+					RenderMeshInstances(lastMeshRenderer, instanceMatricesBuffers[bufferIndex], instanceAmount, instanceIndex, context);
 
-					mesh = renderer.mesh;
-					mesh.LoadSubMeshes();
 					lastMeshRenderer = renderer;
 					instanceAmount = 0;
 				}
 
-				if (instanceIndex + block.length > instanceMatricesBufferSize)
-				{
-					//Clear buffer and wait for idle, before rendering new things
-					RenderMeshInstances(mesh, instanceAmount, instanceIndex, context);
-					GraphicsContext._graphicsDevice.WaitForIdle();
+				if (instanceIndex + block.length > instanceMatricesBufferSize) {
+					RenderMeshInstances(renderer, instanceMatricesBuffers[bufferIndex], instanceAmount, instanceIndex, context);
+
+					bufferIndex++;
+					if (bufferIndex == instanceMatricesBuffers.Count) {
+						GrowInstanceMatrices();
+					}
 					instanceAmount = 0;
 					instanceIndex = 0;
 				}
 
 				var objectToWorld = block.GetReadOnlyComponentData<ObjectToWorld>();
 
-				context.UpdateBuffer(instanceMatrices, instanceIndex * (uint)Marshal.SizeOf<ObjectToWorld>(), objectToWorld);
+				instanceMatricesBuffers[bufferIndex].SetData(objectToWorld, instanceIndex * (uint)Marshal.SizeOf<ObjectToWorld>());
+				//context.UpdateBuffer(instanceMatrices[bufferIndex], instanceIndex * (uint)Marshal.SizeOf<ObjectToWorld>(), objectToWorld);
 				instanceAmount += (uint) block.length;
 				instanceIndex += (uint) block.length;
 
@@ -131,8 +159,8 @@ namespace Core.Graphics
 				//context.UpdateBuffer(instanceMatrices, 0, objectToWorld);
 			}
 
-			if (mesh != null && instanceAmount > 0) {
-				RenderMeshInstances(mesh, instanceAmount, instanceIndex, context);
+			if (lastMeshRenderer != null && instanceAmount > 0) {
+				RenderMeshInstances(lastMeshRenderer, instanceMatricesBuffers[bufferIndex], instanceAmount, instanceIndex, context);
 			}
 
 

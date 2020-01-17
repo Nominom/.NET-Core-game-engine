@@ -13,12 +13,13 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Veldrid" Version="4.7.0" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.5.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.7" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="Veldrid.Sdl2" Version="4.7.0" />
+    <PackageReference Include="Vk" Version="1.0.22" />
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
     <ProjectReference Include="..\ECSCore\Core.ECS.csproj" />
   </ItemGroup>
 

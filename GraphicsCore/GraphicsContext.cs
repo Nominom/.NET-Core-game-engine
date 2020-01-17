@@ -5,28 +5,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Core.Graphics;
 using Core.ECS;
-using Veldrid;
-using Veldrid.SPIRV;
-using Veldrid.StartupUtilities;
+using Core.Graphics.VulkanBackend;
 
 namespace Core.Graphics
 {
 	internal static class GraphicsContext
 	{
-		internal static CommandList _commandList;
-
-
-		internal static ResourceSet _sharedResourceSet;
-		internal static DeviceBuffer _cameraProjViewBuffer;
-
-		internal static Shader[] _shaders_normal;
-		internal static Pipeline _pipeline_normal;
-
-		internal static Shader[] _shaders_instanced;
-		internal static Pipeline _pipeline_instanced;
-
-		internal static GraphicsDevice _graphicsDevice;
-		internal static ResourceFactory factory;
+		public static GraphicsDevice graphicsDevice;
+		public static UniformBuffer<UniformBufferObject> uniform0;
 		internal static bool initialized;
 
 		private const string VertexCode = @"
@@ -114,147 +100,22 @@ void main()
 			if (!Window.initialized) throw new InvalidOperationException("Window should be initialized before initializing Graphics.");
 			initialized = true;
 
-			if (GraphicsDevice.IsBackendSupported(GraphicsBackend.OpenGL)) {
-				_graphicsDevice =
-					VeldridStartup.CreateGraphicsDevice(Window.window,
-						new GraphicsDeviceOptions()
-						{
-							PreferDepthRangeZeroToOne = true,
-							SwapchainDepthFormat = PixelFormat.R16_UNorm,
-							SyncToVerticalBlank = true
-						},
-						GraphicsBackend.OpenGL);
+			graphicsDevice = new GraphicsDevice(true);
+			graphicsDevice.ConnectToWindow(Window.window.SdlWindowHandle);
+			graphicsDevice.SetupFrameBuffersAndRenderPass();
 
-				//_graphicsDevice =
-				//	VeldridStartup.CreateGraphicsDevice(Window.window,
-				//		GraphicsBackend.OpenGL);
-			}
-			else {
-				_graphicsDevice = VeldridStartup.CreateGraphicsDevice(Window.window, new GraphicsDeviceOptions() { PreferDepthRangeZeroToOne = true, SwapchainDepthFormat = PixelFormat.R32_Float, SyncToVerticalBlank = true });
-			}
-
-			
 			CreateResources();
 
-			Window.OnWindowResize += (w, h) => { _graphicsDevice.ResizeMainWindow((uint)w,(uint)h); };
+			Window.OnWindowResize += Resized;
 		}
 
-		public static void CreateNormalPipeline() {
-			
-			VertexLayoutDescription vertexLayout = new VertexLayoutDescription(
-				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
-				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
-
-			ShaderDescription vertexShaderDesc = new ShaderDescription(
-				ShaderStages.Vertex,
-				Encoding.UTF8.GetBytes(VertexCode),
-				"main");
-			ShaderDescription fragmentShaderDesc = new ShaderDescription(
-				ShaderStages.Fragment,
-				Encoding.UTF8.GetBytes(FragmentCode),
-				"main");
-
-			_shaders_normal = factory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
-
-			GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
-			pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
-
-			pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
-				depthTestEnabled: true,
-				depthWriteEnabled: true,
-				comparisonKind: ComparisonKind.LessEqual);
-
-			pipelineDescription.RasterizerState = new RasterizerStateDescription(
-				cullMode: FaceCullMode.Back,
-				fillMode: PolygonFillMode.Solid,
-				frontFace: FrontFace.Clockwise,
-				depthClipEnabled: true,
-				scissorTestEnabled: false);
-
-			pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleList;
-			pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
-
-			pipelineDescription.ShaderSet = new ShaderSetDescription(
-				vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
-				shaders: _shaders_normal);
-
-			pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
-			_pipeline_normal = factory.CreateGraphicsPipeline(pipelineDescription);
+		private static void Resized(int width, int height) {
+			graphicsDevice.RecreateSwapchainAndFrameBuffers();
 		}
 
 
-		public static void CreateInstancedPipeline() {
-			VertexLayoutDescription vertexLayout = new VertexLayoutDescription(
-				new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
-				new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
-
-			VertexLayoutDescription matrixLayout = new VertexLayoutDescription(stride:64,instanceStepRate:1,
-				new VertexElementDescription("model1", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-				new VertexElementDescription("model2", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-				new VertexElementDescription("model3", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-				new VertexElementDescription("model4", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)
-				);
-
-			ResourceLayoutDescription resourceLayoutDescription = new ResourceLayoutDescription(new ResourceLayoutElementDescription("ProjView", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			ResourceLayout sharedLayout = factory.CreateResourceLayout(resourceLayoutDescription);
-
-			BindableResource[] bindableResources = { _cameraProjViewBuffer };
-			ResourceSetDescription resourceSetDescription = new ResourceSetDescription(sharedLayout, bindableResources);
-			_sharedResourceSet = factory.CreateResourceSet(resourceSetDescription);
-
-
-
-			ShaderDescription vertexShaderDesc = new ShaderDescription(
-				ShaderStages.Vertex,
-				Encoding.UTF8.GetBytes(InstanceVertexCode),
-				"main");
-			ShaderDescription fragmentShaderDesc = new ShaderDescription(
-				ShaderStages.Fragment,
-				Encoding.UTF8.GetBytes(InstanceFragmentCode),
-				"main");
-
-			_shaders_instanced = factory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
-
-			GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
-			pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
-
-			pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
-				depthTestEnabled: true,
-				depthWriteEnabled: true,
-				comparisonKind: ComparisonKind.LessEqual);
-
-			pipelineDescription.RasterizerState = new RasterizerStateDescription(
-				cullMode: FaceCullMode.Back,
-				fillMode: PolygonFillMode.Solid,
-				frontFace: FrontFace.Clockwise,
-				depthClipEnabled: true,
-				scissorTestEnabled: true);
-
-
-			pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleList;
-			pipelineDescription.ResourceLayouts = new[] {
-				sharedLayout
-			};
-
-			pipelineDescription.ShaderSet = new ShaderSetDescription(
-				vertexLayouts: new VertexLayoutDescription[] { vertexLayout, matrixLayout },
-				shaders: _shaders_instanced);
-
-			pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
-			_pipeline_instanced = factory.CreateGraphicsPipeline(pipelineDescription);
-		}
-
-		public static void CreateResources()
-		{
-			factory = _graphicsDevice.ResourceFactory;
-
-			_cameraProjViewBuffer = factory.CreateBuffer(
-				new BufferDescription((uint)(Marshal.SizeOf<Matrix4x4>() * 2), BufferUsage.UniformBuffer | BufferUsage.Dynamic));
-
-			CreateNormalPipeline();
-			CreateInstancedPipeline();
-
-			_commandList = factory.CreateCommandList();
+		public static void CreateResources() {
+			uniform0 = new UniformBuffer<UniformBufferObject>(graphicsDevice, 0);
 		}
 
 		public static void DisposeResources() {
@@ -262,16 +123,8 @@ void main()
 			try
 			{
 				RenderUtilities.DisposeAllUtils();
-				_cameraProjViewBuffer.Dispose();
-				_sharedResourceSet.Dispose();
-				_pipeline_normal.Dispose();
-				_pipeline_instanced.Dispose();
-				_shaders_normal[0].Dispose();
-				_shaders_normal[1].Dispose();
-				_shaders_instanced[0].Dispose();
-				_shaders_instanced[1].Dispose();
-				_commandList.Dispose();
-				_graphicsDevice.Dispose(); //Graphics device needs to be disposed of last. Or things will blow up!
+				uniform0.Dispose();
+				graphicsDevice.Dispose();
 				initialized = false;
 			}
 			catch(Exception ex) {

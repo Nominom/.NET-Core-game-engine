@@ -22,4 +22,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

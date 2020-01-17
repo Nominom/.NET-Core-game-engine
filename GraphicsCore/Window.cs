@@ -1,42 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Core.ECS;
 using Veldrid;
 using Veldrid.Sdl2;
-using Veldrid.StartupUtilities;
 
 namespace Core.Graphics
 {
 	public static class Window {
+		public static IntPtr WindowInstance { get; private set; }
 		internal static Sdl2Window window;
 		internal static bool initialized;
 		private static ECSWorld world;
 
 		public static event Action OnWindowClose;
 		public static event Action<int,int> OnWindowResize;
+		public static event Action<MouseWheelEventArgs> OnMouseWheel;
+		public static event Action<MouseMoveEventArgs> OnMouseMove;
+		public static event Action<MouseEvent> OnMouseDown;
+		public static event Action<KeyEvent> OnKeyDown;
 
 
 		public static void Initialize(ECSWorld world) {
 			if (initialized) return;
 			if(world == null) throw  new ArgumentNullException(nameof(world), "The ECSWorld provided can not be null.");
 			if(!world.IsMainWorld) throw new ArgumentException("The ECSWorld of the window needs to be the mainWorld", nameof(world));
-
-			WindowCreateInfo windowCI = new WindowCreateInfo()
-			{
-				X = 100,
-				Y = 100,
-				WindowWidth = 960,
-				WindowHeight = 540,
-				WindowTitle = "Veldrid Tutorial",
-				WindowInitialState = WindowState.Normal
-			};
-
-			window = VeldridStartup.CreateWindow(ref windowCI);
+			
+			WindowInstance = Process.GetCurrentProcess().SafeHandle.DangerousGetHandle();
+			window = new Sdl2Window("ECS", 50, 50, 1280, 720, SDL_WindowFlags.Resizable, threadedProcessing: false);
+			window.X = 50;
+			window.Y = 50;
+			window.Visible = true;
+			window.MouseWheel += (x) => OnMouseWheel?.Invoke(x);
+			window.MouseMove += (x) => OnMouseMove?.Invoke(x);
+			window.MouseDown += (x) => OnMouseDown?.Invoke(x);
+			window.KeyDown += (x) => OnKeyDown?.Invoke(x);
 			window.Closed += () => OnWindowClose?.Invoke();
 			window.Resized += () => OnWindowResize?.Invoke(window.Width, window.Height);
 
-			world.EarlyUpdate += WorldOnEarlyUpdate;
+			world.EarlyUpdate += PumpEvents;
 
 			initialized = true;
 			GraphicsContext.Initialize(world);
@@ -48,14 +51,10 @@ namespace Core.Graphics
 			window.Close();
 		}
 
-		private static void WorldOnEarlyUpdate(float deltatime, ECSWorld ecsWorld) {
+		private static void PumpEvents(float deltatime, ECSWorld ecsWorld) {
 			if (window.Exists) {
 				window.PumpEvents();
 			}
-		}
-
-		private static void EventHandler(ref SDL_Event ev) {
-			//TODO: Handle events
 		}
 	}
 }

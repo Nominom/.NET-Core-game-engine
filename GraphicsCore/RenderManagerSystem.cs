@@ -6,6 +6,9 @@ using Core.ECS;
 using Veldrid;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.Serialization;
+using Core.Graphics.VulkanBackend;
+using Vulkan;
 
 namespace Core.Graphics
 {
@@ -216,6 +219,7 @@ namespace Core.Graphics
 			}
 		}
 
+		private float timer = 0;
 		public void Update(float deltaTime, ECSWorld world)
 		{
 			if (!GraphicsContext.initialized) return;
@@ -226,25 +230,41 @@ namespace Core.Graphics
 				fow = 60,
 				nearPlane = 0.1f
 			};
+			timer += deltaTime;
+
+			Vector3 cameraPos = new Vector3(4, 10, -20);
+			Vector3 lightDir = Vector3.Normalize(new Vector3(MathF.Cos(timer * 1), -0.3f, MathF.Sin(timer * 1)));
+
+			GraphicsContext.graphicsDevice.StartFrame();
+
+
+			UniformBufferObject ubo = new UniformBufferObject();
+			ubo.cameraPos = new Vector4(cameraPos, 0);
+			ubo.lightDir = new Vector4(lightDir, 0);
+			ubo.projection = camera.ProjectionMatrix();
+			ubo.view = Matrix4x4.CreateLookAt(cameraPos, Vector3.Zero, Vector3.UnitY);
 
 			//Create context
 			RenderContext context = new RenderContext();
-			context.mainFrameBuffer = GraphicsContext._graphicsDevice.MainSwapchain.Framebuffer;
+			context.currentFrameBuffer = GraphicsContext.graphicsDevice.GetCurrentFrameBuffer();
+			context.currentRenderPass = GraphicsContext.graphicsDevice.singlePass;
+			context.currentSubPassIndex = 0;
+			context.activeCamera = camera;
+			context.secondaryBuffers = new List<CommandBuffer>();
+			context.ubo = ubo;
 
-			CommandList cmd = context.CreateCommandList();
-			cmd.Begin();
-			cmd.SetFramebuffer(context.mainFrameBuffer);
-			cmd.ClearColorTarget(0, RgbaFloat.Black);
-			cmd.ClearDepthStencil(1f);
+			context.SetUniformNow(ubo);
 
+			using CommandBuffer primaryCmd =
+				GraphicsContext.graphicsDevice.GetCommandPool().Rent(VkCommandBufferLevel.Primary);
 
-			context.SetViewProjMatrix(cmd, 
-				Matrix4x4.CreateLookAt(new Vector3(4, 10, -20), Vector3.Zero, Vector3.UnitY),
-				camera.ProjectionMatrix()
-				);
+			context.frameCommands = primaryCmd;
 
-			cmd.End();
-			context.SubmitCommands(cmd);
+			primaryCmd.Begin();
+			primaryCmd.BeginRenderPassClearColorDepth(context.currentRenderPass, context.currentFrameBuffer,
+				new VkClearColorValue(0, 0, 0),
+				new VkClearDepthStencilValue(1, 0), 
+			true);
 
 			//Update systems
 			UpdateRenderSystems(beforeRenderSystems, world, context);
@@ -262,8 +282,17 @@ namespace Core.Graphics
 			UpdateRenderSystems(afterRenderUiSystems, world, context);
 			UpdateRenderSystems(afterRenderSystems, world, context);
 
-			GraphicsContext._graphicsDevice.WaitForIdle();
-			GraphicsContext._graphicsDevice.SwapBuffers();
+			foreach (var buffer in context.secondaryBuffers) {
+				primaryCmd.ExecuteSecondaryBuffer(buffer);
+			}
+
+			primaryCmd.End();
+
+			GraphicsContext.graphicsDevice.SubmitAndFinalizeFrame(primaryCmd);
+
+			foreach (CommandBuffer buffer in context.secondaryBuffers) {
+				buffer.Dispose();
+			}
 		}
 	}
 }
