@@ -287,7 +287,7 @@ namespace Core.ECS
 
 		public void AddComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -323,7 +323,7 @@ namespace Core.ECS
 
 		public void SetComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -339,7 +339,7 @@ namespace Core.ECS
 
 		public void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -369,7 +369,7 @@ namespace Core.ECS
 
 		public ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -382,7 +382,7 @@ namespace Core.ECS
 
 		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -394,7 +394,7 @@ namespace Core.ECS
 
 		public void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -422,7 +422,7 @@ namespace Core.ECS
 
 		public void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -452,7 +452,7 @@ namespace Core.ECS
 
 		public T GetSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -462,7 +462,7 @@ namespace Core.ECS
 
 		public bool HasSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -476,7 +476,7 @@ namespace Core.ECS
 		#region block_accessing
 		public IEnumerable<BlockAccessor> GetBlocks(ComponentQuery query)
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			foreach (var block in FilterBlocks(query))
 			{
 				yield return block.GetAccessor();
@@ -485,7 +485,7 @@ namespace Core.ECS
 
 		public IEnumerable<BlockAccessor> GetBlocks(EntityArchetype archetype)
 		{
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
 				foreach (var block in archetypeBlocks[index].blocks)
 				{

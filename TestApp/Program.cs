@@ -20,7 +20,7 @@ namespace TestApp
 
 
 		[ECSSystem]
-		public class RotatorSystem : ComponentSystem
+		public class RotatorSystem : JobComponentSystem
 		{
 			public override ComponentQuery GetQuery()
 			{
@@ -30,12 +30,12 @@ namespace TestApp
 				return query;
 			}
 
-			public override void ProcessBlock(float deltaTime, BlockAccessor accessor)
+			public override void ProcessBlock(float deltaTime, BlockAccessor block)
 			{
-				var rot = accessor.GetComponentData<Rotation>();
-				var speed = accessor.GetReadOnlyComponentData<RotateComponent>();
+				var rot = block.GetComponentData<Rotation>();
+				var speed = block.GetReadOnlyComponentData<RotateComponent>();
 
-				for (int i = 0; i < accessor.length; i++)
+				for (int i = 0; i < block.length; i++)
 				{
 
 					var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, speed[i].rotationSpeed * deltaTime);
@@ -54,8 +54,8 @@ namespace TestApp
 			Prefab plane = new Prefab();
 			plane.AddComponent(new Position() { value = Vector3.Zero });
 			plane.AddComponent(new Rotation() { value = Quaternion.Identity });
-			plane.AddComponent(new Scale() { value = Vector3.One });
-			plane.AddComponent(new ObjectToWorld() { value = Matrix4x4.Identity });
+			//plane.AddComponent(new Scale() { value = Vector3.One });
+			plane.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
 			plane.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			plane.AddSharedComponent(new MeshRenderer() { mesh = RenderUtilities.FullScreenQuad });
 			plane.AddSharedComponent(RenderTag.Opaque);
@@ -64,8 +64,8 @@ namespace TestApp
 			Prefab cube = new Prefab();
 			cube.AddComponent(new Position() { value = Vector3.Zero });
 			cube.AddComponent(new Rotation() { value = Quaternion.Identity });
-			cube.AddComponent(new Scale() { value = Vector3.One });
-			cube.AddComponent(new ObjectToWorld() { value = Matrix4x4.Identity });
+			//cube.AddComponent(new Scale() { value = Vector3.One });
+			cube.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
 			cube.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			cube.AddSharedComponent(new MeshRenderer() { mesh = RenderUtilities.UnitCube });
 			cube.AddSharedComponent(RenderTag.Opaque);
@@ -81,9 +81,9 @@ namespace TestApp
 				cm.SetComponent(entity, new Position()
 				{
 					value = new Vector3(
-						random.Next(-(int)Math.Sqrt(numThings) * 2 - 5, (int)Math.Sqrt(numThings) * 2 + 5),
+						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
 						0,
-						random.Next(-(int)Math.Sqrt(numThings) * 2 - 5, (int)Math.Sqrt(numThings) * 2 + 5))
+						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 				cm.SetComponent(entity, new RotateComponent(){rotationSpeed =  (float)random.NextDouble() * 2});
 

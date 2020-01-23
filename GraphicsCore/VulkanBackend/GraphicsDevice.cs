@@ -281,7 +281,7 @@ namespace Core.Graphics.VulkanBackend
 
 			Util.CheckResult(mainSwapchain.vkSwapchain.QueuePresent(queue, currentBuffer, semaphores[0].RenderComplete));
 			
-			WaitQueueIdle();
+			//WaitQueueIdle();
 		}
 
 		public void SubmitAndFinalizeFrame(CommandBuffer commandBuffer) {
@@ -298,7 +298,7 @@ namespace Core.Graphics.VulkanBackend
 
 			Util.CheckResult(mainSwapchain.vkSwapchain.QueuePresent(queue, currentBuffer, semaphores[0].RenderComplete));
 			
-			WaitQueueIdle();
+			//WaitQueueIdle();
 		}
 
 		public FrameBuffer GetCurrentFrameBuffer() {

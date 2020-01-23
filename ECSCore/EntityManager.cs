@@ -19,7 +19,7 @@ namespace Core.ECS
 		}
 
 		public Entity CreateEntity(EntityArchetype archetype = null) {
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (archetype == null) {
 				archetype = EntityArchetype.Empty;
 			}
@@ -36,7 +36,7 @@ namespace Core.ECS
 		}
 
 		public Entity[] CreateEntities(int numEntities, EntityArchetype archetype = null) {
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (archetype == null) {
 				archetype = EntityArchetype.Empty;
 			}
@@ -58,7 +58,7 @@ namespace Core.ECS
 		}
 
 		public void DestroyEntity(in Entity e) {
-			DebugHelper.AssertThrow<ThreadAccessException>(world.CheckThreadIsMainThread());
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!componentManager.IsEntityValid(e)) {
 				throw new InvalidEntityException();
 			}

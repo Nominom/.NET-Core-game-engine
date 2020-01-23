@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.Serialization;
 using Core.Graphics.VulkanBackend;
+using Core.Graphics.VulkanBackend.Utility;
 using Vulkan;
 
 namespace Core.Graphics
@@ -61,6 +62,9 @@ namespace Core.Graphics
 		private readonly List<RenderSystemHolder> renderUiSystems = new List<RenderSystemHolder>();
 		private readonly List<RenderSystemHolder> afterRenderUiSystems = new List<RenderSystemHolder>();
 		private readonly List<RenderSystemHolder> afterRenderSystems = new List<RenderSystemHolder>();
+
+		private List<CommandBuffer> buffersToDispose = new List<CommandBuffer>();
+		private List<CommandBuffer> secondaryBuffers = new List<CommandBuffer>();
 
 		private void SortSystemList(List<RenderSystemHolder> list)
 		{
@@ -224,9 +228,16 @@ namespace Core.Graphics
 		{
 			if (!GraphicsContext.initialized) return;
 
+			//Dispose commandbuffers from last frame before new frame
+			GraphicsContext.graphicsDevice.WaitIdle();
+			foreach (var buffer in buffersToDispose) {
+				buffer.Dispose();
+			}
+			buffersToDispose.Clear();
+
 			Camera camera = new Camera() {
 				aspect = (float)Window.window.Width / (float)Window.window.Height,
-				farPlane = 100,
+				farPlane = 10000,
 				fow = 60,
 				nearPlane = 0.1f
 			};
@@ -250,19 +261,20 @@ namespace Core.Graphics
 			context.currentRenderPass = GraphicsContext.graphicsDevice.singlePass;
 			context.currentSubPassIndex = 0;
 			context.activeCamera = camera;
-			context.secondaryBuffers = new List<CommandBuffer>();
+			context.secondaryBuffers = secondaryBuffers;
 			context.ubo = ubo;
 
 			context.SetUniformNow(ubo);
 
-			using CommandBuffer primaryCmd =
+			CommandBuffer primaryCmd =
 				GraphicsContext.graphicsDevice.GetCommandPool().Rent(VkCommandBufferLevel.Primary);
 
 			context.frameCommands = primaryCmd;
 
 			primaryCmd.Begin();
+			//TODO: Clear color doesn't work
 			primaryCmd.BeginRenderPassClearColorDepth(context.currentRenderPass, context.currentFrameBuffer,
-				new VkClearColorValue(0, 0, 0),
+				new VkClearColorValue(0, 40, 40),
 				new VkClearDepthStencilValue(1, 0), 
 			true);
 
@@ -289,10 +301,12 @@ namespace Core.Graphics
 			primaryCmd.End();
 
 			GraphicsContext.graphicsDevice.SubmitAndFinalizeFrame(primaryCmd);
-
+			//GraphicsContext.graphicsDevice.WaitIdle();
 			foreach (CommandBuffer buffer in context.secondaryBuffers) {
-				buffer.Dispose();
+				buffersToDispose.Add(buffer);
 			}
+			buffersToDispose.Add(primaryCmd);
+			secondaryBuffers.Clear();
 		}
 	}
 }

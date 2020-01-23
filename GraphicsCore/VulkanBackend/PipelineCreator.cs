@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using Core.ECS.Components;
 using Core.Graphics.VulkanBackend.Utility;
 using Core.Shared;
 using Vulkan;
@@ -103,12 +104,12 @@ namespace Core.Graphics.VulkanBackend
             vertices_bindingDescriptions[1] =
 	            Initializers.vertexInputBindingDescription(
 		            Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID,
-		            (uint)sizeof(Matrix4x4),
+		            (uint)sizeof(ObjectToWorld),
 		            VkVertexInputRate.Instance);
 
             // Attribute descriptions
             // Describes memory layout and shader positions
-            vertices_attributeDescriptions.Count = 7;
+            vertices_attributeDescriptions.Count = 10;
             // Location 0 : Position
             vertices_attributeDescriptions[0] =
                 Initializers.vertexInputAttributeDescription(
@@ -140,7 +141,7 @@ namespace Core.Graphics.VulkanBackend
 
 
 
-			//Location 3-6 Instance model matrix
+			//Location 3-9 Instance model matrix and normal matrix
             vertices_attributeDescriptions[3] =
 	            Initializers.vertexInputAttributeDescription(
 		            Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID,
@@ -165,6 +166,24 @@ namespace Core.Graphics.VulkanBackend
 		            6,
 		            VkFormat.R32g32b32a32Sfloat,
 		            48);
+            vertices_attributeDescriptions[7] =
+	            Initializers.vertexInputAttributeDescription(
+		            Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID,
+		            7,
+		            VkFormat.R32g32b32Sfloat,
+		            64);
+            vertices_attributeDescriptions[8] =
+	            Initializers.vertexInputAttributeDescription(
+		            Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID,
+		            8,
+		            VkFormat.R32g32b32Sfloat,
+		            76);
+            vertices_attributeDescriptions[9] =
+	            Initializers.vertexInputAttributeDescription(
+		            Pipeline.VERTEX_INSTANCE_BUFFER_BIND_ID,
+		            9,
+		            VkFormat.R32g32b32Sfloat,
+		            88);
 
 
             vertices_inputState = Initializers.pipelineVertexInputStateCreateInfo();

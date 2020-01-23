@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using Core.ECS.Jobs;
 
 namespace Core.ECS
 {
@@ -24,7 +25,7 @@ namespace Core.ECS
 		public ComponentManager ComponentManager { get; }
 		public SystemManager SystemManager { get; }
 
-		internal Thread mainThread;
+		internal static Thread mainThread;
 
 		/// <summary>
 		/// Indicates whether this world is the main world. Only the main world will call Render events.
@@ -58,6 +59,7 @@ namespace Core.ECS
 		public void Initialize(bool autoRegisterSystems = true)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
+			JobThreadPool.Setup();
 			initialized = true;
 
 			if (autoRegisterSystems)
@@ -127,7 +129,7 @@ namespace Core.ECS
 			return entity;
 		}
 
-		internal bool CheckThreadIsMainThread() {
+		internal static bool CheckThreadIsMainThread() {
 			return Thread.CurrentThread.ManagedThreadId == mainThread.ManagedThreadId;
 		}
 	}

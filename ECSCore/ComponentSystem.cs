@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
+using Core.ECS.Jobs;
 
 namespace Core.ECS
 {
@@ -14,6 +16,45 @@ namespace Core.ECS
 		public virtual void OnDisableSystem(ECSWorld world) { }
 		public abstract void Update(float deltaTime, ECSWorld world);
 	}
+
+
+	public abstract class AsyncComponentSystem : ComponentSystemBase
+	{
+		private ComponentQuery query;
+		private bool initialized = false;
+		protected EntityCommandBuffer afterUpdateCommands;
+		private List<Task> runningTasks = new List<Task>();
+
+		public override void Update(float deltaTime, ECSWorld world)
+		{
+			if (!initialized)
+			{
+				afterUpdateCommands = new EntityCommandBuffer(world);
+				query = GetQuery();
+			}
+
+			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
+			foreach (BlockAccessor block in blocks)
+			{
+				Task processTask = Task.Run(() => {
+					ProcessBlock(deltaTime, block);
+				});
+				runningTasks.Add(processTask);
+			}
+
+			foreach (Task runningTask in runningTasks) {
+				runningTask.GetAwaiter().GetResult();
+			}
+
+			runningTasks.Clear();
+
+			afterUpdateCommands.Playback();
+		}
+
+		public abstract ComponentQuery GetQuery();
+		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
+	}
+
 	public abstract class ComponentSystem : ComponentSystemBase
 	{
 		private ComponentQuery query;
@@ -33,11 +74,59 @@ namespace Core.ECS
 			{
 				ProcessBlock(deltaTime, block);
 			}
+			afterUpdateCommands.Playback();
+		}
+
+		public abstract ComponentQuery GetQuery();
+		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
+	}
+
+	public abstract class JobComponentSystem : ComponentSystemBase
+	{
+		private ComponentQuery query;
+		private bool initialized = false;
+		protected EntityCommandBuffer afterUpdateCommands;
+		private List<JobHandle> runningJobs = new List<JobHandle>();
+
+		public struct ComponentProcessJob : IShortJob {
+			public float deltaTime;
+			public BlockAccessor block;
+			public JobComponentSystem instance;
+
+			public void DoJob() {
+				instance.ProcessBlock(deltaTime, block);
+			}
+		}
+
+		public override void Update(float deltaTime, ECSWorld world)
+		{
+			if (!initialized)
+			{
+				afterUpdateCommands = new EntityCommandBuffer(world);
+				query = GetQuery();
+			}
+
+			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
+			foreach (BlockAccessor block in blocks) {
+				ComponentProcessJob processJob = new ComponentProcessJob() {
+					block = block,
+					deltaTime = deltaTime,
+					instance = this
+				};
+				runningJobs.Add(processJob.Schedule());
+			}
+
+			foreach (var runningJob in runningJobs) {
+				runningJob.Complete();
+			}
+
+			runningJobs.Clear();
 
 			afterUpdateCommands.Playback();
 		}
 
 		public abstract ComponentQuery GetQuery();
-		public abstract void ProcessBlock(float deltaTime, BlockAccessor accessor);
+		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
 	}
+
 }
