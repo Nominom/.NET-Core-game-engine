@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
+﻿using System.Numerics;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Shared;
 
-namespace Core.Graphics
+namespace Core.Graphics.Systems
 {
 	//[ECSSystem(UpdateEvent.BeforeRender)] 
 	//public class ObjectToWorldSystem : ISystem
@@ -129,7 +126,7 @@ namespace Core.Graphics
 	//	}
 	//}
 
-	[ECSSystem(UpdateEvent.BeforeRender)]
+	[ECSSystem(UpdateEvent.BeforeRender, updateAfter : typeof(ObjectToWorldSystemPR))]
 	public class ObjectToWorldSystemPRS : JobComponentSystem
 	{
 		private ComponentQuery posRotScaleQuery;
@@ -168,7 +165,7 @@ namespace Core.Graphics
 		}
 	}
 
-	[ECSSystem(UpdateEvent.BeforeRender)]
+	[ECSSystem(UpdateEvent.BeforeRender, updateAfter : typeof(ObjectToWorldSystemPS))]
 	public class ObjectToWorldSystemPR : JobComponentSystem
 	{
 		private ComponentQuery posRotQuery;
@@ -203,7 +200,7 @@ namespace Core.Graphics
 		}
 	}
 
-	[ECSSystem(UpdateEvent.BeforeRender)]
+	[ECSSystem(UpdateEvent.BeforeRender, updateAfter : typeof(ObjectToWorldSystemP))]
 	public class ObjectToWorldSystemPS : JobComponentSystem
 	{
 		private ComponentQuery posScaleQuery;
@@ -239,6 +236,7 @@ namespace Core.Graphics
 		}
 	}
 
+	[ECSSystem(UpdateEvent.BeforeRender)]
 	public class ObjectToWorldSystemP : JobComponentSystem
 	{
 		private ComponentQuery posQuery;

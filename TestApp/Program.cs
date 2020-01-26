@@ -47,7 +47,7 @@ namespace TestApp
 
 		static void Main(string[] args)
 		{
-			Random random = new Random();
+			Random random = new Random(1);
 			CoreEngine.Initialize();
 			CoreEngine.targetFps = 0;
 
@@ -56,6 +56,7 @@ namespace TestApp
 			plane.AddComponent(new Rotation() { value = Quaternion.Identity });
 			//plane.AddComponent(new Scale() { value = Vector3.One });
 			plane.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
+			plane.AddComponent(new BoundingBox());
 			plane.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			plane.AddSharedComponent(new MeshRenderer() { mesh = RenderUtilities.FullScreenQuad });
 			plane.AddSharedComponent(RenderTag.Opaque);
@@ -66,6 +67,7 @@ namespace TestApp
 			cube.AddComponent(new Rotation() { value = Quaternion.Identity });
 			//cube.AddComponent(new Scale() { value = Vector3.One });
 			cube.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
+			cube.AddComponent(new BoundingBox());
 			cube.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			cube.AddSharedComponent(new MeshRenderer() { mesh = RenderUtilities.UnitCube });
 			cube.AddSharedComponent(RenderTag.Opaque);
@@ -73,7 +75,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 10000;
+			const int numThings = 100000;
 
 			for (int i = 0; i < numThings; i++)
 			{
@@ -85,7 +87,7 @@ namespace TestApp
 						0,
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
-				cm.SetComponent(entity, new RotateComponent(){rotationSpeed =  (float)random.NextDouble() * 2});
+				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
 
 
 				entity = world.Instantiate(plane);
@@ -97,7 +99,22 @@ namespace TestApp
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
+
 			}
+
+			var entity2 = world.Instantiate(cube);
+			cm.SetComponent(entity2, new Position() {
+				value = new Vector3(0, 0, 0)
+			});
+			cm.SetComponent(entity2, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
+
+
+			entity2 = world.Instantiate(plane);
+			cm.SetComponent(entity2, new Position() {
+				value = new Vector3(2, 0, 0)
+			});
+			cm.SetComponent(entity2, new RotateComponent() { rotationSpeed = 4 });
+
 
 
 			CoreEngine.Run();

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.ECS;
 using Core.Graphics.VulkanBackend.Utility;
 using Vulkan;
 using static Vulkan.VulkanNative;
@@ -70,6 +71,7 @@ namespace Core.Graphics.VulkanBackend
 
 
 		public void SetData<T>(ReadOnlySpan<T> data, UInt64 dstOffsetInBytes = 0) where T : unmanaged {
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)(data.Length * Marshal.SizeOf<T>()));
 			fixed (T* ptr = data) {
 				uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)(data.Length * Marshal.SizeOf<T>()));
 
@@ -87,7 +89,11 @@ namespace Core.Graphics.VulkanBackend
 		public void SetData<T>(Span<T> data, UInt64 dstOffsetInBytes = 0) where T : unmanaged
 			=> SetData((ReadOnlySpan<T>) data, dstOffsetInBytes);
 
+		public void SetData<T>(T[] data, UInt64 dstOffsetInBytes = 0) where T : unmanaged
+			=> SetData((ReadOnlySpan<T>) data, dstOffsetInBytes);
+
 		public void SetData<T>(T data, UInt64 dstOffsetInBytes = 0) where T : unmanaged {
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)Marshal.SizeOf<T>());
 			uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)Marshal.SizeOf<T>());
 			if (memory.hostVisible) {
 				Unsafe.Copy((byte*)memory.Mapped + dstOffsetInBytes, ref data);

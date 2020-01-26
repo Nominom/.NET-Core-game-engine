@@ -13,10 +13,12 @@ namespace Core.Graphics.VulkanBackend
 		public readonly VkIndexType indexType = VkIndexType.Uint16;
 		public readonly uint indexCount;
 
-		public GpuMesh(GraphicsDevice device, ReadOnlySpan<Vertex> vertices, ReadOnlySpan<UInt16> indices) {
+		public GpuMesh(GraphicsDevice device, ReadOnlySpan<Vertex> vertices, ReadOnlySpan<UInt16> indices, bool readWrite) {
 			indexCount = (uint)indices.Length;
-			this.vertices = DeviceBuffer.CreateFrom(device, vertices, BufferUsageFlags.VertexBuffer, BufferMemoryUsageHint.Static);
-			this.indices = DeviceBuffer.CreateFrom(device, indices, BufferUsageFlags.IndexBuffer, BufferMemoryUsageHint.Static);
+			this.vertices = DeviceBuffer.CreateFrom(device, vertices, BufferUsageFlags.VertexBuffer, 
+				readWrite ? BufferMemoryUsageHint.Dynamic : BufferMemoryUsageHint.Static);
+			this.indices = DeviceBuffer.CreateFrom(device, indices, BufferUsageFlags.IndexBuffer, 
+				readWrite ? BufferMemoryUsageHint.Dynamic : BufferMemoryUsageHint.Static);
 		}
 
 		public void Dispose() {

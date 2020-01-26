@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using Core.ECS;
-using Veldrid;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.Serialization;
+using System.Reflection;
+using Core.ECS;
 using Core.Graphics.VulkanBackend;
-using Core.Graphics.VulkanBackend.Utility;
+using Core.Shared;
 using Vulkan;
 
-namespace Core.Graphics
+namespace Core.Graphics.RenderSystems
 {
 	public enum RenderStage
 	{
@@ -65,6 +62,10 @@ namespace Core.Graphics
 
 		private List<CommandBuffer> buffersToDispose = new List<CommandBuffer>();
 		private List<CommandBuffer> secondaryBuffers = new List<CommandBuffer>();
+
+		public static Camera camera;
+		public static Vector3 cameraPosition;
+		public static Quaternion cameraRotation;
 
 		private void SortSystemList(List<RenderSystemHolder> list)
 		{
@@ -165,6 +166,17 @@ namespace Core.Graphics
 		
 		public void OnCreateSystem(ECSWorld world)
 		{
+			camera = new Camera() {
+				aspect = (float)Window.window.Width / (float)Window.window.Height,
+				farPlane = 10000,
+				fow = 60,
+				nearPlane = 0.1f
+			};
+
+			cameraPosition = new Vector3(4 , 10, 20);
+			cameraRotation = MathHelper.LookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
+
+
 			foreach (var assembly in AssemblyHelper.GetAllUserAssemblies())
 			{
 
@@ -235,25 +247,24 @@ namespace Core.Graphics
 			}
 			buffersToDispose.Clear();
 
-			Camera camera = new Camera() {
-				aspect = (float)Window.window.Width / (float)Window.window.Height,
-				farPlane = 10000,
-				fow = 60,
-				nearPlane = 0.1f
-			};
+			var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.1f);
+			cameraRotation = Quaternion.Multiply(cameraRotation, rotation);
+			
 			timer += deltaTime;
 
-			Vector3 cameraPos = new Vector3(4, 10, -20);
 			Vector3 lightDir = Vector3.Normalize(new Vector3(MathF.Cos(timer * 1), -0.3f, MathF.Sin(timer * 1)));
 
 			GraphicsContext.graphicsDevice.StartFrame();
 
+			
+			var view = Matrix4x4.CreateLookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
+
 
 			UniformBufferObject ubo = new UniformBufferObject();
-			ubo.cameraPos = new Vector4(cameraPos, 0);
+			ubo.cameraPos = new Vector4(cameraPosition, 0);
 			ubo.lightDir = new Vector4(lightDir, 0);
-			ubo.projection = camera.ProjectionMatrix();
-			ubo.view = Matrix4x4.CreateLookAt(cameraPos, Vector3.Zero, Vector3.UnitY);
+			ubo.projection = camera.ProjectionMatrix(true);
+			ubo.view = camera.ViewMatrix(cameraPosition, cameraRotation);
 
 			//Create context
 			RenderContext context = new RenderContext();

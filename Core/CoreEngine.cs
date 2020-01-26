@@ -50,6 +50,9 @@ namespace Core
 			{
 				long newTimeMs = watch.ElapsedMilliseconds;
 				float deltaTime = (newTimeMs - elapsedMs) / 1000f;
+				if (deltaTime > 1) {
+					deltaTime = fixedUpdateStep;
+				}
 				elapsedMs = newTimeMs;
 				fixedUpdateTimer += deltaTime;
 

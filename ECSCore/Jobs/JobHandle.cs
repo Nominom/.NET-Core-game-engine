@@ -38,7 +38,7 @@ namespace Core.ECS.Jobs
 		}
 
 		public override int GetHashCode() {
-			return (int) (jobId ^ (jobId << 32));
+			return jobId.GetHashCode();
 		}
 	}
 

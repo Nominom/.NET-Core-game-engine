@@ -26,40 +26,40 @@ namespace Core.Graphics {
 		public static MeshData UnitCube() {
 			Vertex[] cubeVertices = {
 				//front
-				/*0-0*/new Vertex(new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(0, 0, 1), new Vector2(0, 1)),
-				/*1-1*/new Vertex(new Vector3(1.0f, -1.0f, 1.0f), new Vector3(0, 0, 1), new Vector2(0, 1)),
-				/*2-2*/new Vertex(new Vector3(1.0f, 1.0f, 1.0f), new Vector3(0, 0, 1), new Vector2(0, 1)),
-				/*3-3*/new Vertex(new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(0, 0, 1), new Vector2(0, 1)),
+				/*0-0*/new Vertex(new Vector3(-0.5f, -0.5f, 0.5f), new Vector3(0, 0, 1), new Vector2(0, 1)),
+				/*1-1*/new Vertex(new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0, 0, 1), new Vector2(0, 1)),
+				/*2-2*/new Vertex(new Vector3(0.5f, 0.5f, 0.5f), new Vector3(0, 0, 1), new Vector2(0, 1)),
+				/*3-3*/new Vertex(new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(0, 0, 1), new Vector2(0, 1)),
 
 				//right
-				/*6-4*/new Vertex(new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1, 0, 0), new Vector2(0, 1)),
-				/*5-5*/new Vertex(new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1, 0, 0), new Vector2(0, 1)),
-				/*1-6*/new Vertex(new Vector3(1.0f, -1.0f, 1.0f), new Vector3(1, 0, 0), new Vector2(0, 1)),
-				/*2-7*/new Vertex(new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1, 0, 0), new Vector2(0, 1)),
+				/*6-4*/new Vertex(new Vector3(0.5f, 0.5f, -0.5f), new Vector3(1, 0, 0), new Vector2(0, 1)),
+				/*5-5*/new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Vector3(1, 0, 0), new Vector2(0, 1)),
+				/*1-6*/new Vertex(new Vector3(0.5f, -0.5f, 0.5f), new Vector3(1, 0, 0), new Vector2(0, 1)),
+				/*2-7*/new Vertex(new Vector3(0.5f, 0.5f, 0.5f), new Vector3(1, 0, 0), new Vector2(0, 1)),
 				
 				//back
-				/*5-8*/new Vertex(new Vector3(1.0f, -1.0f, -1.0f), new Vector3(0, 0, -1), new Vector2(0, 1)),
-				/*6-9*/new Vertex(new Vector3(1.0f, 1.0f, -1.0f), new Vector3(0, 0, -1), new Vector2(0, 1)),
-				/*7-10*/new Vertex(new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(0, 0, -1), new Vector2(0, 1)),
-				/*4-11*/new Vertex(new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(0, 0, -1), new Vector2(0, 1)),
+				/*5-8*/new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Vector3(0, 0, -1), new Vector2(0, 1)),
+				/*6-9*/new Vertex(new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0, 0, -1), new Vector2(0, 1)),
+				/*7-10*/new Vertex(new Vector3(-0.5f, 0.5f, -0.5f), new Vector3(0, 0, -1), new Vector2(0, 1)),
+				/*4-11*/new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0, 0, -1), new Vector2(0, 1)),
 				
 				//left
-				/*3-12*/new Vertex(new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
-				/*0-13*/new Vertex(new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
-				/*4-14*/new Vertex(new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
-				/*7-15*/new Vertex(new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
+				/*3-12*/new Vertex(new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
+				/*0-13*/new Vertex(new Vector3(-0.5f, -0.5f, 0.5f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
+				/*4-14*/new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
+				/*7-15*/new Vertex(new Vector3(-0.5f, 0.5f, -0.5f), new Vector3(-1, 0, 0), new Vector2(0, 1)),
 				
 				//bottom
-				/*1-16*/new Vertex(new Vector3(1.0f, -1.0f, 1.0f), new Vector3(0, -1, 0), new Vector2(0, 1)),
-				/*5-17*/new Vertex(new Vector3(1.0f, -1.0f, -1.0f), new Vector3(0, -1, 0), new Vector2(0, 1)),
-				/*4-18*/new Vertex(new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(0, -1, 0), new Vector2(0, 1)),
-				/*0-19*/new Vertex(new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(0, -1, 0), new Vector2(0, 1)),
+				/*1-16*/new Vertex(new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0, -1, 0), new Vector2(0, 1)),
+				/*5-17*/new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Vector3(0, -1, 0), new Vector2(0, 1)),
+				/*4-18*/new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0, -1, 0), new Vector2(0, 1)),
+				/*0-19*/new Vertex(new Vector3(-0.5f, -0.5f, 0.5f), new Vector3(0, -1, 0), new Vector2(0, 1)),
 				
 				//top
-				/*6-20*/new Vertex(new Vector3(1.0f, 1.0f, -1.0f), new Vector3(0, 1, 0), new Vector2(0, 1)),
-				/*2-21*/new Vertex(new Vector3(1.0f, 1.0f, 1.0f), new Vector3(0, 1, 0), new Vector2(0, 1)),
-				/*3-22*/new Vertex(new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(0, 1, 0), new Vector2(0, 1)),
-				/*7-23*/new Vertex(new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(0, 1, 0), new Vector2(0, 1)),
+				/*6-20*/new Vertex(new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0, 1, 0), new Vector2(0, 1)),
+				/*2-21*/new Vertex(new Vector3(0.5f, 0.5f, 0.5f), new Vector3(0, 1, 0), new Vector2(0, 1)),
+				/*3-22*/new Vertex(new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(0, 1, 0), new Vector2(0, 1)),
+				/*7-23*/new Vertex(new Vector3(-0.5f, 0.5f, -0.5f), new Vector3(0, 1, 0), new Vector2(0, 1)),
 				
 			};
 

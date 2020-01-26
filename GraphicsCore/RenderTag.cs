@@ -9,6 +9,7 @@ namespace Core.Graphics
 	{
 		public static OpaqueRenderTag Opaque { get; } = OpaqueRenderTag.Instance;
 		public static TransparentRenderTag Transparent { get; } = TransparentRenderTag.Instance;
+		public static CulledRenderTag Culled { get; } = CulledRenderTag.Instance;
 	}
 
 
@@ -19,6 +20,10 @@ namespace Core.Graphics
 
 	public class TransparentRenderTag : ISharedComponent {
 		public static TransparentRenderTag Instance { get; } = new TransparentRenderTag();
+	}
+
+	public class CulledRenderTag : ISharedComponent {
+		public static CulledRenderTag Instance { get; } = new CulledRenderTag();
 	}
 
 }

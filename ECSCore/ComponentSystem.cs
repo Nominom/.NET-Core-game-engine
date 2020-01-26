@@ -25,6 +25,9 @@ namespace Core.ECS
 		protected EntityCommandBuffer afterUpdateCommands;
 		private List<Task> runningTasks = new List<Task>();
 
+		public virtual void BeforeUpdate() { }
+		public virtual void AfterUpdate() { }
+
 		public override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
@@ -32,6 +35,7 @@ namespace Core.ECS
 				afterUpdateCommands = new EntityCommandBuffer(world);
 				query = GetQuery();
 			}
+			BeforeUpdate();
 
 			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
 			foreach (BlockAccessor block in blocks)
@@ -49,6 +53,7 @@ namespace Core.ECS
 			runningTasks.Clear();
 
 			afterUpdateCommands.Playback();
+			AfterUpdate();
 		}
 
 		public abstract ComponentQuery GetQuery();
@@ -61,6 +66,9 @@ namespace Core.ECS
 		private bool initialized = false;
 		protected EntityCommandBuffer afterUpdateCommands;
 
+		public virtual void BeforeUpdate() { }
+		public virtual void AfterUpdate() { }
+
 		public override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
@@ -68,6 +76,7 @@ namespace Core.ECS
 				afterUpdateCommands = new EntityCommandBuffer(world);
 				query = GetQuery();
 			}
+			BeforeUpdate();
 
 			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
 			foreach (BlockAccessor block in blocks)
@@ -75,6 +84,7 @@ namespace Core.ECS
 				ProcessBlock(deltaTime, block);
 			}
 			afterUpdateCommands.Playback();
+			AfterUpdate();
 		}
 
 		public abstract ComponentQuery GetQuery();
@@ -98,6 +108,9 @@ namespace Core.ECS
 			}
 		}
 
+		public virtual void BeforeUpdate() { }
+		public virtual void AfterUpdate() { }
+
 		public override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
@@ -105,6 +118,7 @@ namespace Core.ECS
 				afterUpdateCommands = new EntityCommandBuffer(world);
 				query = GetQuery();
 			}
+			BeforeUpdate();
 
 			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
 			foreach (BlockAccessor block in blocks) {
@@ -123,6 +137,7 @@ namespace Core.ECS
 			runningJobs.Clear();
 
 			afterUpdateCommands.Playback();
+			AfterUpdate();
 		}
 
 		public abstract ComponentQuery GetQuery();

@@ -22,4 +22,8 @@ namespace Core.ECS.Components
 		public Matrix4x4 model; //Model matrix
 		public Matrix3x3 normal; //Normal matrix
 	}
+
+	public struct BoundingBox : IComponent {
+		public AabbBounds value;
+	}
 }
