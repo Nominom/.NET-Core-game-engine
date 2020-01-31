@@ -354,6 +354,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex index = entityList[entity.id];
 			EntityArchetype archetype = GetArchetype(index);
@@ -487,7 +488,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
-
+			world.SyncPoint();
 			EntityBlockIndex index = entityList[entity.id];
 			var archetype = archetypeBlocks[index.archetypeIndex].archetype;
 			return archetype.GetShared<T>();
@@ -507,7 +508,25 @@ namespace Core.ECS
 
 
 		#region block_accessing
+		/// <summary>
+		/// Get the blocks that match the query. This method will cause a world sync.
+		/// </summary>
 		public IEnumerable<BlockAccessor> GetBlocks(ComponentQuery query)
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			world.SyncPoint();
+			foreach (var block in FilterBlocks(query))
+			{
+				yield return block.GetAccessor();
+			}
+		}
+
+		/// <summary>
+		/// Get the blocks that match the query. This method will not cause a world sync.
+		/// Use when blocks will be passed off to a Job for processing and access is synchronized with
+		/// JobGroups.
+		/// </summary>
+		public IEnumerable<BlockAccessor> GetBlocksNoSync(ComponentQuery query)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			foreach (var block in FilterBlocks(query))
@@ -516,7 +535,27 @@ namespace Core.ECS
 			}
 		}
 
+		/// <summary>
+		/// Get the blocks that match the archetype. This method will cause a world sync.
+		/// </summary>
 		public IEnumerable<BlockAccessor> GetBlocks(EntityArchetype archetype)
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			world.SyncPoint();
+			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
+				foreach (var block in archetypeBlocks[index].blocks)
+				{
+					yield return block.GetAccessor();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Get the blocks that match the archetype. This method will not cause a world sync.
+		/// Use when blocks will be passed off to a Job for processing and access is synchronized with
+		/// JobGroups.
+		/// </summary>
+		public IEnumerable<BlockAccessor> GetBlocksNoSync(EntityArchetype archetype)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {

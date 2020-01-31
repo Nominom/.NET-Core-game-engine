@@ -7,7 +7,6 @@ namespace Core.ECS.JobSystem
 	public class JobWorker
 	{
 		public Thread thread;
-		public ConcurrentQueue<JobHandle> jobIds = new ConcurrentQueue<JobHandle>();
 		public ManualResetEventSlim waitForWork = new ManualResetEventSlim(false);
 		public volatile bool waiting = false;
 
@@ -19,22 +18,16 @@ namespace Core.ECS.JobSystem
 					waiting = true;
 					waitForWork.Wait();
 					waiting = false;
-					do {
-						while (jobIds.TryDequeue(out var jobHandle)) {
-							if (!JobManager.CanExecuteGroup(jobHandle.group))
-							{
-								jobIds.Enqueue(jobHandle);
-								Thread.Sleep(0);
-							}
-							else if (jobHandle.executor.ExecuteJob(jobHandle)) {
-								JobManager.SignalComplete(jobHandle);
-							}
-							if (jobIds.IsEmpty) {
-								Thread.Sleep(0);
-							}
+					while (JobManager.jobQueue.TryDequeue(out var jobHandle)) {
+						if (!JobManager.CanExecuteGroup(jobHandle.group))
+						{
+							JobManager.jobQueue.Enqueue(jobHandle);
 						}
-					} while (JobManager.TryStealWork());
-
+						else if (jobHandle.executor.ExecuteJob(jobHandle))
+						{
+							JobManager.SignalComplete(jobHandle);
+						}
+					}
 					waitForWork.Reset();
 				}
 				catch (Exception ex)

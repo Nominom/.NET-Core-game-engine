@@ -121,6 +121,7 @@ namespace Core.ECS
 			{
 				threadBuffersCache = threadBuffers.Values as List<EntityCommandBuffer>;
 			}
+			world.SyncPoint();
 			foreach (EntityCommandBuffer buffer in threadBuffersCache)
 			{
 				buffer.Playback();

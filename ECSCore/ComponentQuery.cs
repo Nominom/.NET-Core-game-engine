@@ -13,6 +13,8 @@ namespace Core.ECS
 		private BitSet256 sharedIncludeMask;
 		private BitSet256 sharedExcludeMask;
 
+		public static ComponentQuery Empty { get; } = new ComponentQuery();
+
 		public void Include<T>() where T : IComponent
 		{
 			includeMask.Set(TypeHelper.Component<T>.componentIndex);
@@ -41,6 +43,12 @@ namespace Core.ECS
 			if (archetype.sharedComponentMask.ContainsAny(sharedExcludeMask)) return false;
 
 			return true;
+		}
+
+		public bool CollidesWith(ComponentQuery other) {
+			if (other.includeMask.ContainsAny(includeMask)) return true;
+			if (other.sharedIncludeMask.ContainsAny(sharedIncludeMask)) return true;
+			return false;
 		}
 
 		public bool Equals(ComponentQuery other) {

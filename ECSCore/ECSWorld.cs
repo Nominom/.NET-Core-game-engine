@@ -42,6 +42,7 @@ namespace Core.ECS
 			SystemManager = new SystemManager(this);
 			IsMainWorld = false;
 			mainThread = Thread.CurrentThread;
+			mainThread.Priority = ThreadPriority.Highest;
 		}
 
 		internal ECSWorld(bool mainWorld = true)

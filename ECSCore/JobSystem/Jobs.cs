@@ -11,6 +11,16 @@
 			return JobManager.StartJobGroup();
 		}
 
+		public static JobGroup StartNewGroup(ComponentQuery dependencies) {
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			return JobManager.StartJobGroup(dependencies);
+		}
+
+		public static JobGroup StartNewGroup(JobGroup dependency) {
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			return JobManager.StartJobGroup(dependency);
+		}
+
 		public static JobHandle QueueJob<T>(T job, JobGroup group) where T : struct, IJob {
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			return JobManager.QueueJob(job, group);

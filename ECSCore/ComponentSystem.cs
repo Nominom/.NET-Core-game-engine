@@ -78,8 +78,8 @@ namespace Core.ECS
 
 			afterUpdateCommands.PlaybackAfterUpdate();
 
-			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
-			var group = Jobs.StartNewGroup();
+			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocksNoSync(query);
+			var group = Jobs.StartNewGroup(query);
 			foreach (BlockAccessor block in blocks) {
 				ComponentProcessJob processJob = new ComponentProcessJob() {
 					block = block,
