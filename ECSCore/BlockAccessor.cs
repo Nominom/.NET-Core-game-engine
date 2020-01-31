@@ -16,6 +16,8 @@ namespace Core.ECS
 			length = block.Size;
 		}
 
+		public long Id => block.id;
+
 		public ReadOnlySpan<Entity> GetEntityData() {
 			return block.GetEntityData().Slice(0, block.Size);
 		}

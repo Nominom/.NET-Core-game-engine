@@ -72,7 +72,11 @@ namespace Core.ECS.JobSystem
 			if (runningJobs > 0) {
 
 				long jobGroupToCheck = nextJobGroupId - 1;
+				if (jobGroupToCheck < 0) {
+					jobGroupToCheck = numGroups - 1;
+				}
 				while (jobGroupToCheck != nextJobGroupId) {
+					
 					if (groupWorkLeft[jobGroupToCheck] > 0 && groupDependencies[jobGroupToCheck].CollidesWith(dependencies)) {
 						dependency = jobGroupToCheck;
 						break;
