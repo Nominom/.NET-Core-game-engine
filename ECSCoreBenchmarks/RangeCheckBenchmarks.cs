@@ -58,7 +58,7 @@ namespace CoreBenchmarks
 
 					var matrix = Matrix4x4.Transform(s, rot);
 					matrix = Matrix4x4.Multiply(matrix, p);
-					oToW[i].value = matrix;
+					oToW[i].model = matrix;
 				}
 			}
 		}
@@ -84,7 +84,7 @@ namespace CoreBenchmarks
 
 					var matrix = Matrix4x4.Transform(s, rot);
 					matrix = Matrix4x4.Multiply(matrix, p);
-					oToW[i].value = matrix;
+					oToW[i].model = matrix;
 				}
 			}
 		}
@@ -116,7 +116,7 @@ namespace CoreBenchmarks
 
 					var matrix = Matrix4x4.Transform(s, rot);
 					matrix = Matrix4x4.Multiply(matrix, p);
-					oToW[i].value = matrix;
+					oToW[i].model = matrix;
 				}
 			}
 		}

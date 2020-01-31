@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Intrinsics.X86;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using Core.ECS;
+using CoreBenchmarks.Jobs;
 
 
 namespace CoreBenchmarks
@@ -44,9 +46,21 @@ namespace CoreBenchmarks
 			Console.WriteLine("AVX supported: " + Avx.IsSupported);
 			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
 
-			BenchmarkRunner.Run<UnsafeVsManagedBlockBenchmarks>();
+			BenchmarkRunner.Run<JobBenchmarks>();
+
+			//JobBenchmarks benchmarks = new JobBenchmarks();
+			//benchmarks.Setup();
+			//for (int i = 0; i < 1000; i++)
+			//{
+			//	benchmarks.SystemTasks();
+			//	benchmarks.ChannelSimpleJobs();
+			//	benchmarks.ConcurrentQueueWorkers();
+			//}
+
+			Console.WriteLine("done!");
 
 			Console.ReadKey();
 		}
+
 	}
 }

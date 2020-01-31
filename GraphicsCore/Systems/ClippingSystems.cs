@@ -8,7 +8,7 @@ namespace Core.Graphics.Systems
 {
 
 	[ECSSystem(UpdateEvent.BeforeRender, updateAfter : typeof(BoundingBoxSystem))] 
-	public class CullingSystem : ComponentSystem {
+	public class CullingSystem : JobComponentSystem {
 
 		private Frustum cameraFrustum;
 
@@ -35,7 +35,7 @@ namespace Core.Graphics.Systems
 		}
 	}
 	[ECSSystem(UpdateEvent.BeforeRender, updateAfter : typeof(CullingSystem))]
-	public class UnCullingSystem : ComponentSystem
+	public class UnCullingSystem : JobComponentSystem
 	{
 
 		private Frustum cameraFrustum;

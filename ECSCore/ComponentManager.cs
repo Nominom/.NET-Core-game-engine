@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace Core.ECS
 {
@@ -150,16 +151,31 @@ namespace Core.ECS
 			}
 		}
 
-		private int ArchetypeAddSharedComponent<T>(EntityArchetype archetype, T value) where T : class, ISharedComponent
-		{
-			EntityArchetype newArchetype = archetype.AddShared<T>(value);
+		private int ArchetypeAddSharedComponent<T>(EntityArchetype archetype, T value) where T : class, ISharedComponent {
+			int newHash = archetype.Hash;
+			int valueHash = value.GetHashCode();
+			if (archetype.HasShared<T>()) {
+				newHash ^= archetype.GetShared<T>().GetHashCode();
+				newHash ^= valueHash;
+			}
+			else {
+				newHash ^= TypeHelper<T>.hashCode;
+				newHash ^= valueHash;
+			}
 
-			if (archetypeHashIndices.TryGetValue(newArchetype.Hash, out int found))
+			EntityArchetype newArchetype;
+#if DEBUG
+			newArchetype = archetype.AddShared<T>(value);
+			DebugHelper.AssertThrow<ArithmeticException>(newArchetype.Hash == newHash);
+#endif
+
+			if (archetypeHashIndices.TryGetValue(newHash, out int found))
 			{
 				return found;
 			}
 			else
 			{
+				newArchetype = archetype.AddShared<T>(value);
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
 			}
@@ -167,12 +183,23 @@ namespace Core.ECS
 
 		private int ArchetypeRemoveSharedComponent<T>(EntityArchetype archetype) where T : class, ISharedComponent {
 			DebugHelper.AssertThrow<InvalidOperationException>(archetype.HasShared<T>());
-			EntityArchetype newArchetype = archetype.RemoveShared<T>();
+			int newHash = archetype.Hash;
+			if (archetype.HasShared<T>()) {
+				newHash ^= archetype.GetShared<T>().GetHashCode();
+				newHash ^= TypeHelper<T>.hashCode;
+			}
 
-			if (archetypeHashIndices.TryGetValue(newArchetype.Hash, out int found)) {
+			EntityArchetype newArchetype;
+#if DEBUG
+			newArchetype = archetype.RemoveShared<T>();
+			DebugHelper.AssertThrow<ArithmeticException>(newArchetype.Hash == newHash);
+#endif
+
+			if (archetypeHashIndices.TryGetValue(newHash, out int found)) {
 				return found;
 			}
 			else {
+				newArchetype = archetype.RemoveShared<T>();
 				int idx = CreateNewArchetypeBlock(newArchetype);
 				return idx;
 			}
@@ -248,6 +275,7 @@ namespace Core.ECS
 
 		internal void AddPrefabComponents(Entity entity, Prefab prefab) {
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);
 
@@ -289,6 +317,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
@@ -341,6 +370,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
@@ -371,6 +401,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);
@@ -396,6 +427,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);
@@ -424,6 +456,7 @@ namespace Core.ECS
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
 			EntityArchetype oldArchetype = GetArchetype(oldIndex);

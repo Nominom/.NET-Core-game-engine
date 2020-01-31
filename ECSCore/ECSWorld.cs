@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using Core.ECS.Jobs;
+using Core.ECS.JobSystem;
 
 namespace Core.ECS
 {
@@ -24,6 +24,8 @@ namespace Core.ECS
 		public EntityManager EntityManager { get; }
 		public ComponentManager ComponentManager { get; }
 		public SystemManager SystemManager { get; }
+
+		private List<IEntityCommandBuffer> entityCommandBuffersToExecute = new List<IEntityCommandBuffer>();
 
 		internal static Thread mainThread;
 
@@ -59,7 +61,7 @@ namespace Core.ECS
 		public void Initialize(bool autoRegisterSystems = true)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
-			JobThreadPool.Setup();
+			Jobs.Setup();
 			initialized = true;
 
 			if (autoRegisterSystems)
@@ -90,6 +92,10 @@ namespace Core.ECS
 					}
 
 				}
+				foreach (IEntityCommandBuffer buffer in entityCommandBuffersToExecute) {
+					buffer.Playback();
+				}
+				entityCommandBuffersToExecute.Clear();
 			}
 		}
 
@@ -127,6 +133,15 @@ namespace Core.ECS
 			Entity entity = EntityManager.CreateEntity(prefab.archetype);
 			ComponentManager.AddPrefabComponents(entity, prefab);
 			return entity;
+		}
+
+		public void SyncPoint()
+		{
+			Jobs.CompleteAllJobs();
+		}
+
+		internal void RegisterForExecuteAfterUpdate(IEntityCommandBuffer buffer) {
+			entityCommandBuffersToExecute.Add(buffer);
 		}
 
 		internal static bool CheckThreadIsMainThread() {

@@ -2,11 +2,154 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using Core.ECS.JobSystem;
 
 namespace Core.ECS
 {
+	public static class EntityCommandBufferExtensions
+	{
+		public static void PlaybackAfterUpdate(this EntityCommandBuffer buffer)
+		{
+			buffer.world.RegisterForExecuteAfterUpdate(buffer);
+		}
+		public static void PlaybackAfterUpdate(this ConcurrentEntityCommandBuffer buffer)
+		{
+			buffer.world.RegisterForExecuteAfterUpdate(buffer);
+		}
+	}
 
-	public sealed class EntityCommandBuffer
+	public interface IEntityCommandBuffer
+	{
+		void CreateEntity(EntityArchetype archetype);
+
+		void CreateEntity(Prefab prefab);
+
+		void SetComponent<T>(T component) where T : unmanaged, IComponent;
+
+		void AddComponent<T>(T component) where T : unmanaged, IComponent;
+
+		void AddSharedComponent<T>(T component) where T : class, ISharedComponent;
+
+		void SetComponent<T>(Entity entity, T component) where T : unmanaged, IComponent;
+
+		void AddComponent<T>(Entity entity, T component) where T : unmanaged, IComponent;
+
+		void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent;
+
+		void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent;
+
+		void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent;
+
+		void Playback();
+
+		bool IsEmpty();
+
+	}
+
+	public sealed class ConcurrentEntityCommandBuffer : IEntityCommandBuffer
+	{
+
+		private readonly ThreadLocal<EntityCommandBuffer> threadBuffers = new ThreadLocal<EntityCommandBuffer>(true);
+		private List<EntityCommandBuffer> threadBuffersCache = null;
+		internal readonly ECSWorld world;
+
+		public ConcurrentEntityCommandBuffer(ECSWorld world)
+		{
+			this.world = world;
+		}
+
+		private EntityCommandBuffer GetLocal()
+		{
+			if (!threadBuffers.IsValueCreated)
+			{
+				threadBuffers.Value = new EntityCommandBuffer(world);
+				threadBuffersCache = null;
+			}
+			return threadBuffers.Value;
+		}
+
+		public void CreateEntity(Prefab prefab)
+		{
+			GetLocal().CreateEntity(prefab);
+		}
+
+		public void SetComponent<T>(T component) where T : unmanaged, IComponent
+		{
+			GetLocal().SetComponent(component);
+		}
+
+		public void AddComponent<T>(T component) where T : unmanaged, IComponent
+		{
+			GetLocal().AddComponent(component);
+		}
+
+		public void AddSharedComponent<T>(T component) where T : class, ISharedComponent
+		{
+			GetLocal().AddSharedComponent(component);
+		}
+
+		public void SetComponent<T>(Entity entity, T component) where T : unmanaged, IComponent
+		{
+			GetLocal().SetComponent(entity, component);
+		}
+
+		public void AddComponent<T>(Entity entity, T component) where T : unmanaged, IComponent
+		{
+			GetLocal().AddComponent(entity, component);
+		}
+
+		public void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent
+		{
+			GetLocal().AddSharedComponent(entity, component);
+		}
+
+		public void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent
+		{
+			GetLocal().RemoveComponent<T>(entity);
+		}
+
+		public void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		{
+			GetLocal().RemoveSharedComponent<T>(entity);
+		}
+
+		public void Playback()
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			if (threadBuffersCache == null)
+			{
+				threadBuffersCache = threadBuffers.Values as List<EntityCommandBuffer>;
+			}
+			foreach (EntityCommandBuffer buffer in threadBuffersCache)
+			{
+				buffer.Playback();
+			}
+		}
+
+		public bool IsEmpty()
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			Jobs.CompleteAllJobs();
+			if (threadBuffersCache == null)
+			{
+				threadBuffersCache = threadBuffers.Values as List<EntityCommandBuffer>;
+			}
+			foreach (EntityCommandBuffer buffer in threadBuffersCache)
+			{
+				if (!buffer.IsEmpty()) return false;
+			}
+
+			return true;
+		}
+
+		public void CreateEntity(EntityArchetype archetype)
+		{
+			GetLocal().CreateEntity(archetype);
+		}
+	}
+
+	public sealed class EntityCommandBuffer : IEntityCommandBuffer
 	{
 		private interface IModification
 		{
@@ -170,9 +313,8 @@ namespace Core.ECS
 			}
 		}
 
-
+		internal readonly ECSWorld world;
 		private Entity entityTarget;
-		private ECSWorld world;
 		private int nextIndex = 0;
 		private IModification?[] modList = Array.Empty<IModification>();
 		private ArrayPool<IModification> pool = ArrayPool<IModification>.Shared;
@@ -311,7 +453,9 @@ namespace Core.ECS
 		public void Playback()
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			if (!Empty()) {
+			if (!IsEmpty())
+			{
+				Jobs.CompleteAllJobs();
 				int i = 0;
 				while (i < modList.Length)
 				{
@@ -332,7 +476,8 @@ namespace Core.ECS
 			}
 		}
 
-		public bool Empty() {
+		public bool IsEmpty()
+		{
 			return nextIndex == 0;
 		}
 	}
