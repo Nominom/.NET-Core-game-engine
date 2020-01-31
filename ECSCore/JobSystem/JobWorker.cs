@@ -18,14 +18,9 @@ namespace Core.ECS.JobSystem
 					waiting = true;
 					waitForWork.Wait();
 					waiting = false;
-					while (JobManager.jobQueue.TryDequeue(out var jobHandle)) {
-						if (!JobManager.CanExecuteGroup(jobHandle.group))
-						{
-							JobManager.jobQueue.Enqueue(jobHandle);
-						}
-						else if (jobHandle.executor.ExecuteJob(jobHandle))
-						{
-							JobManager.SignalComplete(jobHandle);
+					while (JobManager.HasWorkToDo()) {
+						if (!JobManager.TryWork()) {
+							Thread.Sleep(0);
 						}
 					}
 					waitForWork.Reset();

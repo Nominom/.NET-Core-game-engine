@@ -75,7 +75,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 100000;
+			const int numThings = 10000;
 
 			for (int i = 0; i < numThings; i++)
 			{

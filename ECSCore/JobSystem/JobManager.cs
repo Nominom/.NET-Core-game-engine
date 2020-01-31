@@ -14,18 +14,22 @@ namespace Core.ECS.JobSystem
 		public static int workerAmount { get; private set; }
 		public static JobWorker[] workers;
 
-		internal static ConcurrentQueue<JobHandle> jobQueue = new ConcurrentQueue<JobHandle>();
+		internal static ConcurrentQueue<JobHandle>[] jobQueues = new ConcurrentQueue<JobHandle>[numGroups];
 
 		private const long numGroups = 2048;
 		private static long nextJobGroupId = 0;
 		private static readonly long[] groupWorkLeft = new long[numGroups];
 		private static readonly ComponentQuery[] groupDependencies = new ComponentQuery[numGroups];
+		private static readonly JobGroup[] jobGroups = new JobGroup[numGroups];
 
 		private static bool isSetup = false;
 
 		public static void Setup()
 		{
 			if (isSetup) return;
+			for (int i = 0; i < jobQueues.Length; i++) {
+				jobQueues[i] = new ConcurrentQueue<JobHandle>();
+			}
 
 			workerAmount = Math.Max(1, Environment.ProcessorCount - 1);
 			workers = new JobWorker[workerAmount];
@@ -49,14 +53,20 @@ namespace Core.ECS.JobSystem
 			++nextJobGroupId;
 			nextJobGroupId %= numGroups;
 
+			if(groupWorkLeft[nextJobGroupId] > 0) CompleteAll();
+
 			groupDependencies[nextJobGroupId] = ComponentQuery.Empty;
-			return new JobGroup(nextJobGroupId, -1);
+			var result = new JobGroup(nextJobGroupId, -1);
+			jobGroups[nextJobGroupId] = result;
+			return result;
 		}
 
 		public static JobGroup StartJobGroup(ComponentQuery dependencies)
 		{
 			++nextJobGroupId;
 			nextJobGroupId %= numGroups;
+
+			if(groupWorkLeft[nextJobGroupId] > 0) CompleteAll();
 
 			long dependency = -1;
 			if (runningJobs > 0) {
@@ -75,7 +85,9 @@ namespace Core.ECS.JobSystem
 			}
 
 			groupDependencies[nextJobGroupId] = dependencies;
-			return new JobGroup(nextJobGroupId, dependency);
+			var result = new JobGroup(nextJobGroupId, dependency);
+			jobGroups[nextJobGroupId] = result;
+			return result;
 		}
 
 		public static JobGroup StartJobGroup(JobGroup dependency)
@@ -83,8 +95,12 @@ namespace Core.ECS.JobSystem
 			++nextJobGroupId;
 			nextJobGroupId %= numGroups;
 
+			if(groupWorkLeft[nextJobGroupId] > 0) CompleteAll();
+
 			groupDependencies[nextJobGroupId] = ComponentQuery.Empty;
-			return new JobGroup(nextJobGroupId, dependency.groupId);
+			var result = new JobGroup(nextJobGroupId, dependency.groupId);
+			jobGroups[nextJobGroupId] = result;
+			return result;
 		}
 
 		public static JobHandle QueueJob<T>(T job, JobGroup group) where T : struct, IJob
@@ -95,7 +111,7 @@ namespace Core.ECS.JobSystem
 			var jobHandle = new JobHandle(nextJobId, group, JobExecutor<T>.Instance);
 
 			JobExecutor<T>.Instance.AddJob(jobHandle, job);
-			jobQueue.Enqueue(jobHandle);
+			jobQueues[group.groupId].Enqueue(jobHandle);
 
 			if (workers[nextWorker].waiting)
 			{
@@ -126,20 +142,27 @@ namespace Core.ECS.JobSystem
 			return Interlocked.Read(ref groupWorkLeft[group.groupId]) == 0;
 		}
 
+		internal static bool HasWorkToDo() {
+			return runningJobs > 0;
+		}
+
 		internal static bool TryWork() {
-			while (jobQueue.TryDequeue(out var jobHandle))
-			{
-				if (!CanExecuteGroup(jobHandle.group))
-				{
-					jobQueue.Enqueue(jobHandle);
-				}
-				else if (jobHandle.executor.ExecuteJob(jobHandle))
-				{
-					SignalComplete(jobHandle);
-					return true;
+			bool success = false;
+			for (int i = 0; i < numGroups; i++) {
+				if (Interlocked.Read(ref groupWorkLeft[i]) > 0) {
+					if (!CanExecuteGroup(jobGroups[i])) {
+						continue;
+					}
+					while (jobQueues[i].TryDequeue(out var jobHandle)) {
+						if (jobHandle.executor.ExecuteJob(jobHandle))
+						{
+							SignalComplete(jobHandle);
+							success =  true;
+						}
+					}
 				}
 			}
-			return false;
+			return success;
 		}
 
 		internal static void SignalComplete(JobHandle handle)
