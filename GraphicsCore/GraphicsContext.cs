@@ -13,6 +13,7 @@ namespace Core.Graphics
 	{
 		public static GraphicsDevice graphicsDevice;
 		public static UniformBuffer<UniformBufferObject> uniform0;
+		public static ShaderPair defaultShader;
 		internal static bool initialized;
 
 		private const string VertexCode = @"
@@ -116,6 +117,7 @@ void main()
 
 		public static void CreateResources() {
 			uniform0 = new UniformBuffer<UniformBufferObject>(graphicsDevice, 0);
+			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
 		}
 
 		public static void DisposeResources() {

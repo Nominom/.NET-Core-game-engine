@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.AssetSystem;
 using Core.Graphics.VulkanBackend.Utility;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
@@ -68,18 +69,20 @@ namespace Core.Graphics.VulkanBackend
         * @param (Optional) forceLinear Force linear tiling (not advised, defaults to false)
         *
         */
-		public void LoadFromFileKtx(
-			string filename,
-			VkFormat format,
+		public void FromTextureAsset(
+			CompressedTextureAsset asset,
 			GraphicsDevice device,
 			VkImageUsageFlags imageUsageFlags = VkImageUsageFlags.Sampled,
-			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal)
-		{
-			KtxFile tex2D;
-			using (var fs = File.OpenRead(filename))
-			{
-				tex2D = KtxFile.Load(fs, false);
+			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal) {
+
+
+			VkFormat format = VkFormat.Undefined;
+
+			if (!asset.IsLoaded) {
+				asset.Load();
 			}
+			KtxFile tex2D = asset.GetTexture();
+			format = GlFormatToVulkanFormat.vkGetFormatFromOpenGLInternalFormat((GlFormatToVulkanFormat.GlInternalFormat) tex2D.Header.GlInternalFormat);
 
 			width = tex2D.Header.PixelWidth;
 			height = tex2D.Header.PixelHeight;
@@ -244,13 +247,16 @@ namespace Core.Graphics.VulkanBackend
 			vkDestroyBuffer(device.device, stagingBuffer, null);
 		}
 
-		public void LoadFromFile(
-			string filename,
+		public void FromTextureAsset(
+			ImageTextureAsset asset,
 			GraphicsDevice device,
 			VkImageUsageFlags imageUsageFlags = VkImageUsageFlags.Sampled,
 			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal) {
 
-			using Image<Rgba32> tex2D = Image.Load<Rgba32>(filename);
+			if (!asset.IsLoaded) {
+				asset.Load();
+			}
+			using Image<Rgba32> tex2D = asset.GetTexture();
 
 			CreateFromImage(tex2D, device, imageUsageFlags, imageLayout);
 		}
@@ -469,6 +475,19 @@ namespace Core.Graphics.VulkanBackend
 			descriptor.sampler = sampler;
 			descriptor.imageView = view;
 			descriptor.imageLayout = imageLayout;
+		}
+
+
+		public static Texture2D Create(CompressedTextureAsset asset) {
+			Texture2D texture = new Texture2D();
+			texture.FromTextureAsset(asset, GraphicsContext.graphicsDevice);
+			return texture;
+		}
+
+		public static Texture2D Create(ImageTextureAsset asset) {
+			Texture2D texture = new Texture2D();
+			texture.FromTextureAsset(asset, GraphicsContext.graphicsDevice);
+			return texture;
 		}
 	}
 

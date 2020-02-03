@@ -1,38 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Core.Shared;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Core.AssetSystem
 {
-	public class ModelAsset : IAsset
-	{
+	public class ImageTextureAsset : IAsset {
+
+		private Image<Rgba32> image;
 		public string Filename { get; set; }
 		public bool IsLoaded { get; private set; }
-
-		private MeshData meshData;
 
 		public void Load() {
 			if (IsLoaded) {
 				return;
 			}
 
-			meshData = ModelLoader.LoadModel(Filename);
+			image = Image.Load<Rgba32>(Filename);
 			IsLoaded = true;
 		}
 
 		public void UnLoad() {
-			meshData = null;
+			image?.Dispose();
+			image = null;
 			IsLoaded = false;
 		}
 
-		public void Dispose()
-		{
-			UnLoad();	
+		public void Dispose() {
+			UnLoad();
 		}
 
-		public MeshData GetMeshData() {
-			return meshData;
+		public Image<Rgba32> GetTexture() {
+			return image;
 		}
 	}
 }

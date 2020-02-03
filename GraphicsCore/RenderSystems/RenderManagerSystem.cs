@@ -247,7 +247,7 @@ namespace Core.Graphics.RenderSystems
 			}
 			buffersToDispose.Clear();
 
-			var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.1f);
+			var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.01f);
 			cameraRotation = Quaternion.Multiply(cameraRotation, rotation);
 			
 			timer += deltaTime;

@@ -3,10 +3,12 @@ using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using Core;
+using Core.AssetSystem;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics;
 using Core.Graphics.VulkanBackend;
+using Core.Shared;
 
 namespace TestApp
 {
@@ -51,6 +53,25 @@ namespace TestApp
 			CoreEngine.Initialize();
 			CoreEngine.targetFps = 0;
 
+			var satelliteModel = Assets.Create<ModelAsset>("data/voyager.dae");
+			var satelliteTexture = Assets.Create<CompressedTextureAsset>("data/voyager_etc2_unorm.ktx");
+
+			var satelliteMesh = Mesh.Create(satelliteModel);
+			var satelliteTex = Texture2D.Create(satelliteTexture);
+			var satelliteMaterial = Material.Create(Color.white, satelliteTex);
+
+			MeshRenderer renderer = new MeshRenderer(satelliteMesh, satelliteMaterial);
+
+			Prefab satellite = new Prefab();
+			satellite.AddComponent(new Position() { value = Vector3.Zero });
+			satellite.AddComponent(new Rotation() { value = Quaternion.Identity });
+			satellite.AddComponent(new Scale() { value = Vector3.One });
+			satellite.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
+			satellite.AddComponent(new BoundingBox());
+			satellite.AddComponent(new RotateComponent() { rotationSpeed = 1 });
+			satellite.AddSharedComponent(renderer);
+			satellite.AddSharedComponent(RenderTag.Opaque);
+
 			Prefab plane = new Prefab();
 			plane.AddComponent(new Position() { value = Vector3.Zero });
 			plane.AddComponent(new Rotation() { value = Quaternion.Identity });
@@ -75,11 +96,11 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 100000;
+			const int numThings = 10;
 
 			for (int i = 0; i < numThings; i++)
 			{
-				var entity = world.Instantiate(cube);
+				var entity = world.Instantiate(satellite);
 				cm.SetComponent(entity, new Position()
 				{
 					value = new Vector3(
@@ -88,7 +109,7 @@ namespace TestApp
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
-				cm.RemoveComponent<RotateComponent>(entity);
+				//cm.RemoveComponent<RotateComponent>(entity);
 
 				entity = world.Instantiate(plane);
 				cm.SetComponent(entity, new Position()
@@ -115,6 +136,8 @@ namespace TestApp
 			});
 			cm.SetComponent(entity2, new RotateComponent() { rotationSpeed = 4 });
 
+
+			var entity3 = world.Instantiate(satellite);
 
 
 			CoreEngine.Run();

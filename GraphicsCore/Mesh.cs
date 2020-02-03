@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.AssetSystem;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
 using Microsoft.VisualBasic;
@@ -26,6 +27,16 @@ namespace Core.Graphics
 					bounds = bounds.Encapsulate(vertex.position);
 				}
 			}
+		}
+
+		public static Mesh Create( ModelAsset asset, bool readWrite = false) {
+			if (!asset.IsLoaded)
+			{
+				asset.Load();
+			}
+			MeshData meshData = asset.GetMeshData();
+
+			return new Mesh(GraphicsContext.graphicsDevice, meshData, readWrite);
 		}
 
 		~Mesh() {

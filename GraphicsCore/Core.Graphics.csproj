@@ -13,12 +13,12 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="Veldrid.Sdl2" Version="4.7.0" />
     <PackageReference Include="Vk" Version="1.0.22" />
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\Core.AssetSystem\Core.AssetSystem.csproj" />
     <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
     <ProjectReference Include="..\ECSCore\Core.ECS.csproj" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿// Code from: mellinoe/vk repository https://github.com/mellinoe/vk
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Core.Graphics.VulkanBackend.Utility
+namespace Core.AssetSystem
 {
     // A ridiculously bad KTX file parser.
     // https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec
