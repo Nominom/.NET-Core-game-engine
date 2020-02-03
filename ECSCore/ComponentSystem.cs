@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Core.ECS.Filters;
 using Core.ECS.JobSystem;
 
 namespace Core.ECS
@@ -20,6 +21,7 @@ namespace Core.ECS
 	public abstract class ComponentSystem : ComponentSystemBase
 	{
 		private ComponentQuery query;
+		private IComponentFilter filter;
 		private bool initialized = false;
 		protected EntityCommandBuffer afterUpdateCommands;
 
@@ -32,11 +34,12 @@ namespace Core.ECS
 			{
 				afterUpdateCommands = new EntityCommandBuffer(world);
 				query = GetQuery();
+				filter = GetComponentFilter();
 				initialized = true;
 			}
 			BeforeUpdate();
 
-			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query);
+			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query, filter);
 			foreach (BlockAccessor block in blocks)
 			{
 				ProcessBlock(deltaTime, block);
@@ -46,12 +49,18 @@ namespace Core.ECS
 		}
 
 		public abstract ComponentQuery GetQuery();
+
+		public virtual IComponentFilter GetComponentFilter() {
+			return ComponentFilters.Empty();
+		}
+
 		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
 	}
 
 	public abstract class JobComponentSystem : ComponentSystemBase
 	{
 		private ComponentQuery query;
+		private IComponentFilter filter;
 		private bool initialized = false;
 		protected ConcurrentEntityCommandBuffer afterUpdateCommands;
 
@@ -72,13 +81,14 @@ namespace Core.ECS
 			{
 				afterUpdateCommands = new ConcurrentEntityCommandBuffer(world);
 				query = GetQuery();
+				filter = GetComponentFilter();
 				initialized = true;
 			}
 			BeforeUpdate();
 
 			afterUpdateCommands.PlaybackAfterUpdate();
 
-			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocksNoSync(query);
+			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocksNoSync(query, filter);
 			var group = Jobs.StartNewGroup(query);
 			foreach (BlockAccessor block in blocks) {
 				ComponentProcessJob processJob = new ComponentProcessJob() {
@@ -91,6 +101,9 @@ namespace Core.ECS
 		}
 
 		public abstract ComponentQuery GetQuery();
+		public virtual IComponentFilter GetComponentFilter() {
+			return ComponentFilters.Empty();
+		}
 		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
 	}
 

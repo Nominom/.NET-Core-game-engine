@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 
 namespace Core.ECS
 {
@@ -31,6 +29,7 @@ namespace Core.ECS
 		//private Dictionary<System.Type, ComponentSliceValues> _typeLocations;
 		//private Dictionary<int, ComponentSliceValues> _typeLocations;
 		private readonly Dictionary<int, ComponentSliceValues> _typeLocations;
+		private readonly Dictionary<int, long> _componentVersions; 
 
 		/// <summary>
 		/// Unique identifier of this block.
@@ -41,6 +40,7 @@ namespace Core.ECS
 		public bool HasRoom => _size < _maxSize;
 		public int Size => _size;
 		public int MaxSize => _maxSize;
+		public long EntityVersion { get; private set; }
 
 		public ComponentMemoryBlock(EntityArchetype archetype) : this(archetype, defaultAllocator){}
 
@@ -50,7 +50,7 @@ namespace Core.ECS
 			//_typeLocations = new Dictionary<Type, ComponentSliceValues>();
 			//_typeLocations = new Dictionary<int, ComponentSliceValues>();
 			_typeLocations = new Dictionary<int, ComponentSliceValues>();
-
+			_componentVersions = new Dictionary<int, long>();
 
 			_data = allocator.Rent();
 			_data.Memory.Span.Fill(0);
@@ -73,8 +73,30 @@ namespace Core.ECS
 			foreach (var component in archetype.components) {
 				int componentLength = component.Value * _maxSize;
 				_typeLocations.Add(component.Key.GetHashCode(), new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
+				_componentVersions.Add(component.Key.GetHashCode(), 0);
 				nextIdx += componentLength;
 			}
+		}
+
+		internal void IncrementComponentVersions()
+		{
+			foreach (var component in archetype.components) {
+				int hash = component.Key.GetHashCode();
+				IncrementComponentVersion(hash);
+			}
+		}
+
+		internal void IncrementComponentVersion(int hash) {
+			_componentVersions[hash] = _componentVersions[hash] + 1;
+		}
+
+		internal void RollbackComponentVersion<T>() {
+			int hash = TypeHelper<T>.hashCode;
+			_componentVersions[hash] = _componentVersions[hash] - 1;
+		}
+
+		internal long GetComponentVersion<T>() {
+			return _componentVersions[TypeHelper<T>.hashCode];
 		}
 
 		internal Span<Entity> GetEntityData() {
@@ -85,17 +107,41 @@ namespace Core.ECS
 
 		internal Span<T> GetComponentData<T>() where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+			int hash = TypeHelper<T>.hashCode;
+			_componentVersions[hash] = _componentVersions[hash] + 1;
 
-			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			ComponentSliceValues componentSlice = _typeLocations[hash];
 			Span <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
 		}
 
+		internal Span<T> GetComponentDataNoVersionIncrement<T>() where T : unmanaged, IComponent {
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+			int hash = TypeHelper<T>.hashCode;
+
+			ComponentSliceValues componentSlice = _typeLocations[hash];
+			Span <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
+			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
+			return span;
+		}
+
+		internal ReadOnlySpan<T> GetReadOnlyComponentData<T>() where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			ReadOnlySpan <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
+			ReadOnlySpan<T> span = MemoryMarshal.Cast<byte, T>(bytes);
+			return span;
+		}
+
 		internal Span<byte> GetRawComponentData<T>() where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+			
+			int hash = TypeHelper<T>.hashCode;
+			_componentVersions[hash] = _componentVersions[hash] + 1;
 
-			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			ComponentSliceValues componentSlice = _typeLocations[hash];
 			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			return bytes;
 		}
@@ -103,6 +149,8 @@ namespace Core.ECS
 		internal Span<byte> GetRawComponentData(System.Type type) {
 			int hash = type.GetHashCode();
 			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(hash));
+			
+			_componentVersions[hash] = _componentVersions[hash] + 1;
 
 			ComponentSliceValues componentSlice = _typeLocations[hash];
 			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
@@ -125,10 +173,10 @@ namespace Core.ECS
 		public int AddEntity(in Entity entity) {
 			DebugHelper.AssertThrow<InvalidEntityException>(!entity.IsNull());
 			DebugHelper.AssertThrow<InvalidOperationException>(_size < _maxSize);
-
 			int idx = _size;
 			GetEntityData()[idx] = entity;
 			_size++;
+			EntityVersion++;
 			return idx;
 		}
 
@@ -175,7 +223,7 @@ namespace Core.ECS
 				moved = new Entity();
 			}
 
-
+			EntityVersion++;
 			--_size;
 			return didMove;
 		}
@@ -212,8 +260,19 @@ namespace Core.ECS
 			return newIdx;
 		}
 
-		public BlockAccessor GetAccessor() {
-			return new BlockAccessor(this);
+		public BlockAccessor GetAccessor(ComponentQuery query) {
+			return new BlockAccessor(this, query);
+		}
+
+		public void IncrementVersionsByQuery(ComponentQuery query) {
+			var bitset = query.GetIncludeWriteMask();
+			for (int i = 0; i < ComponentMask.ComponentAmount; i++) {
+				if (bitset.Get(i)) {
+					var type = ComponentMask.ComponentIndexToType(i);
+					int hash = type.GetHashCode();
+					IncrementComponentVersion(hash);
+				}
+			}
 		}
 	}
 

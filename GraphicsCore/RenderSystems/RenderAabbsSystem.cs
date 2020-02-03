@@ -23,7 +23,7 @@ namespace Core.Graphics.RenderSystems
 		private ShaderPair defaultShader;
 
 		public void OnCreate(ECSWorld world) {
-			query.Include<BoundingBox>();
+			query.IncludeReadonly<BoundingBox>();
 			query.ExcludeShared<CulledRenderTag>();
 			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
 			defaultMaterial = new Material(GraphicsContext.graphicsDevice,

@@ -63,6 +63,8 @@ namespace Core.ECS
 		}
 
 		private void CalculateHashAndMask() {
+			componentMask = new BitSet256();
+			sharedComponentMask = new BitSet256();
 			_hash = 0;
 			foreach (var kp in components) {
 				_hash ^= kp.Key.GetHashCode();

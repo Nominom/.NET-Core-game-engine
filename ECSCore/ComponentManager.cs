@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using Core.ECS.Filters;
 
 namespace Core.ECS
 {
@@ -517,7 +518,25 @@ namespace Core.ECS
 			world.SyncPoint();
 			foreach (var block in FilterBlocks(query))
 			{
-				yield return block.GetAccessor();
+				yield return block.GetAccessor(query);
+			}
+		}
+
+		/// <summary>
+		/// Get the blocks that match the query and the filter. This method will cause a world sync.
+		/// </summary>
+		public IEnumerable<BlockAccessor> GetBlocks(ComponentQuery query, IComponentFilter filter) {
+			if (filter == null) filter = ComponentFilters.Empty();
+
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			world.SyncPoint();
+			foreach (var block in FilterBlocks(query)) {
+				var accessor = block.GetAccessor(query);
+				if (!filter.FilterBlock(accessor)) {
+					accessor.CommitVersion();
+					filter.UpdateFilter(accessor);
+					yield return accessor;
+				}
 			}
 		}
 
@@ -529,42 +548,57 @@ namespace Core.ECS
 		public IEnumerable<BlockAccessor> GetBlocksNoSync(ComponentQuery query)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			foreach (var block in FilterBlocks(query))
-			{
-				yield return block.GetAccessor();
+			foreach (var block in FilterBlocks(query)) {
+				var accessor = block.GetAccessor(query);
+				accessor.CommitVersion(); // Pre increment versions because filters might not filter correctly if versions are incremented in job.
+				yield return accessor;
+			}
+		}
+
+		public IEnumerable<BlockAccessor> GetBlocksNoSync(ComponentQuery query, IComponentFilter filter) {
+			if (filter == null) filter = ComponentFilters.Empty();
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+
+			foreach (var block in FilterBlocks(query)) {
+				var accessor = block.GetAccessor(query);
+				if (!filter.FilterBlock(accessor)) {
+					accessor.CommitVersion(); // Pre increment versions because filters might not filter correctly if versions are incremented in job.
+					filter.UpdateFilter(accessor);
+					yield return accessor;
+				}
 			}
 		}
 
 		/// <summary>
 		/// Get the blocks that match the archetype. This method will cause a world sync.
 		/// </summary>
-		public IEnumerable<BlockAccessor> GetBlocks(EntityArchetype archetype)
-		{
-			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			world.SyncPoint();
-			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
-				foreach (var block in archetypeBlocks[index].blocks)
-				{
-					yield return block.GetAccessor();
-				}
-			}
-		}
+		//public IEnumerable<BlockAccessor> GetBlocks(EntityArchetype archetype)
+		//{
+		//	DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+		//	world.SyncPoint();
+		//	if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
+		//		foreach (var block in archetypeBlocks[index].blocks)
+		//		{
+		//			yield return block.GetAccessor(query);
+		//		}
+		//	}
+		//}
 
 		/// <summary>
 		/// Get the blocks that match the archetype. This method will not cause a world sync.
 		/// Use when blocks will be passed off to a Job for processing and access is synchronized with
 		/// JobGroups.
 		/// </summary>
-		public IEnumerable<BlockAccessor> GetBlocksNoSync(EntityArchetype archetype)
-		{
-			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
-				foreach (var block in archetypeBlocks[index].blocks)
-				{
-					yield return block.GetAccessor();
-				}
-			}
-		}
+		//public IEnumerable<BlockAccessor> GetBlocksNoSync(EntityArchetype archetype)
+		//{
+		//	DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+		//	if (archetypeHashIndices.TryGetValue(archetype.Hash, out int index)) {
+		//		foreach (var block in archetypeBlocks[index].blocks)
+		//		{
+		//			yield return block.GetAccessor(query);
+		//		}
+		//	}
+		//}
 		#endregion
 
 		internal void CleanUp() {

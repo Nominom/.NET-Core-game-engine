@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Core.ECS.Filters;
 
 namespace Core.ECS
 {
 	public struct BlockAccessor
 	{
 		private readonly ComponentMemoryBlock block;
+		private readonly ComponentQuery query;
+		private bool preIncremented;
 
 		public readonly int length;
-		internal BlockAccessor(ComponentMemoryBlock block)
+		internal BlockAccessor(ComponentMemoryBlock block, ComponentQuery query)
 		{
 			this.block = block;
-
+			this.query = query;
+			this.preIncremented = false;
 			length = block.Size;
 		}
 
@@ -23,16 +27,40 @@ namespace Core.ECS
 		}
 		public Span<T> GetComponentData<T> () where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
-			return block.GetComponentData<T>().Slice(0, block.Size);
+			DebugHelper.AssertThrow<IllegalAccessException>(query.IncludesWrite<T>());
+			if (preIncremented)
+			{
+				return block.GetComponentDataNoVersionIncrement<T>().Slice(0, block.Size);
+			}
+			else {
+				return block.GetComponentData<T>().Slice(0, block.Size);
+			}
 		}
 		public ReadOnlySpan<T> GetReadOnlyComponentData<T>() where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
-			return block.GetComponentData<T>().Slice(0, block.Size);
+			DebugHelper.AssertThrow<IllegalAccessException>(query.Includes<T>());
+			return block.GetReadOnlyComponentData<T>().Slice(0, block.Size);
+		}
+		public long GetComponentVersion<T>() where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
+			return block.GetComponentVersion<T>();
+		}
+
+		public long GetEntityVersion() {
+			return block.EntityVersion;
 		}
 
 		public T GetSharedComponentData<T> () where T : class, ISharedComponent {
+			DebugHelper.AssertThrow<IllegalAccessException>(query.IncludesShared<T>());
 			return block.archetype.GetShared<T>();
+		}
+
+		internal void CommitVersion()
+		{
+			block.IncrementVersionsByQuery(query);
+			preIncremented = true;
 		}
 	}
 

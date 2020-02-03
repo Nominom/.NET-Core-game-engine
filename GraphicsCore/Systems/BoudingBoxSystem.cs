@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Core.ECS;
 using Core.ECS.Components;
+using Core.ECS.Filters;
 
 namespace Core.Graphics.Systems
 {
@@ -11,10 +12,14 @@ namespace Core.Graphics.Systems
 	{
 		public override ComponentQuery GetQuery() {
 			ComponentQuery query = new ComponentQuery();
-			query.Include<BoundingBox>();
-			query.Include<ObjectToWorld>();
+			query.IncludeReadWrite<BoundingBox>();
+			query.IncludeReadonly<ObjectToWorld>();
 			query.IncludeShared<MeshRenderer>();
 			return query;
+		}
+
+		public override IComponentFilter GetComponentFilter() {
+			return ComponentFilters.Changed<ObjectToWorld>();
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block) {

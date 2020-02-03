@@ -25,8 +25,8 @@ namespace TestApp
 			public override ComponentQuery GetQuery()
 			{
 				ComponentQuery query = new ComponentQuery();
-				query.Include<Rotation>();
-				query.Include<RotateComponent>();
+				query.IncludeReadWrite<Rotation>();
+				query.IncludeReadonly<RotateComponent>();
 				return query;
 			}
 
@@ -75,7 +75,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 10000;
+			const int numThings = 100000;
 
 			for (int i = 0; i < numThings; i++)
 			{
@@ -88,7 +88,7 @@ namespace TestApp
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
-
+				cm.RemoveComponent<RotateComponent>(entity);
 
 				entity = world.Instantiate(plane);
 				cm.SetComponent(entity, new Position()
@@ -99,7 +99,7 @@ namespace TestApp
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
 				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
-
+				cm.RemoveComponent<RotateComponent>(entity);
 			}
 
 			var entity2 = world.Instantiate(cube);

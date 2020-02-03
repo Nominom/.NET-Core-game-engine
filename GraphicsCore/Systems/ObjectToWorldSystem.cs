@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Core.ECS;
 using Core.ECS.Components;
+using Core.ECS.Filters;
 using Core.Shared;
 
 namespace Core.Graphics.Systems
@@ -133,11 +134,15 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery()
 		{
-			posRotScaleQuery.Include<Position>();
-			posRotScaleQuery.Include<Rotation>();
-			posRotScaleQuery.Include<Scale>();
-			posRotScaleQuery.Include<ObjectToWorld>();
+			posRotScaleQuery.IncludeReadonly<Position>();
+			posRotScaleQuery.IncludeReadonly<Rotation>();
+			posRotScaleQuery.IncludeReadonly<Scale>();
+			posRotScaleQuery.IncludeReadWrite<ObjectToWorld>();
 			return posRotScaleQuery;
+		}
+
+		public override IComponentFilter GetComponentFilter() {
+			return ComponentFilters.ChangedAny<Position, Rotation, Scale>();
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block)
@@ -172,11 +177,16 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery()
 		{
-			posRotQuery.Include<Position>();
-			posRotQuery.Include<Rotation>();
+			posRotQuery.IncludeReadonly<Position>();
+			posRotQuery.IncludeReadonly<Rotation>();
 			posRotQuery.Exclude<Scale>();
-			posRotQuery.Include<ObjectToWorld>();
+			posRotQuery.IncludeReadWrite<ObjectToWorld>();
 			return posRotQuery;
+		}
+
+		public override IComponentFilter GetComponentFilter() {
+			
+			return ComponentFilters.ChangedAny<Position, Rotation>();
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block)
@@ -207,11 +217,15 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery()
 		{
-			posScaleQuery.Include<Position>();
+			posScaleQuery.IncludeReadonly<Position>();
 			posScaleQuery.Exclude<Rotation>();
-			posScaleQuery.Include<Scale>();
-			posScaleQuery.Include<ObjectToWorld>();
+			posScaleQuery.IncludeReadonly<Scale>();
+			posScaleQuery.IncludeReadWrite<ObjectToWorld>();
 			return posScaleQuery;
+		}
+
+		public override IComponentFilter GetComponentFilter() {
+			return ComponentFilters.ChangedAny<Position, Scale>();
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block)
@@ -243,11 +257,15 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery()
 		{
-			posQuery.Include<Position>();
+			posQuery.IncludeReadonly<Position>();
 			posQuery.Exclude<Rotation>();
 			posQuery.Exclude<Scale>();
-			posQuery.Include<ObjectToWorld>();
+			posQuery.IncludeReadWrite<ObjectToWorld>();
 			return posQuery;
+		}
+
+		public override IComponentFilter GetComponentFilter() {
+			return ComponentFilters.Changed<Position>();
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block)

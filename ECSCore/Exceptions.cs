@@ -13,4 +13,8 @@ namespace Core.ECS
 	public class ThreadAccessException : Exception {
 		public override string Message { get; } = "This method can only be accessed from the main thread.";
 	}
+
+	public class IllegalAccessException : Exception {
+		
+	}
 }

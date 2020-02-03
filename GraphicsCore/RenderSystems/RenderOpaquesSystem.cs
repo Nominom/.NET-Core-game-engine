@@ -18,7 +18,7 @@ namespace Core.Graphics.RenderSystems
 
 		public void OnCreate(ECSWorld world)
 		{
-			query.Include<ObjectToWorld>();
+			query.IncludeReadonly<ObjectToWorld>();
 			query.IncludeShared<MeshRenderer>();
 			query.IncludeShared<OpaqueRenderTag>();
 			query.ExcludeShared<CulledRenderTag>();

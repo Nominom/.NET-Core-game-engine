@@ -8,6 +8,7 @@ namespace Core.ECS
 {
 	public static class ComponentMask {
 		private static Dictionary<int, int> CreateComponentDictionary() {
+			indexToType = new Dictionary<int, Type>();
 			Dictionary<int, int> dict = new Dictionary<int, int>();
 			int i = 0;
 			foreach (Assembly assembly in AssemblyHelper.GetAllUserAssemblies()) {
@@ -17,6 +18,7 @@ namespace Core.ECS
 						Console.WriteLine("ComponentDictionary already contains hash of type " + type.FullName);
 						continue;
 					}
+					indexToType.Add(i, type);
 					dict.Add(typeHash, i);
 					i++;
 				}
@@ -28,7 +30,9 @@ namespace Core.ECS
 		}
 
 		private static Dictionary<int, int> componentHashToIndex { get; } = CreateComponentDictionary();
-		private static int componentAmount { get; } = componentHashToIndex.Count;
+		private static Dictionary<int, System.Type> indexToType;
+
+		public static int ComponentAmount { get; } = componentHashToIndex.Count;
 
 		public static BitSet256 GetComponentMask(IEnumerable<Type> types) {
 			if (types == null) {
@@ -52,6 +56,11 @@ namespace Core.ECS
 			int hash = type.GetHashCode();
 			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be IComponent"));
 			return componentHashToIndex[hash];
+		}
+
+		public static System.Type ComponentIndexToType(int index) {
+			DebugHelper.AssertThrow(indexToType.ContainsKey(index), new ArgumentException("No such index"));
+			return indexToType[index];
 		}
 
 	}
@@ -84,7 +93,7 @@ namespace Core.ECS
 		}
 
 		private static Dictionary<int, int> componentHashToIndex { get; } = CreateComponentDictionary();
-		private static int componentAmount { get; } = componentHashToIndex.Count;
+		public static int ComponentAmount { get; } = componentHashToIndex.Count;
 
 		public static BitSet256 GetSharedComponentMask(IEnumerable<Type> types)
 		{
@@ -97,7 +106,7 @@ namespace Core.ECS
 			foreach (var type in types)
 			{
 				int hash = type.GetHashCode();
-				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be IComponent"));
+				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be ISharedComponent"));
 				result.Set(componentHashToIndex[hash]);
 			}
 			return result;
@@ -111,7 +120,7 @@ namespace Core.ECS
 		public static int GetSharedComponentIndex(Type type)
 		{
 			int hash = type.GetHashCode();
-			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be IComponent"));
+			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be ISharedComponent"));
 			return componentHashToIndex[hash];
 		}
 

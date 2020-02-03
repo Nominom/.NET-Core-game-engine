@@ -30,7 +30,7 @@ namespace Core.ECS.Collections
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-		public bool Get(int pos)
+		public readonly bool Get(int pos)
 		{
 			int arrIndex = pos >> 6;
 			DebugHelper.AssertThrow(arrIndex < 4, new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
@@ -38,7 +38,7 @@ namespace Core.ECS.Collections
 		}
 
 		public bool this[int index] {
-			get => Get(index);
+			readonly get => Get(index);
 			set {
 				if (value) {
 					Set(index);

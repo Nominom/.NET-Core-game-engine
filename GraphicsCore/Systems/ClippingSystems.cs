@@ -14,7 +14,7 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery() {
 			ComponentQuery query = new ComponentQuery();
-			query.Include<BoundingBox>();
+			query.IncludeReadonly<BoundingBox>();
 			query.ExcludeShared<CulledRenderTag>();
 			return query;
 		}
@@ -42,7 +42,7 @@ namespace Core.Graphics.Systems
 
 		public override ComponentQuery GetQuery() {
 			ComponentQuery query = new ComponentQuery();
-			query.Include<BoundingBox>();
+			query.IncludeReadonly<BoundingBox>();
 			query.IncludeShared<CulledRenderTag>();
 			return query;
 		}
