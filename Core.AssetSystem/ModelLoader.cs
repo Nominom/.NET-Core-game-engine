@@ -11,7 +11,8 @@ namespace Core.AssetSystem
 	{
 
 		public static MeshData LoadModel(string filename) {
-			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices;
+			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices
+				| PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
 
 			var scene = new AssimpContext().ImportFile(filename, assimpFlags);
 
@@ -36,8 +37,12 @@ namespace Core.AssetSystem
 
 					vertex.position = new Vector3(mesh.Vertices[v].X, mesh.Vertices[v].Y, mesh.Vertices[v].Z) * scale;
 					vertex.normal = new Vector3(mesh.Normals[v].X, mesh.Normals[v].Y, mesh.Normals[v].Z);
-					vertex.uv0 = new Vector2(mesh.TextureCoordinateChannels[0][v].X, mesh.TextureCoordinateChannels[0][v].Y);
-
+					if (mesh.HasTextureCoords(0)) {
+						vertex.uv0 = new Vector2(mesh.TextureCoordinateChannels[0][v].X, mesh.TextureCoordinateChannels[0][v].Y);
+					}
+					else {
+						vertex.uv0 = Vector2.Zero;
+					}
 
 					vertices[v] = vertex;
 				}

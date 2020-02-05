@@ -21,6 +21,7 @@ namespace Core.Graphics
 		public static event Action<MouseEvent> OnMouseDown;
 		public static event Action<KeyEvent> OnKeyDown;
 
+		public static float Aspect => ((float)window.Width / (float)window.Height);
 
 		public static void Initialize(ECSWorld world) {
 			if (initialized) return;
@@ -53,7 +54,8 @@ namespace Core.Graphics
 
 		private static void PumpEvents(float deltatime, ECSWorld ecsWorld) {
 			if (window.Exists) {
-				window.PumpEvents();
+				InputSnapshot snapshot = window.PumpEvents();
+				Input.UpdateInput(snapshot);
 			}
 		}
 	}

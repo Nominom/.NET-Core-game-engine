@@ -26,6 +26,14 @@ namespace Core.ECS
 			archetype = EntityArchetype.Empty;
 		}
 
+		public Prefab(EntityArchetype archetype) {
+			name = "Prefab";
+			componentSizes = new List<ComponentSliceValues>();
+			componentTypes = new List<Type>();
+			componentData = Array.Empty<byte>();
+			this.archetype = archetype;
+		}
+
 		private void GrowComponentData(int newSize) {
 			var newBytes = new byte[newSize];
 			ReadOnlySpan<byte> old = componentData;

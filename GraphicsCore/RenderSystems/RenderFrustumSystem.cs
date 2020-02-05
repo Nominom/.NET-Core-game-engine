@@ -83,7 +83,8 @@ namespace Core.Graphics.RenderSystems
 		}
 
 		public void Render(ECSWorld world, in RenderContext context) {
-			var frustum = context.activeCamera.GetFrustum(RenderManagerSystem.cameraPosition, RenderManagerSystem.cameraRotation);
+			var frustum = new Frustum();
+			//var frustum = context.activeCamera.GetFrustum(RenderManagerSystem.cameraPosition, RenderManagerSystem.cameraRotation);
 			
 			frustum.Vertices(frustumCorners);
 

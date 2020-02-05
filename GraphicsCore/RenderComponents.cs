@@ -17,4 +17,13 @@ namespace Core.Graphics
 			this.materials = materials;
 		}
 	}
+
+	
+	public class CameraAutoScaleAspectComponent : ISharedComponent {
+		public static CameraAutoScaleAspectComponent Instance { get; } = new CameraAutoScaleAspectComponent();
+	}
+
+	public class MainCameraTag : ISharedComponent {
+		public static MainCameraTag Instance { get; } = new MainCameraTag();
+	}
 }

@@ -12,6 +12,8 @@ namespace Core.Graphics
 {
 	public struct RenderContext {
 		public Camera activeCamera;
+		public Vector3 cameraPosition;
+		public Quaternion cameraRotation;
 		public RenderPass currentRenderPass;
 		public FrameBuffer currentFrameBuffer;
 		public uint currentSubPassIndex;

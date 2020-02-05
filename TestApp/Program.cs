@@ -53,6 +53,20 @@ namespace TestApp
 			CoreEngine.Initialize();
 			CoreEngine.targetFps = 0;
 
+			var houseModel = Assets.Create<ModelAsset>("data/House.fbx");
+
+			MeshRenderer houseRenderer = new MeshRenderer() {mesh = Mesh.Create(houseModel)};
+
+			Prefab house = new Prefab();
+			house.AddComponent(new Position() { value = Vector3.Zero });
+			house.AddComponent(new Rotation() { value = Quaternion.Identity });
+			house.AddComponent(new Scale() { value = Vector3.One * 0.01f });
+			house.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
+			house.AddComponent(new BoundingBox());
+			house.AddComponent(new RotateComponent() { rotationSpeed = 1 });
+			house.AddSharedComponent(houseRenderer);
+			house.AddSharedComponent(RenderTag.Opaque);
+
 			var satelliteModel = Assets.Create<ModelAsset>("data/voyager.dae");
 			var satelliteTexture = Assets.Create<CompressedTextureAsset>("data/voyager_etc2_unorm.ktx");
 
@@ -65,7 +79,7 @@ namespace TestApp
 			Prefab satellite = new Prefab();
 			satellite.AddComponent(new Position() { value = Vector3.Zero });
 			satellite.AddComponent(new Rotation() { value = Quaternion.Identity });
-			satellite.AddComponent(new Scale() { value = Vector3.One });
+			satellite.AddComponent(new Scale() { value = Vector3.One * 0.2f });
 			satellite.AddComponent(new ObjectToWorld() { model = Matrix4x4.Identity });
 			satellite.AddComponent(new BoundingBox());
 			satellite.AddComponent(new RotateComponent() { rotationSpeed = 1 });
@@ -96,7 +110,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numThings = 10;
+			const int numThings = 100;
 
 			for (int i = 0; i < numThings; i++)
 			{
@@ -111,19 +125,19 @@ namespace TestApp
 				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
 				//cm.RemoveComponent<RotateComponent>(entity);
 
-				entity = world.Instantiate(plane);
-				cm.SetComponent(entity, new Position()
-				{
-					value = new Vector3(
-						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
-						0,
-						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
-				});
-				cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
-				cm.RemoveComponent<RotateComponent>(entity);
+				//entity = world.Instantiate(plane);
+				//cm.SetComponent(entity, new Position()
+				//{
+				//	value = new Vector3(
+				//		random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
+				//		0,
+				//		random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
+				//});
+				//cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
+				//cm.RemoveComponent<RotateComponent>(entity);
 			}
 
-			var entity2 = world.Instantiate(cube);
+			var entity2 = world.Instantiate(house);
 			cm.SetComponent(entity2, new Position() {
 				value = new Vector3(0, 0, 0)
 			});
@@ -139,7 +153,13 @@ namespace TestApp
 
 			var entity3 = world.Instantiate(satellite);
 
-
+			var cameraEntity = world.Instantiate(Prefabs.Camera);
+			var cameraPosition = new Vector3(4 , 10, 20);
+			var cameraRotation = MathHelper.LookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
+			world.ComponentManager.SetComponent(cameraEntity, 
+				new Position(){value = cameraPosition});
+			world.ComponentManager.SetComponent(cameraEntity, 
+				new Rotation(){value = cameraRotation});
 			CoreEngine.Run();
 		}
 	}

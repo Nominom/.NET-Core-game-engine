@@ -8,7 +8,7 @@ using Plane = Core.Shared.Plane;
 
 namespace Core.Graphics
 {
-	public class Camera {
+	public class Camera : ISharedComponent {
 		public float farPlane;
 		public float nearPlane;
 		public float fow;

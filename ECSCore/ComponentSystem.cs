@@ -25,8 +25,8 @@ namespace Core.ECS
 		private bool initialized = false;
 		protected EntityCommandBuffer afterUpdateCommands;
 
-		public virtual void BeforeUpdate() { }
-		public virtual void AfterUpdate() { }
+		public virtual void BeforeUpdate(float deltaTime, ECSWorld world) { }
+		public virtual void AfterUpdate(float deltaTime, ECSWorld world) { }
 
 		public override void Update(float deltaTime, ECSWorld world)
 		{
@@ -37,7 +37,7 @@ namespace Core.ECS
 				filter = GetComponentFilter();
 				initialized = true;
 			}
-			BeforeUpdate();
+			BeforeUpdate(deltaTime, world);
 
 			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query, filter);
 			foreach (BlockAccessor block in blocks)
@@ -45,7 +45,7 @@ namespace Core.ECS
 				ProcessBlock(deltaTime, block);
 			}
 			afterUpdateCommands.Playback();
-			AfterUpdate();
+			AfterUpdate(deltaTime, world);
 		}
 
 		public abstract ComponentQuery GetQuery();
@@ -74,7 +74,7 @@ namespace Core.ECS
 			}
 		}
 
-		public virtual void BeforeUpdate() { }
+		public virtual void BeforeUpdate(float deltaTime, ECSWorld world) { }
 		public override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
@@ -84,7 +84,7 @@ namespace Core.ECS
 				filter = GetComponentFilter();
 				initialized = true;
 			}
-			BeforeUpdate();
+			BeforeUpdate(deltaTime, world);
 
 			afterUpdateCommands.PlaybackAfterUpdate();
 

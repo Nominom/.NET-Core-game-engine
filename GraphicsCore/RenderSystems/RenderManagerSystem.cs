@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using Core.ECS;
+using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
 using Vulkan;
@@ -63,9 +64,10 @@ namespace Core.Graphics.RenderSystems
 		private List<CommandBuffer> buffersToDispose = new List<CommandBuffer>();
 		private List<CommandBuffer> secondaryBuffers = new List<CommandBuffer>();
 
-		public static Camera camera;
-		public static Vector3 cameraPosition;
-		public static Quaternion cameraRotation;
+		//public static Camera camera;
+		//public static Vector3 cameraPosition;
+		//public static Quaternion cameraRotation;
+		private ComponentQuery cameraQuery;
 
 		private void SortSystemList(List<RenderSystemHolder> list)
 		{
@@ -166,16 +168,19 @@ namespace Core.Graphics.RenderSystems
 		
 		public void OnCreateSystem(ECSWorld world)
 		{
-			camera = new Camera() {
-				aspect = (float)Window.window.Width / (float)Window.window.Height,
-				farPlane = 10000,
-				fow = 60,
-				nearPlane = 0.1f
-			};
+			//camera = new Camera() {
+			//	aspect = (float)Window.window.Width / (float)Window.window.Height,
+			//	farPlane = 10000,
+			//	fow = 60,
+			//	nearPlane = 0.1f
+			//};
 
-			cameraPosition = new Vector3(4 , 10, 20);
-			cameraRotation = MathHelper.LookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
-
+			//cameraPosition = new Vector3(4 , 10, 20);
+			//cameraRotation = MathHelper.LookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
+			cameraQuery = new ComponentQuery();
+			cameraQuery.IncludeShared<Camera>();
+			cameraQuery.IncludeReadonly<Position>();
+			cameraQuery.IncludeReadonly<Rotation>();
 
 			foreach (var assembly in AssemblyHelper.GetAllUserAssemblies())
 			{
@@ -247,16 +252,34 @@ namespace Core.Graphics.RenderSystems
 			}
 			buffersToDispose.Clear();
 
-			var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.01f);
-			cameraRotation = Quaternion.Multiply(cameraRotation, rotation);
+			//var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.01f);
+			//cameraRotation = Quaternion.Multiply(cameraRotation, rotation);
 			
 			timer += deltaTime;
 
 			Vector3 lightDir = Vector3.Normalize(new Vector3(MathF.Cos(timer * 1), -0.3f, MathF.Sin(timer * 1)));
 
+
+			Camera camera = null;
+			Vector3 cameraPosition = Vector3.Zero;
+			Quaternion cameraRotation = Quaternion.Identity;
+
+			var cameraBlock = world.ComponentManager.GetBlocks(cameraQuery);
+			foreach (var accessor in cameraBlock) {
+				camera = accessor.GetSharedComponentData<Camera>();
+				cameraPosition = accessor.GetReadOnlyComponentData<Position>()[0].value;
+				cameraRotation = accessor.GetReadOnlyComponentData<Rotation>()[0].value;
+			}
+
+			if(camera == null)
+			{
+				return;
+			}
+
+
 			GraphicsContext.graphicsDevice.StartFrame();
 
-			
+
 			var view = Matrix4x4.CreateLookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
 
 
@@ -287,7 +310,8 @@ namespace Core.Graphics.RenderSystems
 			primaryCmd.BeginRenderPassClearColorDepth(context.currentRenderPass, context.currentFrameBuffer,
 				new VkClearColorValue(0, 40, 40),
 				new VkClearDepthStencilValue(1, 0), 
-			true);
+				true);
+
 
 			//Update systems
 			UpdateRenderSystems(beforeRenderSystems, world, context);
