@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using Core.Shared;
+using GlmSharp;
 
 namespace Core.ECS.Components
 {
 	public struct Position : IComponent {
-		public Vector3 value;
+		public vec3 value;
 	}
 
 	public struct Scale : IComponent {
-		public Vector3 value;
+		public vec3 value;
 	}
 
 	public struct Rotation : IComponent {
-		public Quaternion value;
+		public quat value;
 	}
 
 	public struct ObjectToWorld : IComponent {
-		public Matrix4x4 model; //Model matrix
-		public Matrix3x3 normal; //Normal matrix
+		public mat4 model; //Model matrix
+		public mat3 normal; //Normal matrix
 	}
 
 	public struct BoundingBox : IComponent {

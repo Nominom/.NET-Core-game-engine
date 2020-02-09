@@ -8,9 +8,9 @@ namespace Core.Shared
 
 	public class SubMeshData {
 		public Vertex[] vertices;
-		public UInt16[] indices;
+		public UInt32[] indices;
 
-		public SubMeshData(Vertex[] vertices, UInt16[] indices) {
+		public SubMeshData(Vertex[] vertices, UInt32[] indices) {
 			this.vertices = vertices;
 			this.indices = indices;
 		}

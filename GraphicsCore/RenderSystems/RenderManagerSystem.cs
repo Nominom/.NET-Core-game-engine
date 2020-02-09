@@ -7,6 +7,7 @@ using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
+using GlmSharp;
 using Vulkan;
 
 namespace Core.Graphics.RenderSystems
@@ -257,12 +258,12 @@ namespace Core.Graphics.RenderSystems
 			
 			timer += deltaTime;
 
-			Vector3 lightDir = Vector3.Normalize(new Vector3(MathF.Cos(timer * 1), -0.3f, MathF.Sin(timer * 1)));
+			vec3 lightDir = new vec3(MathF.Cos(timer * 1), -0.3f, MathF.Sin(timer * 1)).Normalized;
 
 
 			Camera camera = null;
-			Vector3 cameraPosition = Vector3.Zero;
-			Quaternion cameraRotation = Quaternion.Identity;
+			vec3 cameraPosition = vec3.Zero;
+			quat cameraRotation = quat.Identity;
 
 			var cameraBlock = world.ComponentManager.GetBlocks(cameraQuery);
 			foreach (var accessor in cameraBlock) {
@@ -280,13 +281,10 @@ namespace Core.Graphics.RenderSystems
 			GraphicsContext.graphicsDevice.StartFrame();
 
 
-			var view = Matrix4x4.CreateLookAt(cameraPosition, Vector3.Zero, Vector3.UnitY);
-
-
 			UniformBufferObject ubo = new UniformBufferObject();
-			ubo.cameraPos = new Vector4(cameraPosition, 0);
-			ubo.lightDir = new Vector4(lightDir, 0);
-			ubo.projection = camera.ProjectionMatrix(true);
+			ubo.cameraPos = new vec4(cameraPosition);
+			ubo.lightDir = new vec4(lightDir, 0);
+			ubo.projection = camera.ProjectionMatrixVulkanCorrected();
 			ubo.view = camera.ViewMatrix(cameraPosition, cameraRotation);
 
 			//Create context
@@ -295,6 +293,8 @@ namespace Core.Graphics.RenderSystems
 			context.currentRenderPass = GraphicsContext.graphicsDevice.singlePass;
 			context.currentSubPassIndex = 0;
 			context.activeCamera = camera;
+			context.cameraPosition = cameraPosition;
+			context.cameraRotation = cameraRotation;
 			context.secondaryBuffers = secondaryBuffers;
 			context.ubo = ubo;
 

@@ -5,6 +5,7 @@ using System.Text;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics;
+using GlmSharp;
 using Veldrid;
 
 namespace TestApp
@@ -27,9 +28,18 @@ namespace TestApp
 			float flightSpeed = 5;
 			for (int i = 0; i < block.length; i++) {
 				if (Input.GetKey(Key.Space)) {
-					Vector2 mouseDelta = Input.GetMouseDelta() * 0.002f;
-					Quaternion quat = Quaternion.CreateFromYawPitchRoll(mouseDelta.X, mouseDelta.Y, 0);
-					rotations[i].value = Quaternion.Multiply(rotations[i].value, quat);
+					vec2 mouseDelta = Input.GetMouseDelta() * 0.002f;
+					dvec3 euler = rotations[i].value.EulerAngles;
+					euler.x += mouseDelta.y;
+					euler.y += mouseDelta.x;
+
+
+					//rotations[i].value = new quat(new vec3((float) euler.x, (float) euler.y, (float) euler.z));
+
+					quat inverse = rotations[i].value.Inverse;
+					quat x = quat.FromAxisAngle(- mouseDelta.x, inverse * vec3.UnitY);
+					quat y = quat.FromAxisAngle(mouseDelta.y, vec3.UnitX);
+					rotations[i].value = rotations[i].value * x * y;
 				}
 
 				//if (Input.GetKey(Key.W)) {
@@ -49,24 +59,23 @@ namespace TestApp
 				//	positions[i].value += dir * deltaTime * flightSpeed;
 				//}
 
-				if (Input.GetKey(Key.W))
-				{
-					var dir = Vector3.Transform(Vector3.Normalize( - Vector3.UnitZ - Vector3.UnitY), rotations[i].value);
+				if (Input.GetKey(Key.W)) {
+					var dir = rotations[i].value * vec3.UnitZ;
 					positions[i].value += dir * deltaTime * flightSpeed;
 				}
 				if (Input.GetKey(Key.S))
 				{
-					var dir = Vector3.Transform(-Vector3.UnitZ, rotations[i].value);
+					var dir = rotations[i].value * -vec3.UnitZ;
 					positions[i].value += dir * deltaTime * flightSpeed;
 				}
 				if (Input.GetKey(Key.A))
 				{
-					var dir = Vector3.Transform(Vector3.UnitX, rotations[i].value);
+					var dir = rotations[i].value * vec3.UnitX;
 					positions[i].value += dir * deltaTime * flightSpeed;
 				}
 				if (Input.GetKey(Key.D))
 				{
-					var dir = Vector3.Transform(-Vector3.UnitX, rotations[i].value);
+					var dir = rotations[i].value * -vec3.UnitX;
 					positions[i].value += dir * deltaTime * flightSpeed;
 				}
 

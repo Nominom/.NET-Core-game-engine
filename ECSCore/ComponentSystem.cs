@@ -28,7 +28,7 @@ namespace Core.ECS
 		public virtual void BeforeUpdate(float deltaTime, ECSWorld world) { }
 		public virtual void AfterUpdate(float deltaTime, ECSWorld world) { }
 
-		public override void Update(float deltaTime, ECSWorld world)
+		public sealed override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
 			{
@@ -75,7 +75,7 @@ namespace Core.ECS
 		}
 
 		public virtual void BeforeUpdate(float deltaTime, ECSWorld world) { }
-		public override void Update(float deltaTime, ECSWorld world)
+		public sealed override void Update(float deltaTime, ECSWorld world)
 		{
 			if (!initialized)
 			{

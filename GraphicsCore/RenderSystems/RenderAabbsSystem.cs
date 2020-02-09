@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
+using GlmSharp;
 
 namespace Core.Graphics.RenderSystems
 {
 
-	//[RenderSystem(RenderStage.RenderPostProcessing)]
+	[RenderSystem(RenderStage.RenderPostProcessing)]
 	public class RenderAabbsSystem : IRenderSystem
 	{
 		
@@ -25,6 +25,7 @@ namespace Core.Graphics.RenderSystems
 		public void OnCreate(ECSWorld world) {
 			query.IncludeReadonly<BoundingBox>();
 			query.ExcludeShared<CulledRenderTag>();
+			
 			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
 			defaultMaterial = new Material(GraphicsContext.graphicsDevice,
 				GraphicsContext.uniform0, defaultShader);
@@ -92,14 +93,12 @@ namespace Core.Graphics.RenderSystems
 						instanceIndex = 0;
 					}
 
-					var scale = Matrix4x4.CreateScale(boundingBox[i].value.Size);
+					var scale = mat4.Scale(boundingBox[i].value.Size);
 
-					var matrix = Matrix4x4.Multiply(scale,
-						Matrix4x4.CreateTranslation(boundingBox[i].value.Center));
-					
+					var matrix = mat4.Translate(boundingBox[i].value.Center) * scale;
 
-					Matrix4x4.Invert(matrix, out var inverse);
-					var normalMatrix = new Matrix3x3(Matrix4x4.Transpose(inverse));
+					var inverse = matrix.Inverse;
+					var normalMatrix = new mat3(inverse.Transposed);
 
 					ObjectToWorld matrices = new ObjectToWorld() {
 						model = matrix,

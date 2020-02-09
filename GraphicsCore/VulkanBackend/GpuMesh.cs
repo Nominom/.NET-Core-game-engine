@@ -10,10 +10,10 @@ namespace Core.Graphics.VulkanBackend
 	{
 		public readonly DeviceBuffer vertices;
 		public readonly DeviceBuffer indices;
-		public readonly VkIndexType indexType = VkIndexType.Uint16;
+		public readonly VkIndexType indexType = VkIndexType.Uint32;
 		public readonly uint indexCount;
 
-		public GpuMesh(GraphicsDevice device, ReadOnlySpan<Vertex> vertices, ReadOnlySpan<UInt16> indices, bool readWrite) {
+		public GpuMesh(GraphicsDevice device, ReadOnlySpan<Vertex> vertices, ReadOnlySpan<UInt32> indices, bool readWrite) {
 			indexCount = (uint)indices.Length;
 			this.vertices = DeviceBuffer.CreateFrom(device, vertices, BufferUsageFlags.VertexBuffer, 
 				readWrite ? BufferMemoryUsageHint.Dynamic : BufferMemoryUsageHint.Static);

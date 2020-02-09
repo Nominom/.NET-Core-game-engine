@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using GlmSharp;
 
 namespace Core.Shared
 {
@@ -43,11 +44,11 @@ namespace Core.Shared
 		/// </summary>
 		/// <param name="point"></param>
 		/// <returns></returns>
-		public float SignedDistance(Vector3 point) {
-			return a * point.X + b * point.Y + c * point.Z + d;
+		public float SignedDistance(vec3 point) {
+			return a * point.x + b * point.y + c * point.z + d;
 		}
 
-		public HalfSpace ClassifyPoint(Vector3 point) {
+		public HalfSpace ClassifyPoint(vec3 point) {
 			float distanceToPoint = SignedDistance(point);
 
 			if (distanceToPoint < 0) return HalfSpace.Negative;
@@ -55,40 +56,30 @@ namespace Core.Shared
 			return HalfSpace.OnPlane;
 		}
 
-		public Vector3 Normal() {
-			return new Vector3(a, b, c);
+		public vec3 Normal() {
+			return new vec3(a, b, c);
 		}
 
-		//Find the line of intersection between two planes.
-//The inputs are two game objects which represent the planes.
-//The outputs are a point on the line and a vector which indicates it's direction.
-		public bool PlaneIntersection(out Vector3 linePoint, out Vector3 lineVec, Plane otherPlane){
+
+		public bool PlaneIntersection(out vec3 linePoint, out vec3 lineVec, Plane otherPlane){
    
-			linePoint = Vector3.Zero;
-			lineVec = Vector3.Zero;
+			linePoint = vec3.Zero;
+			lineVec = vec3.Zero;
    
-			//Get the normals of the planes.
-			Vector3 plane1Normal = Normal();
-			Vector3 plane2Normal = otherPlane.Normal();
+			vec3 plane1Normal = Normal();
+			vec3 plane2Normal = otherPlane.Normal();
    
-			//We can get the direction of the line of intersection of the two planes by calculating the
-			//cross product of the normals of the two planes. Note that this is just a direction and the line
-			//is not fixed in space yet.
-			lineVec = Vector3.Cross(plane1Normal, plane2Normal);
+			lineVec = vec3.Cross(plane1Normal, plane2Normal);
+			
+			vec3 ldir = vec3.Cross(plane2Normal, lineVec);      
    
-			//Next is to calculate a point on the line to fix it's position. This is done by finding a vector from
-			//the plane2 location, moving parallel to it's plane, and intersecting plane1. To prevent rounding
-			//errors, this vector also has to be perpendicular to lineDirection. To get this vector, calculate
-			//the cross product of the normal of plane2 and the lineDirection.      
-			Vector3 ldir = Vector3.Cross(plane2Normal, lineVec);      
-   
-			float numerator = Vector3.Dot(plane1Normal, ldir);
+			float numerator = vec3.Dot(plane1Normal, ldir);
    
 			//Prevent divide by zero.
 			if(MathF.Abs(numerator) > 0.000001f){
        
-				Vector3 plane1ToPlane2 = (plane1Normal * d) - (plane2Normal * otherPlane.d);
-				float t = Vector3.Dot(plane1Normal, plane1ToPlane2) / numerator;
+				vec3 plane1ToPlane2 = (plane1Normal * d) - (plane2Normal * otherPlane.d);
+				float t = vec3.Dot(plane1Normal, plane1ToPlane2) / numerator;
 				linePoint = (plane2Normal * otherPlane.d) + t * ldir;
 				return true;
 			}
@@ -98,26 +89,26 @@ namespace Core.Shared
 
 		//Get the intersection between a line and a plane. 
 		//If the line and plane are not parallel, the function outputs true, otherwise false.
-		public bool LineIntersection(out Vector3 intersection, Vector3 linePoint, Vector3 lineVec){
+		public bool LineIntersection(out vec3 intersection, vec3 linePoint, vec3 lineVec){
  
 			float length;
 			float dotNumerator;
 			float dotDenominator;
-			Vector3 vector;
-			intersection = Vector3.Zero;
-			Vector3 planeNormal = Normal();
-			Vector3 planePoint = planeNormal * d;
+			vec3 vector;
+			intersection = vec3.Zero;
+			vec3 planeNormal = Normal();
+			vec3 planePoint = planeNormal * d;
  
-			//calculate the distance between the linePoint and the line-plane intersection point
-			dotNumerator = Vector3.Dot((planePoint - linePoint), planeNormal);
-			dotDenominator = Vector3.Dot(lineVec, planeNormal);
+			
+			dotNumerator = vec3.Dot((planePoint - linePoint), planeNormal);
+			dotDenominator = vec3.Dot(lineVec, planeNormal);
  
 			//line and plane are not parallel
 			if(dotDenominator != 0.0f){
 				length =  dotNumerator / dotDenominator;
  
 				//create a vector from the linePoint to the intersection point
-				vector =  Vector3.Normalize(lineVec) * length;
+				vector =  lineVec.Normalized * length;
  
 				//get the coordinates of the line-plane intersection point
 				intersection = linePoint + vector;	

@@ -1,8 +1,9 @@
-﻿using System.Numerics;
+﻿using Assimp;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.ECS.Filters;
 using Core.Shared;
+using GlmSharp;
 
 namespace Core.Graphics.Systems
 {
@@ -54,10 +55,10 @@ namespace Core.Graphics.Systems
 	//			var oToW = block.GetComponentData<ObjectToWorld>();
 
 	//			for (int i = 0; i < block.length; i++) {
-	//				Vector3 pos = position[i].value;
-	//				oToW[i].model = Matrix4x4.CreateTranslation(pos);
-	//				Matrix4x4.Invert(oToW[i].model, out var inverse);
-	//				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+	//				vec3 pos = position[i].value;
+	//				oToW[i].model = mat4.CreateTranslation(pos);
+	//				mat4.Invert(oToW[i].model, out var inverse);
+	//				oToW[i].normal = new mat3(mat4.Transpose(inverse));
 	//			}
 	//		}
 
@@ -69,13 +70,13 @@ namespace Core.Graphics.Systems
 
 	//			for (int i = 0; i < block.length; i++)
 	//			{
-	//				Vector3 pos = position[i].value;
-	//				Quaternion rot = rotation[i].value;
+	//				vec3 pos = position[i].value;
+	//				quat rot = rotation[i].value;
 
-	//				var matrix = Matrix4x4.CreateWorld(pos, Vector3.Transform(Vector3.UnitZ, rot), Vector3.Transform(Vector3.UnitY, rot));
+	//				var matrix = mat4.CreateWorld(pos, vec3.Transform(vec3.UnitZ, rot), vec3.Transform(vec3.UnitY, rot));
 	//				oToW[i].model = matrix;
-	//				Matrix4x4.Invert(oToW[i].model, out var inverse);
-	//				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+	//				mat4.Invert(oToW[i].model, out var inverse);
+	//				oToW[i].normal = new mat3(mat4.Transpose(inverse));
 	//			}
 	//		}
 
@@ -88,18 +89,18 @@ namespace Core.Graphics.Systems
 
 	//			for (int i = 0; i < block.length; i++)
 	//			{
-	//				Vector3 pos = position[i].value;
-	//				Quaternion rot = rotation[i].value;
-	//				Vector3 scl = scale[i].value;
+	//				vec3 pos = position[i].value;
+	//				quat rot = rotation[i].value;
+	//				vec3 scl = scale[i].value;
 
-	//				var p = Matrix4x4.CreateTranslation(pos);
-	//				var s = Matrix4x4.CreateScale(scl);
+	//				var p = mat4.CreateTranslation(pos);
+	//				var s = mat4.CreateScale(scl);
 
-	//				var matrix = Matrix4x4.Transform(s, rot);
-	//				matrix = Matrix4x4.Multiply(matrix, p);
+	//				var matrix = mat4.Transform(s, rot);
+	//				matrix = mat4.Multiply(matrix, p);
 	//				oToW[i].model = matrix;
-	//				Matrix4x4.Invert(oToW[i].model, out var inverse);
-	//				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+	//				mat4.Invert(oToW[i].model, out var inverse);
+	//				oToW[i].normal = new mat3(mat4.Transpose(inverse));
 	//			}
 	//		}
 
@@ -111,16 +112,16 @@ namespace Core.Graphics.Systems
 
 	//			for (int i = 0; i < block.length; i++)
 	//			{
-	//				Vector3 pos = position[i].value;
-	//				Vector3 scl = scale[i].value;
+	//				vec3 pos = position[i].value;
+	//				vec3 scl = scale[i].value;
 
-	//				var p = Matrix4x4.CreateTranslation(pos);
-	//				var s = Matrix4x4.CreateScale(scl);
+	//				var p = mat4.CreateTranslation(pos);
+	//				var s = mat4.CreateScale(scl);
 
-	//				var matrix = Matrix4x4.Multiply(s, p);
+	//				var matrix = mat4.Multiply(s, p);
 	//				oToW[i].model = matrix;
-	//				Matrix4x4.Invert(oToW[i].model, out var inverse);
-	//				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+	//				mat4.Invert(oToW[i].model, out var inverse);
+	//				oToW[i].normal = new mat3(mat4.Transpose(inverse));
 	//			}
 	//		}
 
@@ -154,18 +155,18 @@ namespace Core.Graphics.Systems
 
 			for (int i = 0; i < block.length; i++)
 			{
-				Vector3 pos = position[i].value;
-				Quaternion rot = rotation[i].value;
-				Vector3 scl = scale[i].value;
+				vec3 pos = position[i].value;
+				quat rot = rotation[i].value;
+				vec3 scl = scale[i].value;
 
-				var p = Matrix4x4.CreateTranslation(pos);
-				var s = Matrix4x4.CreateScale(scl);
-
-				var matrix = Matrix4x4.Transform(s, rot);
-				matrix = Matrix4x4.Multiply(matrix, p);
+				var p = mat4.Translate(pos);
+				var s = mat4.Scale(scl);
+				var r = rot.ToMat4;
+				var matrix = p * r * s;
 				oToW[i].model = matrix;
-				Matrix4x4.Invert(oToW[i].model, out var inverse);
-				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+				var inverse = matrix.Inverse;
+				var normalMatrix = new mat3(inverse.Transposed);
+				oToW[i].normal = normalMatrix;
 			}
 		}
 	}
@@ -197,15 +198,13 @@ namespace Core.Graphics.Systems
 
 			for (int i = 0; i < block.length; i++)
 			{
-				Vector3 pos = position[i].value;
-				Quaternion rot = rotation[i].value;
-				
-				var p = Matrix4x4.CreateTranslation(pos);
-				var matrix = Matrix4x4.Transform(Matrix4x4.Identity, rot);
-				matrix = Matrix4x4.Multiply(matrix, p);
+				vec3 pos = position[i].value;
+				quat rot = rotation[i].value;
+				var p = mat4.Translate(pos);
 
+				var matrix = p * rot.ToMat4;
 				oToW[i].model = matrix;
-				oToW[i].normal = new Matrix3x3(oToW[i].model);
+				oToW[i].normal = new mat3(oToW[i].model);
 			}
 		}
 	}
@@ -236,16 +235,17 @@ namespace Core.Graphics.Systems
 
 			for (int i = 0; i < block.length; i++)
 			{
-				Vector3 pos = position[i].value;
-				Vector3 scl = scale[i].value;
+				vec3 pos = position[i].value;
+				vec3 scl = scale[i].value;
 
-				var p = Matrix4x4.CreateTranslation(pos);
-				var s = Matrix4x4.CreateScale(scl);
+				var p = mat4.Translate(pos);
+				var s = mat4.Scale(scl);
 
-				var matrix = Matrix4x4.Multiply(s, p);
+				var matrix = p * s;
 				oToW[i].model = matrix;
-				Matrix4x4.Invert(oToW[i].model, out var inverse);
-				oToW[i].normal = new Matrix3x3(Matrix4x4.Transpose(inverse));
+				var inverse = matrix.Inverse;
+				var normalMatrix = new mat3(inverse.Transposed);
+				oToW[i].normal = normalMatrix;
 			}
 		}
 	}
@@ -276,9 +276,9 @@ namespace Core.Graphics.Systems
 
 			for (int i = 0; i < block.length; i++)
 			{
-				Vector3 pos = position[i].value;
-				oToW[i].model = Matrix4x4.CreateTranslation(pos);
-				oToW[i].normal = new Matrix3x3(oToW[i].model);
+				vec3 pos = position[i].value;
+				oToW[i].model = mat4.Translate(pos);
+				oToW[i].normal = mat3.Identity;
 			}
 
 		}

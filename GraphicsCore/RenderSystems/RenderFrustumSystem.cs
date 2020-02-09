@@ -39,8 +39,8 @@ namespace Core.Graphics.RenderSystems
 				BufferUsageFlags.VertexBuffer, BufferMemoryUsageHint.Dynamic);
 			
 
-			var matrix = Matrix4x4.Identity;
-			var normalMatrix = new Matrix3x3(matrix);
+			var matrix = mat4.Identity;
+			var normalMatrix = new mat3(matrix);
 
 			ObjectToWorld matrices = new ObjectToWorld() {
 				model = matrix,
@@ -83,13 +83,13 @@ namespace Core.Graphics.RenderSystems
 		}
 
 		public void Render(ECSWorld world, in RenderContext context) {
-			var frustum = new Frustum();
-			//var frustum = context.activeCamera.GetFrustum(RenderManagerSystem.cameraPosition, RenderManagerSystem.cameraRotation);
+			//var frustum = new Frustum();
+			var frustum = context.activeCamera.GetFrustum(context.cameraPosition, context.cameraRotation);
 			
 			frustum.Vertices(frustumCorners);
 
 			for (int i = 0; i < frustumCorners.Length; i++) {
-				vertices[i] = new Vertex(frustumCorners[i], Vector3.UnitY, Vector2.Zero);
+				vertices[i] = new Vertex(frustumCorners[i], vec3.UnitY, vec2.Zero);
 			}
 			defaultMesh.subMeshes[0].vertices.SetData(vertices, 0);
 

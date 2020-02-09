@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using GlmSharp;
 
 namespace Core.Shared
 {
@@ -13,73 +14,76 @@ namespace Core.Shared
 		/// <param name="sourcePoint">Coordinates of source point</param>
 		/// <param name="destPoint">Coordinates of destionation point</param>
 		/// <returns></returns>
-		public static Quaternion LookAt(Vector3 sourcePoint, Vector3 destPoint, Vector3 up)
-		{
-			Vector3 forwardVector = Vector3.Normalize(sourcePoint - destPoint);
+		public static quat LookAt(vec3 sourcePoint, vec3 destPoint, vec3 up) {
 
-			Vector3 zaxis = forwardVector;
-			Vector3 xaxis = Vector3.Normalize(Vector3.Cross(up, zaxis));
-			Vector3 yaxis = Vector3.Cross(zaxis, xaxis);
- 
-			Matrix4x4 result = Matrix4x4.Identity;
- 
-			result.M11 = xaxis.X;
-			result.M12 = yaxis.X;
-			result.M13 = zaxis.X;
-			result.M14 = 0.0f;
-			result.M21 = xaxis.Y;
-			result.M22 = yaxis.Y;
-			result.M23 = zaxis.Y;
-			result.M24 = 0.0f;
-			result.M31 = xaxis.Z;
-			result.M32 = yaxis.Z;
-			result.M33 = zaxis.Z;
-			result.M34 = 0.0f;
-			result.M44 = 1.0f;
-			return Quaternion.CreateFromRotationMatrix(result);
+			var mat = mat4.LookAt(vec3.Zero, sourcePoint - destPoint, up);
+			return mat.ToQuaternion.Inverse;
+			//vec3 forwardVector = vec3.Normalize(sourcePoint - destPoint);
 
-			//return LookRotation(forwardVector, Vector3.UnitY);
+			//vec3 zaxis = forwardVector;
+			//vec3 xaxis = vec3.Normalize(vec3.Cross(up, zaxis));
+			//vec3 yaxis = vec3.Cross(zaxis, xaxis);
 
-			float dot = Vector3.Dot(Vector3.UnitZ, forwardVector);
+			//mat4 result = mat4.Identity;
 
-			if (Math.Abs(dot - (-1.0f)) < 0.000001f)
-			{
-				return new Quaternion(Vector3.UnitY.X, Vector3.UnitY.Y, Vector3.UnitY.Z, 3.1415926535897932f);
-			}
-			if (Math.Abs(dot - (1.0f)) < 0.000001f)
-			{
-				return Quaternion.Identity;
-			}
+			//result.M11 = xaxis.x;
+			//result.M12 = yaxis.x;
+			//result.M13 = zaxis.x;
+			//result.M14 = 0.0f;
+			//result.M21 = xaxis.y;
+			//result.M22 = yaxis.y;
+			//result.M23 = zaxis.y;
+			//result.M24 = 0.0f;
+			//result.M31 = xaxis.z;
+			//result.M32 = yaxis.z;
+			//result.M33 = zaxis.z;
+			//result.M34 = 0.0f;
+			//result.M44 = 1.0f;
+			//return Quaternion.CreateFromRotationMatrix(result);
 
-			float rotAngle = (float)Math.Acos(dot);
-			Vector3 rotAxis = Vector3.Cross(Vector3.UnitZ, forwardVector);
-			rotAxis = Vector3.Normalize(rotAxis);
-			return Quaternion.CreateFromAxisAngle(rotAxis, rotAngle);
+			//return LookRotation(forwardVector, vec3.UnitY);
+
+			//float dot = vec3.Dot(vec3.UnitZ, forwardVector);
+
+			//if (Math.Abs(dot - (-1.0f)) < 0.000001f)
+			//{
+			//	return new Quaternion(vec3.UnitY.x, vec3.UnitY.y, vec3.UnitY.z, 3.1415926535897932f);
+			//}
+			//if (Math.Abs(dot - (1.0f)) < 0.000001f)
+			//{
+			//	return Quaternion.Identity;
+			//}
+
+			//float rotAngle = (float)Math.Acos(dot);
+			//vec3 rotAxis = vec3.Cross(vec3.UnitZ, forwardVector);
+			//rotAxis = vec3.Normalize(rotAxis);
+			//return Quaternion.CreateFromAxisAngle(rotAxis, rotAngle);
 		}
 
-		public static void Vector3OrthoNormalize(ref Vector3 normal, ref Vector3 tangent) {
-			normal = Vector3.Normalize(normal);
-			Vector3 proj = Vector3.Multiply(normal, Vector3.Dot(tangent, normal));
-			tangent = Vector3.Subtract(tangent, proj);
-			tangent = Vector3.Normalize(tangent);
+		public static void vec3OrthoNormalize(ref vec3 normal, ref vec3 tangent) {
+
+			normal = normal.Normalized;
+			vec3 proj = normal * vec3.Dot(tangent, normal);
+			tangent = (tangent - proj);
+			tangent = tangent.Normalized;
 		}
 
-		public static Quaternion LookRotation(Vector3 lookAt, Vector3 up)
+		public static quat LookRotation(vec3 lookAt, vec3 up)
 		{
 			/*Vector forward = lookAt.Normalized();
 			Vector right = Vector::Cross(up.Normalized(), forward);
 			Vector up = Vector::Cross(forward, right);*/
 
-			Vector3 forward = Vector3.Normalize(lookAt);
-			Vector3OrthoNormalize(ref up, ref forward); // Keeps up the same, make forward orthogonal to up
-			Vector3 right = Vector3.Cross(up, forward);
+			vec3 forward = lookAt.Normalized;
+			vec3OrthoNormalize(ref up, ref forward); // Keeps up the same, make forward orthogonal to up
+			vec3 right = vec3.Cross(up, forward);
 
-			Quaternion ret = new Quaternion();
-			ret.W = MathF.Sqrt(1.0f + right.X + up.Y + forward.Z) * 0.5f;
-			float w4_recip = 1.0f / (4.0f * ret.W);
-			ret.X = (forward.Y - up.Z) * w4_recip;
-			ret.Y = (right.Z - forward.X) * w4_recip;
-			ret.Z = (up.X - right.Y) * w4_recip;
+			quat ret = new quat();
+			ret.w = MathF.Sqrt(1.0f + right.x + up.y + forward.z) * 0.5f;
+			float w4_recip = 1.0f / (4.0f * ret.w);
+			ret.x = (forward.y - up.z) * w4_recip;
+			ret.y = (right.z - forward.x) * w4_recip;
+			ret.z = (up.x - right.y) * w4_recip;
 
 			return ret;
 		}

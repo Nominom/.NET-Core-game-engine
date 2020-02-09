@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using GlmSharp;
 using Veldrid;
 
 namespace Core.Graphics
@@ -16,8 +17,8 @@ namespace Core.Graphics
 		private static Dictionary<MouseButton, bool> mouseDownDict = new Dictionary<MouseButton, bool>();
 		private static Dictionary<MouseButton, bool> mouseUpDict = new Dictionary<MouseButton, bool>();
 
-		private static Vector2 lastMousePosition;
-		private static Vector2 mousePosition;
+		private static vec2 lastMousePosition;
+		private static vec2 mousePosition;
 		private static float wheelDelta;
 
 		internal static void UpdateInput(InputSnapshot snapshot) {
@@ -27,7 +28,7 @@ namespace Core.Graphics
 			mouseUpDict.Clear();
 
 			lastMousePosition = mousePosition;
-			mousePosition = snapshot.MousePosition;
+			mousePosition = new vec2(snapshot.MousePosition.X, snapshot.MousePosition.Y);
 			wheelDelta = snapshot.WheelDelta;
 
 			foreach (KeyEvent keyEvent in snapshot.KeyEvents) {
@@ -95,11 +96,11 @@ namespace Core.Graphics
 			return false;
 		}
 
-		public static Vector2 GetMousePosition() {
+		public static vec2 GetMousePosition() {
 			return mousePosition;
 		}
 
-		public static Vector2 GetMouseDelta() {
+		public static vec2 GetMouseDelta() {
 			return mousePosition - lastMousePosition;
 		}
 

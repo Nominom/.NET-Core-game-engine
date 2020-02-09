@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using GlmSharp;
 
 namespace Core.Shared
 {
@@ -19,32 +20,32 @@ namespace Core.Shared
 
 
 		private bool AabbCullPlaneCheck(AabbBounds aabb, Plane plane) {
-			Vector3 planeNormal = plane.Normal();
-			Vector3 axisVert = new Vector3();
+			vec3 planeNormal = plane.Normal();
+			vec3 axisVert = new vec3();
 			// x-axis
 			if(plane.a < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the x axis
-				axisVert.X = aabb.min.X; // min x plus tree positions x
+				axisVert.x = aabb.min.x; // min x plus tree positions x
 			else
-				axisVert.X = aabb.max.X; // max x plus tree positions x
+				axisVert.x = aabb.max.x; // max x plus tree positions x
 
 			// y-axis
 			if(plane.b < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the y axis
-				axisVert.Y = aabb.min.Y;
+				axisVert.y = aabb.min.y;
 			else
-				axisVert.Y = aabb.max.Y;
+				axisVert.y = aabb.max.y;
             
 			// z-axis
 			if(plane.c < 0.0f)    // Which AABB vertex is furthest down (plane normals direction) the z axis
-				axisVert.Z = aabb.min.Z;
+				axisVert.z = aabb.min.z;
 			else
-				axisVert.Z = aabb.max.Z;
+				axisVert.z = aabb.max.z;
 
 			// Now we get the signed distance from the AABB vertex that's furthest down the frustum planes normal,
 			// and if the signed distance is negative, then the entire bounding box is behind the frustum plane, which means
 			// that it should be culled
 
 			//ClassifyPoint
-			return Vector3.Dot(planeNormal, axisVert) + plane.d < 0.0f;
+			return vec3.Dot(planeNormal, axisVert) + plane.d < 0.0f;
 		}
 
 		public bool AabbCull(AabbBounds aabb) {
@@ -58,9 +59,9 @@ namespace Core.Shared
 		}
 
 
-		private bool Plane3Intersect(Plane plane1, Plane plane2, Plane plane3, out Vector3 point) {
-			point = Vector3.Zero;
-			if (!plane1.PlaneIntersection(out Vector3 linePoint, out Vector3 lineVec, plane2)) {
+		private bool Plane3Intersect(Plane plane1, Plane plane2, Plane plane3, out vec3 point) {
+			point = vec3.Zero;
+			if (!plane1.PlaneIntersection(out vec3 linePoint, out vec3 lineVec, plane2)) {
 				return false;
 			}
 			if (!plane3.LineIntersection(out point, linePoint, lineVec)) {
@@ -70,11 +71,11 @@ namespace Core.Shared
 		}
 
 		/// <summary>
-		/// Fills an array of Vector3's with this Frustums vertices.
+		/// Fills an array of vec3's with this Frustums vertices.
 		/// Order is near_tl, near_tr near_br near_bl, far_tl, far_tr far_br far_bl
 		/// </summary>
 		/// <param name="array"></param>
-		public void Vertices(Vector3[] array) {
+		public void Vertices(vec3[] array) {
 			if(array == null || array.Length != 8)
 			{
 				throw new InvalidOperationException();

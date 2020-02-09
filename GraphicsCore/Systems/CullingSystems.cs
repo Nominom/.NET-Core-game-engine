@@ -4,6 +4,7 @@ using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.RenderSystems;
 using Core.Shared;
+using GlmSharp;
 
 namespace Core.Graphics.Systems
 {
@@ -34,8 +35,8 @@ namespace Core.Graphics.Systems
 		public override void BeforeUpdate(float deltaTime, ECSWorld world)
 		{
 			Camera camera = null;
-			Vector3 cameraPosition = Vector3.Zero;
-			Quaternion cameraRotation = Quaternion.Identity;
+			vec3 cameraPosition = vec3.Zero;
+			quat cameraRotation = quat.Identity;
 
 			var cameraBlock = world.ComponentManager.GetBlocksNoSync(cameraQuery);
 			int nextIdx = 0;
@@ -103,8 +104,8 @@ namespace Core.Graphics.Systems
 		public override void BeforeUpdate(float deltaTime, ECSWorld world)
 		{
 			Camera camera = null;
-			Vector3 cameraPosition = Vector3.Zero;
-			Quaternion cameraRotation = Quaternion.Identity;
+			vec3 cameraPosition = vec3.Zero;
+			quat cameraRotation = quat.Identity;
 
 			var cameraBlock = world.ComponentManager.GetBlocksNoSync(cameraQuery);
 			int nextIdx = 0;
