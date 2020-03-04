@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Core.ECS.Filters;
+using Core.ECS.JobSystem;
 
 namespace Core.ECS
 {
@@ -27,7 +28,7 @@ namespace Core.ECS
 		}
 		public Span<T> GetComponentData<T> () where T : unmanaged, IComponent {
 			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
-			DebugHelper.AssertThrow<IllegalAccessException>(query.IncludesWrite<T>());
+			DebugHelper.AssertThrow<IllegalAccessException>(query.DoesIncludeWrite<T>());
 			if (preIncremented)
 			{
 				return block.GetComponentDataNoVersionIncrement<T>().Slice(0, block.Size);
@@ -39,9 +40,25 @@ namespace Core.ECS
 		public ReadOnlySpan<T> GetReadOnlyComponentData<T>() where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
-			DebugHelper.AssertThrow<IllegalAccessException>(query.Includes<T>());
+			DebugHelper.AssertThrow<IllegalAccessException>(query.DoesInclude<T>());
 			return block.GetReadOnlyComponentData<T>().Slice(0, block.Size);
 		}
+
+		public bool TryGetComponentData<T>(out Span<T> data) where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			Jobs.CompleteAllJobs();
+			if (block.archetype.Has<T>()) {
+				block.IncrementComponentVersion(TypeHelper<T>.hashCode);
+				data = block.GetComponentData<T>().Slice(0, block.Size);
+				return true;
+			}
+			else {
+				data = Span<T>.Empty;
+				return false;
+			}
+		}
+
 		public long GetComponentVersion<T>() where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
@@ -53,7 +70,7 @@ namespace Core.ECS
 		}
 
 		public T GetSharedComponentData<T> () where T : class, ISharedComponent {
-			DebugHelper.AssertThrow<IllegalAccessException>(query.IncludesShared<T>());
+			DebugHelper.AssertThrow<IllegalAccessException>(query.DoesIncludeShared<T>());
 			return block.archetype.GetShared<T>();
 		}
 

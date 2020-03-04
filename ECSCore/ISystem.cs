@@ -8,8 +8,6 @@ namespace Core.ECS
 		bool Enabled { get; set; }
 		void OnCreateSystem(ECSWorld world);
 		void OnDestroySystem(ECSWorld world);
-		void OnEnableSystem(ECSWorld world);
-		void OnDisableSystem(ECSWorld world);
 		void Update(float deltaTime, ECSWorld world);
 	}
 

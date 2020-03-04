@@ -18,7 +18,7 @@ namespace Core
 		public static ECSWorld World { get; private set; }
 		public static float Time => elapsedMs / 1000f;
 
-		public static float fixedUpdateStep = 1 / 30f;
+		public static float fixedUpdateStep = 1 / 20f;
 		public static float targetFps = 60;
 
 		private static bool shouldRun = false;

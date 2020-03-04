@@ -222,14 +222,6 @@ namespace Core.Graphics.RenderSystems
 			}
 		}
 
-		public void OnEnableSystem(ECSWorld world)
-		{
-		}
-
-		public void OnDisableSystem(ECSWorld world)
-		{
-		}
-
 		private void UpdateRenderSystems(List<RenderSystemHolder> systemList, ECSWorld world, in RenderContext context) {
 			foreach (RenderSystemHolder holder in systemList) {
 				try {

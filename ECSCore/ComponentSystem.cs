@@ -13,8 +13,6 @@ namespace Core.ECS
 		public bool Enabled { get; set; }
 		public virtual void OnCreateSystem(ECSWorld world) { }
 		public virtual void OnDestroySystem(ECSWorld world) { }
-		public virtual void OnEnableSystem(ECSWorld world) { }
-		public virtual void OnDisableSystem(ECSWorld world) { }
 		public abstract void Update(float deltaTime, ECSWorld world);
 	}
 
@@ -39,7 +37,7 @@ namespace Core.ECS
 			}
 			BeforeUpdate(deltaTime, world);
 
-			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocks(query, filter);
+			var blocks = world.ComponentManager.GetBlocks(query, filter);
 			foreach (BlockAccessor block in blocks)
 			{
 				ProcessBlock(deltaTime, block);
@@ -88,7 +86,7 @@ namespace Core.ECS
 
 			afterUpdateCommands.PlaybackAfterUpdate();
 
-			IEnumerable<BlockAccessor> blocks = world.ComponentManager.GetBlocksNoSync(query, filter);
+			var blocks = world.ComponentManager.GetBlocksNoSync(query, filter);
 			var group = Jobs.StartNewGroup(query);
 			foreach (BlockAccessor block in blocks) {
 				ComponentProcessJob processJob = new ComponentProcessJob() {

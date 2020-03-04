@@ -15,9 +15,9 @@ namespace Core.ECS
 		}
 
 		[Conditional("DEBUG")]
-		public static void AssertThrow (bool condition, Exception ex) {
+		public static void AssertThrow (bool condition, Func<Exception> ex) {
 			if (!condition) {
-				throw ex;
+				throw ex();
 			}
 		}
 	}

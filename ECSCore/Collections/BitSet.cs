@@ -17,7 +17,7 @@ namespace Core.ECS.Collections
 		public void Set(int pos)
 		{
 			int arrIndex = pos >> 6;
-			DebugHelper.AssertThrow(arrIndex < 4, new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
+			DebugHelper.AssertThrow(arrIndex < 4, () => new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
 			bits[arrIndex] |= 1L << pos;
 		}
 
@@ -25,7 +25,7 @@ namespace Core.ECS.Collections
 		public void Unset(int pos)
 		{
 			int arrIndex = pos >> 6;
-			DebugHelper.AssertThrow(arrIndex < 4, new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
+			DebugHelper.AssertThrow(arrIndex < 4, () => new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
 			bits[arrIndex] &= ~(1L << pos);
 		}
 
@@ -33,7 +33,7 @@ namespace Core.ECS.Collections
 		public readonly bool Get(int pos)
 		{
 			int arrIndex = pos >> 6;
-			DebugHelper.AssertThrow(arrIndex < 4, new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
+			DebugHelper.AssertThrow(arrIndex < 4, () => new IndexOutOfRangeException($"Position {pos} is out of range for this BitSet."));
 			return (bits[arrIndex] & (1L << pos)) != 0;
 		}
 

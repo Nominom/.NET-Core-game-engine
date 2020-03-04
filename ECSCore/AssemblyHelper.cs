@@ -18,6 +18,19 @@ namespace Core.ECS
 			return cachedUserAssemblies;
 		}
 
+		public static IEnumerable<Type> GetTypes(Assembly assembly) {
+			Type[] types;
+			try
+			{
+				types = assembly.GetTypes();
+			}
+			catch (ReflectionTypeLoadException e)
+			{
+				types = Array.Empty<Type>();
+			}
+			return types;
+		}
+
 		public static IEnumerable<System.Type> GetTypesWithInterface(Assembly assembly, System.Type interfaceType)
 		{
 			Type[] types;

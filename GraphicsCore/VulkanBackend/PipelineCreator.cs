@@ -241,8 +241,8 @@ namespace Core.Graphics.VulkanBackend
                     VkFrontFace.Clockwise,
                     0);
 
-            if (material.wireframe && device.DeviceFeatures.fillModeNonSolid == 1)
-            {
+            if (material.wireframe && device.DeviceFeatures.fillModeNonSolid == 1) {
+	            rasterizationState.cullMode = VkCullModeFlags.None;
 	            rasterizationState.polygonMode = VkPolygonMode.Line;
 	            rasterizationState.lineWidth = 1.0f;
             }

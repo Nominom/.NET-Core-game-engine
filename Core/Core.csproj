@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core.Physics\Core.Physics.csproj" />
     <ProjectReference Include="..\ECSCore\Core.ECS.csproj" />
     <ProjectReference Include="..\GraphicsCore\Core.Graphics.csproj" />
   </ItemGroup>

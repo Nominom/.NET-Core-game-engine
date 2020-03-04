@@ -373,7 +373,7 @@ namespace Core.ECS
 			{
 				GrowModificationList();
 			}
-			DebugHelper.AssertThrow(hasEntityTarget, new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
+			DebugHelper.AssertThrow(hasEntityTarget, () => new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
 
 			modList[nextIndex++] = new SetComponentMod<T>(component);
 		}
@@ -384,7 +384,7 @@ namespace Core.ECS
 			{
 				GrowModificationList();
 			}
-			DebugHelper.AssertThrow(hasEntityTarget, new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
+			DebugHelper.AssertThrow(hasEntityTarget, () => new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
 
 			modList[nextIndex++] = new AddComponentMod<T>(component);
 		}
@@ -395,7 +395,7 @@ namespace Core.ECS
 			{
 				GrowModificationList();
 			}
-			DebugHelper.AssertThrow(hasEntityTarget, new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
+			DebugHelper.AssertThrow(hasEntityTarget, () => new InvalidOperationException("An entity creation function has to be called before calling component modifier functions."));
 
 			modList[nextIndex++] = new AddSharedComponentMod<T>(component);
 		}

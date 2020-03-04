@@ -43,5 +43,12 @@ namespace Core.ECS
 		}
 
 		#endregion
+
+		public readonly override string ToString() {
+#if _DEBUG
+			//find name from debug names
+#endif
+			return $"entity({id.ToString()}, {version.ToString()})";
+		}
 	}
 }

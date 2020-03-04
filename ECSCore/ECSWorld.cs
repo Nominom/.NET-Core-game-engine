@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using Core.ECS.Events;
 using Core.ECS.JobSystem;
 
 namespace Core.ECS
@@ -24,6 +25,7 @@ namespace Core.ECS
 		public EntityManager EntityManager { get; }
 		public ComponentManager ComponentManager { get; }
 		public SystemManager SystemManager { get; }
+		public EventManager EventManager { get; }
 
 		private List<IEntityCommandBuffer> entityCommandBuffersToExecute = new List<IEntityCommandBuffer>();
 
@@ -40,6 +42,7 @@ namespace Core.ECS
 			ComponentManager = new ComponentManager(this);
 			EntityManager = new EntityManager(this, ComponentManager);
 			SystemManager = new SystemManager(this);
+			EventManager = new EventManager(this);
 			IsMainWorld = false;
 			mainThread = Thread.CurrentThread;
 			mainThread.Priority = ThreadPriority.Highest;
@@ -50,6 +53,7 @@ namespace Core.ECS
 			ComponentManager = new ComponentManager(this);
 			EntityManager = new EntityManager(this, ComponentManager);
 			SystemManager = new SystemManager(this);
+			EventManager = new EventManager(this);
 			IsMainWorld = mainWorld;
 			mainThread = Thread.CurrentThread;
 		}
@@ -97,6 +101,7 @@ namespace Core.ECS
 					buffer.Playback();
 				}
 				entityCommandBuffersToExecute.Clear();
+				EventManager.DeliverEvents();
 			}
 		}
 

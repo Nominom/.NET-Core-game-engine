@@ -33,10 +33,11 @@ namespace Core.ECS
 
 		
 
-		public void IncludeReadWrite<T>() where T : IComponent
-		{
-			includeMask.Set(TypeHelper.Component<T>.componentIndex);
-			includeWriteMask.Set(TypeHelper.Component<T>.componentIndex);
+		public void IncludeReadWrite<T>() where T : IComponent {
+			int pos = TypeHelper.Component<T>.componentIndex;
+			includeMask.Set(pos);
+			includeWriteMask.Set(pos);
+			excludeMask.Unset(pos);
 #if DEBUG
 			AddToDebugList(ref includeTypes, typeof(T));
 			AddToDebugList(ref includeWriteTypes, typeof(T));
@@ -44,7 +45,10 @@ namespace Core.ECS
 		}
 
 		public void IncludeReadonly<T>() where T : IComponent {
-			includeMask.Set(TypeHelper.Component<T>.componentIndex);
+			int pos = TypeHelper.Component<T>.componentIndex;
+			includeMask.Set(pos);
+			includeWriteMask.Unset(pos);
+			excludeMask.Unset(pos);
 #if DEBUG
 			AddToDebugList(ref includeTypes, typeof(T));
 #endif
@@ -52,7 +56,10 @@ namespace Core.ECS
 
 		public void Exclude<T>() where T : IComponent
 		{
-			excludeMask.Set(TypeHelper.Component<T>.componentIndex);
+			int pos = TypeHelper.Component<T>.componentIndex;
+			excludeMask.Set(pos);
+			includeWriteMask.Unset(pos);
+			includeMask.Unset(pos);
 #if DEBUG
 			AddToDebugList(ref excludeTypes, typeof(T));
 #endif
@@ -60,7 +67,9 @@ namespace Core.ECS
 
 		public void IncludeShared<T>() where T : ISharedComponent
 		{
-			sharedIncludeMask.Set(TypeHelper.SharedComponent<T>.componentIndex);
+			int pos = TypeHelper.SharedComponent<T>.componentIndex;
+			sharedIncludeMask.Set(pos);
+			sharedExcludeMask.Unset(pos);
 #if DEBUG
 			AddToDebugList(ref sharedIncludeTypes, typeof(T));
 #endif
@@ -68,35 +77,37 @@ namespace Core.ECS
 
 		public void ExcludeShared<T>() where T : ISharedComponent
 		{
-			sharedExcludeMask.Set(TypeHelper.SharedComponent<T>.componentIndex);
+			int pos = TypeHelper.SharedComponent<T>.componentIndex;
+			sharedExcludeMask.Set(pos);
+			sharedIncludeMask.Unset(pos);
 #if DEBUG
 			AddToDebugList(ref sharedExcludeTypes, typeof(T));
 #endif
 		}
 
-		public readonly bool Includes<T>() where T : IComponent {
+		public readonly bool DoesInclude<T>() where T : IComponent {
 			return includeMask.Get(TypeHelper.Component<T>.componentIndex);
 		}
 
-		public readonly bool IncludesWrite<T>() where T : IComponent {
+		public readonly bool DoesIncludeWrite<T>() where T : IComponent {
 			return includeWriteMask.Get(TypeHelper.Component<T>.componentIndex);
 		}
 
-		public readonly bool IncludesShared<T>() where T : ISharedComponent {
+		public readonly bool DoesIncludeShared<T>() where T : ISharedComponent {
 			return sharedIncludeMask.Get(TypeHelper.SharedComponent<T>.componentIndex);
 		}
 
-		public readonly bool Includes(System.Type type) {
+		public readonly bool DoesInclude(System.Type type) {
 			int index = ComponentMask.GetComponentIndex(type);
 			return includeMask.Get(index);
 		}
 
-		public readonly bool IncludesWrite(System.Type type) {
+		public readonly bool DoesIncludeWrite(System.Type type) {
 			int index = ComponentMask.GetComponentIndex(type);
 			return includeWriteMask.Get(index);
 		}
 
-		public readonly bool IncludesShared(System.Type type) {
+		public readonly bool DoesIncludeShared(System.Type type) {
 			int index = SharedComponentMask.GetSharedComponentIndex(type);
 			return sharedIncludeMask.Get(index);
 		}
@@ -126,6 +137,7 @@ namespace Core.ECS
 			return obj is ComponentQuery other && Equals(other);
 		}
 
+		//TODO: Better hash code. Currently same component includemask and includewritemask result in same hashcode
 		public override readonly int GetHashCode() {
 			unchecked {
 				int hashCode = includeMask.GetHashCode();

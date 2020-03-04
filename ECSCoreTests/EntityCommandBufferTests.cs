@@ -24,7 +24,12 @@ namespace CoreTests
 			buffer.CreateEntity(archetype);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 					Assert.Equal(1, accessor.GetEntityData().Length);
 				});
 		}
@@ -45,12 +50,16 @@ namespace CoreTests
 			buffer.CreateEntity(prefab);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponent1>();
 				Assert.Equal(1, cData[0].i);
-				Assert.Equal(2, cData[0].d, 3);
-				Assert.Equal(3, cData[0].f, 3);
+				Assert.Equal(2d, cData[0].d, 3);
+				Assert.Equal(3f, cData[0].f, 3);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -77,7 +86,11 @@ namespace CoreTests
 			buffer.SetComponent(new TestComponentVector3{value = Vector3.UnitZ});
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponentVector3>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(3, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
@@ -108,7 +121,13 @@ namespace CoreTests
 			buffer.AddComponent(new TestComponent1() { i = 1, d = 2, f = 3 });
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponentVector3>();
+			query.Exclude<TestComponent2>();
+			query.Exclude<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
@@ -117,27 +136,32 @@ namespace CoreTests
 				Assert.Same(shared1, shared);
 			});
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.Add<TestComponent2>()), accessor => {
+			query.IncludeReadWrite<TestComponent2>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
 				var cData2 = accessor.GetComponentData<TestComponent2>();
 				Assert.Equal(1, cData2[0].i);
-				Assert.Equal(2, cData2[0].d, 3);
-				Assert.Equal(3, cData2[0].f, 3);
+				Assert.Equal(2d, cData2[0].d, 3);
+				Assert.Equal(3f, cData2[0].f, 3);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
 			});
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.Add<TestComponent1>()), accessor => {
+			query.IncludeReadWrite<TestComponent1>();
+			query.Exclude<TestComponent2>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.Zero, cData[0].value);
 				var cData2 = accessor.GetComponentData<TestComponent1>();
 				Assert.Equal(1, cData2[0].i);
-				Assert.Equal(2, cData2[0].d,3);
-				Assert.Equal(3, cData2[0].f,3);
+				Assert.Equal(2d, cData2[0].d,3);
+				Assert.Equal(3f, cData2[0].f,3);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
 				Assert.Same(shared1, shared);
@@ -160,15 +184,19 @@ namespace CoreTests
 			buffer.AddSharedComponent(shared1);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponentVector3>();
+			query.ExcludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
-
-				Assert.Throws<ComponentNotFoundException>(accessor.GetSharedComponentData<SharedComponent1>);
 			});
+			
+			query.IncludeShared<SharedComponent1>();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype.AddShared(shared1)), accessor => {
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
@@ -200,8 +228,12 @@ namespace CoreTests
 			buffer.Playback();
 			buffer.Playback();
 
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponentVector3>();
+			query.IncludeShared<SharedComponent1>();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(prefab.Archetype), accessor => {
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(3, accessor.GetEntityData().Length);
 				var cData = accessor.GetComponentData<TestComponentVector3>();
 				Assert.Equal(Vector3.UnitY, cData[0].value);
@@ -229,13 +261,18 @@ namespace CoreTests
 			buffer.AddComponent(target, new TestComponent2{ i = 2, d = 3, f = 4 });
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype.Add<TestComponent2>()), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeReadWrite<TestComponent2>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 
 				var cData = accessor.GetComponentData<TestComponent2>();
 				Assert.Equal(2, cData[0].i);
-				Assert.Equal(3, cData[0].d, 3);
-				Assert.Equal(4, cData[0].f, 3);
+				Assert.Equal(3d, cData[0].d, 3);
+				Assert.Equal(4f, cData[0].f, 3);
 			});
 		}
 
@@ -255,13 +292,17 @@ namespace CoreTests
 			buffer.SetComponent(target, new TestComponent1 { i = 2, d = 3, f = 4});
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 
 				var cData = accessor.GetComponentData<TestComponent1>();
 				Assert.Equal(2, cData[0].i);
-				Assert.Equal(3, cData[0].d, 3);
-				Assert.Equal(4, cData[0].f, 3);
+				Assert.Equal(3d, cData[0].d, 3);
+				Assert.Equal(4f, cData[0].f, 3);
 			});
 		}
 
@@ -280,7 +321,11 @@ namespace CoreTests
 			buffer.AddSharedComponent(target, shared1);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype.AddShared(shared1)), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 
 				var shared = accessor.GetSharedComponentData<SharedComponent1>();
@@ -304,7 +349,11 @@ namespace CoreTests
 			buffer.RemoveComponent<TestComponent1>(target);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype.Remove<TestComponent1>()), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.Exclude<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 			});
 		}
@@ -325,7 +374,11 @@ namespace CoreTests
 			buffer.RemoveSharedComponent<SharedComponent1>(target);
 			buffer.Playback();
 
-			Assert.Collection(world.ComponentManager.GetBlocks(archetype.RemoveShared<SharedComponent1>()), accessor => {
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.ExcludeShared<SharedComponent1>();
+
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
 				Assert.Equal(1, accessor.GetEntityData().Length);
 			});
 		}
@@ -340,15 +393,15 @@ namespace CoreTests
 			prefab.AddComponent(new TestComponentVector3() { value = Vector3.UnitY });
 			prefab.AddSharedComponent(shared1);
 
-			Assert.True(buffer.Empty());
+			Assert.True(buffer.IsEmpty());
 
 			buffer.CreateEntity(prefab);
 
-			Assert.False(buffer.Empty());
+			Assert.False(buffer.IsEmpty());
 
 			buffer.Playback();
 
-			Assert.True(buffer.Empty());
+			Assert.True(buffer.IsEmpty());
 		}
 
 #if DEBUG

@@ -42,7 +42,7 @@ namespace Core.ECS
 			BitSet256 result = new BitSet256();
 			foreach (var type in types) {
 				int hash = type.GetHashCode();
-				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be IComponent"));
+				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), () => new ArgumentException("Input type has to be IComponent"));
 				result.Set(componentHashToIndex[hash]);
 			}
 			return result;
@@ -54,12 +54,12 @@ namespace Core.ECS
 
 		public static int GetComponentIndex(Type type) {
 			int hash = type.GetHashCode();
-			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be IComponent"));
+			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), () => new ArgumentException("Input type has to be IComponent"));
 			return componentHashToIndex[hash];
 		}
 
 		public static System.Type ComponentIndexToType(int index) {
-			DebugHelper.AssertThrow(indexToType.ContainsKey(index), new ArgumentException("No such index"));
+			DebugHelper.AssertThrow(indexToType.ContainsKey(index), () => new ArgumentException("No such index"));
 			return indexToType[index];
 		}
 
@@ -106,7 +106,7 @@ namespace Core.ECS
 			foreach (var type in types)
 			{
 				int hash = type.GetHashCode();
-				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be ISharedComponent"));
+				DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), () => new ArgumentException("Input type has to be ISharedComponent"));
 				result.Set(componentHashToIndex[hash]);
 			}
 			return result;
@@ -120,7 +120,7 @@ namespace Core.ECS
 		public static int GetSharedComponentIndex(Type type)
 		{
 			int hash = type.GetHashCode();
-			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), new ArgumentException("Input type has to be ISharedComponent"));
+			DebugHelper.AssertThrow(componentHashToIndex.ContainsKey(hash), () => new ArgumentException("Input type has to be ISharedComponent"));
 			return componentHashToIndex[hash];
 		}
 

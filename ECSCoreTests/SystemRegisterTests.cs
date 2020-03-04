@@ -15,8 +15,6 @@ namespace CoreTests
 			public bool Enabled { get; set; }
 			public void OnCreateSystem(ECSWorld world) { }
 			public void OnDestroySystem(ECSWorld world) { }
-			public void OnEnableSystem(ECSWorld world) { }
-			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world) 
 			{
 				updateOrder.Add(this.GetType());
@@ -29,8 +27,6 @@ namespace CoreTests
 			public bool Enabled { get; set; }
 			public void OnCreateSystem(ECSWorld world) { }
 			public void OnDestroySystem(ECSWorld world) { }
-			public void OnEnableSystem(ECSWorld world) { }
-			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world)
 			{
 				updateOrder.Add(this.GetType());
@@ -43,8 +39,6 @@ namespace CoreTests
 			public bool Enabled { get; set; }
 			public void OnCreateSystem(ECSWorld world) { }
 			public void OnDestroySystem(ECSWorld world) { }
-			public void OnEnableSystem(ECSWorld world) { }
-			public void OnDisableSystem(ECSWorld world) { }
 			public void Update(float deltaTime, ECSWorld world)
 			{
 				updateOrder.Add(this.GetType());

@@ -7,6 +7,7 @@ using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
+using GlmSharp;
 
 namespace Core.Graphics.RenderSystems
 {
@@ -18,9 +19,9 @@ namespace Core.Graphics.RenderSystems
 		private Mesh defaultMesh;
 		private Material defaultMaterial;
 		private ShaderPair defaultShader;
-		private Vector3[] frustumCorners = new Vector3[8];
+		private vec3[] frustumCorners = new vec3[8];
 		private Vertex[] vertices = new Vertex[8];
-		private ushort[] indices = new ushort[] {
+		private uint[] indices = new uint[] {
 			//near
 			0, 1, 2,
 			1, 2, 3,

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Core.ECS.Events;
 
 namespace Core.ECS
 {
@@ -27,11 +28,13 @@ namespace Core.ECS
 			if (freeEntities.TryPop(out Entity result)) {
 				result.version++;
 				componentManager.AddEntity(result, archetype);
+				new EntityCreatedEvent(result).Fire(world);
 				return result;
 			}
 			else {
 				Entity e = new Entity{id = NextIndex(), version = 0};
 				componentManager.AddEntity(e, archetype);
+				new EntityCreatedEvent(e).Fire(world);
 				return e;
 			}
 		}
@@ -49,10 +52,12 @@ namespace Core.ECS
 					result.version++;
 					componentManager.AddEntity(result, archetype);
 					arr[i] = result;
+					new EntityCreatedEvent(result).Fire(world);
 				} else {
 					Entity e = new Entity { id = NextIndex(), version = 0 };
 					componentManager.AddEntity(e, archetype);
 					arr[i] = e;
+					new EntityCreatedEvent(e).Fire(world);
 				}
 			}
 
@@ -67,6 +72,8 @@ namespace Core.ECS
 			}
 			componentManager.RemoveEntity(e);
 			freeEntities.Push(e);
+			
+			new EntityDestroyedEvent(e).Fire(world);
 		}
 
 		private int NextIndex() {

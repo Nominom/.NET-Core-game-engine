@@ -20,7 +20,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.AssetSystem", "Core.AssetSystem\Core.AssetSystem.csproj", "{71848B0A-6609-4079-A4F4-0C4C79FA2AEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Shared", "Core.Shared\Core.Shared.csproj", "{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Shared", "Core.Shared\Core.Shared.csproj", "{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Physics", "Core.Physics\Core.Physics.csproj", "{493C0622-CB7B-4070-8AD2-73F89450AC3A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +62,10 @@ Global
 		{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

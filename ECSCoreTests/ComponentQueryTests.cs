@@ -32,8 +32,8 @@ namespace CoreTests
 		[Fact]
 		public void Include() {
 			ComponentQuery query = new ComponentQuery();
-			query.Include<TestComponent1>();
-			query.Include<TestComponent2>();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeReadWrite<TestComponent2>();
 
 			Assert.False(query.Matches(archetypeEmpty));
 			Assert.True(query.Matches(archetypeC1C2S1));
@@ -64,7 +64,7 @@ namespace CoreTests
 		public void IncludeExclude()
 		{
 			ComponentQuery query = new ComponentQuery();
-			query.Include<TestComponent1>();
+			query.IncludeReadWrite<TestComponent1>();
 			query.Exclude<TestComponent2>();
 
 			Assert.False(query.Matches(archetypeEmpty));
@@ -128,7 +128,7 @@ namespace CoreTests
 		public void IncludeExcludeAll()
 		{
 			ComponentQuery query = new ComponentQuery();
-			query.Include<TestComponent1>();
+			query.IncludeReadWrite<TestComponent1>();
 			query.Exclude<TestComponent2>();
 			query.IncludeShared<SharedComponent1>();
 			query.ExcludeShared<SharedComponent2>();
@@ -152,7 +152,7 @@ namespace CoreTests
 		[Fact]
 		public void HashCodeNotZero() {
 			ComponentQuery query1 = new ComponentQuery();
-			query1.Include<TestComponent1>();
+			query1.IncludeReadWrite<TestComponent1>();
 			Assert.NotEqual(0, query1.GetHashCode());
 
 			query1 = new ComponentQuery();
@@ -171,9 +171,9 @@ namespace CoreTests
 		[Fact]
 		public void HashCodeSame() {
 			ComponentQuery query1 = new ComponentQuery();
-			query1.Include<TestComponent1>();
+			query1.IncludeReadWrite<TestComponent1>();
 			ComponentQuery query2 = new ComponentQuery();
-			query2.Include<TestComponent1>();
+			query2.IncludeReadWrite<TestComponent1>();
 
 			Assert.Equal(query1.GetHashCode(), query2.GetHashCode());
 
@@ -203,9 +203,9 @@ namespace CoreTests
 		public void HashCodeDifferent()
 		{
 			ComponentQuery query1 = new ComponentQuery();
-			query1.Include<TestComponent1>();
+			query1.IncludeReadWrite<TestComponent1>();
 			ComponentQuery query2 = new ComponentQuery();
-			query2.Include<TestComponent2>();
+			query2.IncludeReadWrite<TestComponent2>();
 
 			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
 
@@ -231,7 +231,7 @@ namespace CoreTests
 			Assert.NotEqual(query1.GetHashCode(), query2.GetHashCode());
 
 			query1 = new ComponentQuery();
-			query1.Include<TestComponent1>();
+			query1.IncludeReadWrite<TestComponent1>();
 			query2 = new ComponentQuery();
 			query2.Exclude<TestComponent1>();
 

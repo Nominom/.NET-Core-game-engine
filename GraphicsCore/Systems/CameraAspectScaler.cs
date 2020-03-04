@@ -22,11 +22,6 @@ namespace Core.Graphics.Systems
 		public void OnDestroySystem(ECSWorld world) {
 		}
 
-		public void OnEnableSystem(ECSWorld world) {
-		}
-
-		public void OnDisableSystem(ECSWorld world) {
-		}
 
 		public void Update(float deltaTime, ECSWorld world) {
 			if (Math.Abs(Window.Aspect - previousAspect) < 0.01) {

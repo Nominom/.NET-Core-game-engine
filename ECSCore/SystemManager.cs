@@ -77,6 +77,7 @@ namespace Core.ECS
 		internal void AutoRegisterSystems()
 		{
 			RegisterSystemsWithAttribute();
+			world.EventManager.UpdateSubscribers(systems.Select(x => x.Value).ToList());
 		}
 
 		private void SortSystemList(List<SystemHolder> list)
@@ -158,11 +159,19 @@ namespace Core.ECS
 		{
 			ISystem instance = Activator.CreateInstance<T>();
 			RegisterSystem(instance, typeof(T), updateEvent, updateBefore, updateAfter);
+			instance.OnCreateSystem(world);
+			instance.Enabled = true;
+			world.EventManager.UpdateSubscribers(systems.Select(x => x.Value).ToList());
+			//instance.OnEnableSystem(world);
 		}
 
 		public void RegisterSystem<T>(T system, UpdateEvent updateEvent = UpdateEvent.Update, System.Type updateBefore = null, System.Type updateAfter = null) where T : class, ISystem
 		{
 			RegisterSystem(system, typeof(T), updateEvent, updateBefore, updateAfter);
+			system.OnCreateSystem(world);
+			system.Enabled = true;
+			world.EventManager.UpdateSubscribers(systems.Select(x => x.Value).ToList());
+			//system.OnEnableSystem(world);
 		}
 
 		public T GetSystem<T>() where T : class, ISystem
@@ -182,7 +191,7 @@ namespace Core.ECS
 			foreach (var system in systems) {
 				system.Value.OnCreateSystem(world);
 				system.Value.Enabled = true;
-				system.Value.OnEnableSystem(world);
+				//system.Value.OnEnableSystem(world);
 			}
 		}
 
@@ -190,7 +199,7 @@ namespace Core.ECS
 		{
 			foreach (var system in systems)
 			{
-				system.Value.OnDisableSystem(world);
+				//system.Value.OnDisableSystem(world);
 				system.Value.OnDestroySystem(world);
 			}
 		}

@@ -9,6 +9,8 @@ namespace Core.ECS.Filters
 		public static EmptyFilter Empty() => EmptyFilter.Instance;
 		public static ChangedFilter<T> Changed<T>() where T : unmanaged , IComponent => new ChangedFilter<T>();
 
+		public static EntityAddedRemovedFilter EntityChanged() => new EntityAddedRemovedFilter();
+
 		public static CombinedFilterAny ChangedAny<T1, T2>()
 			where T1 : unmanaged, IComponent
 			where T2 : unmanaged, IComponent
