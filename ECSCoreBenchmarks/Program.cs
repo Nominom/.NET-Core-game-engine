@@ -46,16 +46,27 @@ namespace CoreBenchmarks
 			Console.WriteLine("AVX supported: " + Avx.IsSupported);
 			Console.WriteLine("AVX2 supported: " + Avx2.IsSupported);
 
-			BenchmarkRunner.Run<JobBenchmarks>();
-
-			//JobBenchmarks benchmarks = new JobBenchmarks();
-			//benchmarks.Setup();
-			//for (int i = 0; i < 1000; i++)
+			BenchmarkRunner.Run<EntityAccessBenchmarks>();
+			//var eab = new EntityAccessBenchmarks();
+			//eab.numEntities = 1_000_000;
+			//eab.Setup();
+			//for (int i = 0; i < 100; i++)
 			//{
-			//	benchmarks.SystemTasks();
-			//	benchmarks.ChannelSimpleJobs();
-			//	benchmarks.ConcurrentQueueWorkers();
+			//	eab.EntityRefAccess();
 			//}
+			//for (int i = 0; i < 100; i++)
+			//{
+			//	eab.EntitySetAccess();
+			//}
+			//for (int i = 0; i < 100; i++)
+			//{
+			//	eab.QueryAccess();
+			//}
+			//for (int i = 0; i < 100; i++)
+			//{
+			//	eab.QueryJobAccess();
+			//}
+			//eab.Cleanup();
 
 			Console.WriteLine("done!");
 

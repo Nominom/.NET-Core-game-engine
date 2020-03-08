@@ -25,6 +25,8 @@ namespace Core.ECS
 
 		void CreateEntity(Prefab prefab);
 
+		void DestroyEntity(Entity entity);
+
 		void SetComponent<T>(T component) where T : unmanaged, IComponent;
 
 		void AddComponent<T>(T component) where T : unmanaged, IComponent;
@@ -72,6 +74,10 @@ namespace Core.ECS
 		public void CreateEntity(Prefab prefab)
 		{
 			GetLocal().CreateEntity(prefab);
+		}
+
+		public void DestroyEntity(Entity entity) {
+			GetLocal().DestroyEntity(entity);
 		}
 
 		public void SetComponent<T>(T component) where T : unmanaged, IComponent
@@ -183,6 +189,20 @@ namespace Core.ECS
 			public void Execute(EntityCommandBuffer buffer)
 			{
 				buffer.entityTarget = buffer.world.Instantiate(prefab);
+			}
+		}
+
+		private class DestroyEntityMod : IModification {
+			public Entity entity;
+
+			public DestroyEntityMod(Entity entity)
+			{
+				this.entity = entity;
+			}
+
+			public void Execute(EntityCommandBuffer buffer)
+			{
+				buffer.world.EntityManager.DestroyEntity(entity);
 			}
 		}
 
@@ -367,6 +387,15 @@ namespace Core.ECS
 			modList[nextIndex++] = new CreateEntityPrefabMod(prefab);
 		}
 
+		public void DestroyEntity(Entity entity) {
+			if (nextIndex >= modList.Length)
+			{
+				GrowModificationList();
+			}
+
+			modList[nextIndex++] = new DestroyEntityMod(entity);
+		}
+
 		public void SetComponent<T>(T component) where T : unmanaged, IComponent
 		{
 			if (nextIndex >= modList.Length)
@@ -466,7 +495,11 @@ namespace Core.ECS
 						break;
 					}
 
-					mod.Execute(this);
+					try {
+						mod.Execute(this);
+					}
+					catch(InvalidEntityException _){ }
+					catch(ComponentNotFoundException _){ }
 				}
 
 				pool.Return(modList);

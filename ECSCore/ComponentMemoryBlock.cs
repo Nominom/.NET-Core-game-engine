@@ -157,6 +157,17 @@ namespace Core.ECS
 			return bytes;
 		}
 
+		internal Span<byte> GetRawReadonlyComponentDataAtIndex(System.Type type, int elementIndex) {
+			int hash = type.GetHashCode();
+			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(hash));
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(elementIndex < MaxSize);
+
+			ComponentSliceValues componentSlice = _typeLocations[hash];
+			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
+			bytes = bytes.Slice(componentSlice.componentSize * elementIndex, componentSlice.componentSize);
+			return bytes;
+		}
+
 		~ComponentMemoryBlock() {
 			Free();
 		}

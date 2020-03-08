@@ -59,6 +59,30 @@ namespace CoreTests {
 		}
 
 		[Fact]
+		public void TryGetComponent() {
+			ECSWorld world = new ECSWorld();
+
+			for (int i = 0; i < loop_amount; i++) {
+				Entity entity = world.EntityManager.CreateEntity();
+				Assert.False(entity.TryGetComponent(world, out TestComponentWithInt ti));
+
+				world.ComponentManager.AddComponent(entity, new TestComponentWithInt { someInt = 10 });
+				
+				Assert.True(entity.TryGetComponent(world, out TestComponentWithInt test));
+
+				Assert.Equal(10, test.someInt);
+				world.ComponentManager.GetComponent<TestComponentWithInt>(entity).someInt = 12;
+
+				Assert.Equal(12, world.ComponentManager.GetComponent<TestComponentWithInt>(entity).someInt);
+
+				entity.RemoveComponent<TestComponentWithInt>(world);
+
+				Assert.False(entity.TryGetComponent(world, out TestComponentWithInt ti2));
+			}
+			
+		}
+
+		[Fact]
 		public void RemoveComponent () {
 			ECSWorld world = new ECSWorld();
 

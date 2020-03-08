@@ -34,6 +34,36 @@ namespace CoreTests
 				});
 		}
 
+		[Fact]
+		public void DestroyEntity() {
+			ECSWorld world = new ECSWorld();
+			var buffer = new EntityCommandBuffer(world);
+
+			SharedComponent1 shared1 = new SharedComponent1();
+			EntityArchetype archetype = EntityArchetype.Empty;
+			archetype = archetype.Add<TestComponent1>();
+			archetype = archetype.AddShared(shared1);
+
+
+			buffer.CreateEntity(archetype);
+			buffer.Playback();
+
+			ComponentQuery query = new ComponentQuery();
+			query.IncludeReadWrite<TestComponent1>();
+			query.IncludeShared<SharedComponent1>();
+
+			Entity e = default;
+			Assert.Collection(world.ComponentManager.GetBlocks(query), accessor => {
+				Assert.Equal(1, accessor.GetEntityData().Length);
+				e = accessor.GetEntityData()[0];
+			});
+
+			buffer.DestroyEntity(e);
+			buffer.Playback();
+
+			Assert.Empty(world.ComponentManager.GetBlocks(query));
+		}
+
 
 		[Fact]
 		public void CreateEntityFromPrefab()

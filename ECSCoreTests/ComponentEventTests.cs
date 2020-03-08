@@ -28,11 +28,11 @@ namespace CoreTests
 			public void Update(float deltaTime, ECSWorld world) {
 			}
 
-			public void ProcessEvents(ReadOnlySpan<ComponentAddedEvent<TestComponent1>> events) {
+			public void ProcessEvents(ECSWorld world, ReadOnlySpan<ComponentAddedEvent<TestComponent1>> events) {
 				createdEvents.AddRange(events.ToArray());
 			}
 
-			public void ProcessEvents(ReadOnlySpan<ComponentRemovedEvent<TestComponent1>> events) {
+			public void ProcessEvents(ECSWorld world, ReadOnlySpan<ComponentRemovedEvent<TestComponent1>> events) {
 				destroyedEvents.AddRange(events.ToArray());
 			}
 		}

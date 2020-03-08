@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Core.ECS;
+using Core.ECS.Components;
 using Core.ECS.Events;
 using Core.Physics;
 
@@ -19,13 +20,14 @@ namespace TestApp
 		public void OnDestroySystem(ECSWorld world) {}
 
 		public void Update(float deltaTime, ECSWorld world) {}
-		public void ProcessEvents(ReadOnlySpan<CollisionEnterEvent> events) {
+		public void ProcessEvents(ECSWorld world, ReadOnlySpan<CollisionEnterEvent> events) {
 			foreach (var _event in events) {
 				Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} started.");
+				_event.A.Destroy(world);
 			}
 		}
 
-		public void ProcessEvents(ReadOnlySpan<CollisionExitEvent> events) {
+		public void ProcessEvents(ECSWorld world, ReadOnlySpan<CollisionExitEvent> events) {
 			foreach (var _event in events) {
 				Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} ended.");
 			}

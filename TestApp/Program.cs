@@ -200,7 +200,7 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numCubes = 1;
+			const int numCubes = 3;
 			const int tallCubes = 3;
 			for (int i = 0; i < tallCubes; i++)
 			{
@@ -211,7 +211,7 @@ namespace TestApp
 					{
 						value = new vec3(
 							random.Next(-(int)Math.Sqrt(numCubes) - 5, (int)Math.Sqrt(numCubes) + 5),
-							i,
+							i * 3 + 10,
 							random.Next(-(int)Math.Sqrt(numCubes) - 5, (int)Math.Sqrt(numCubes) + 5))
 					});
 

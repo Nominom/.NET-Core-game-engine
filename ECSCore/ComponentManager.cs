@@ -253,6 +253,15 @@ namespace Core.ECS
 			EntityBlockIndex old = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(old);
 
+			foreach (var componentType in archetypeBlocks[old.archetypeIndex].archetype.components) {
+				var eventCreator = ComponentEventHelper.GetEventCreator(componentType.Key);
+				// EventCreator is only available if a system is subscribed to the component
+				if (eventCreator != null) {
+					var data = block.GetRawReadonlyComponentDataAtIndex(componentType.Key, old.elementIndex);
+					eventCreator.FireComponentRemovedEvent(world, entity, data);
+				}
+			}
+
 			if (block.RemoveEntityMoveLast(old.elementIndex, out Entity moved))
 			{
 				entityList[moved.id].elementIndex = old.elementIndex;
@@ -260,9 +269,7 @@ namespace Core.ECS
 
 			entityList[entity.id] = EntityBlockIndex.Invalid;
 
-			foreach (var componentType in archetypeBlocks[old.archetypeIndex].archetype.components) {
-				ComponentEventHelper.FireComponentRemovedEvent(world, entity, componentType.Key);
-			}
+			
 		}
 
 		internal bool IsEntityValid(Entity entity)
@@ -327,7 +334,9 @@ namespace Core.ECS
 		public void AddComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -366,7 +375,9 @@ namespace Core.ECS
 		public void SetComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex index = entityList[entity.id];
@@ -383,7 +394,9 @@ namespace Core.ECS
 		public void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -394,6 +407,9 @@ namespace Core.ECS
 				return;
 			}
 			ComponentMemoryBlock oldBlock = GetMemoryBlock(oldIndex);
+
+			T oldData = oldBlock.GetReadOnlyComponentData<T>()[oldIndex.elementIndex];
+			new ComponentRemovedEvent<T>(entity, oldData).Fire(world);
 
 			EntityBlockIndex newIndex = oldIndex;
 			newIndex.archetypeIndex = ArchetypeRemoveComponent<T>(oldArchetype);
@@ -408,29 +424,53 @@ namespace Core.ECS
 				entityList[moved.id].elementIndex = oldIndex.elementIndex;
 			}
 
-			ComponentEventHelper.FireComponentRemovedEvent(world, entity, typeof(T));
-
 			entityList[entity.id] = newIndex;
 		}
 
 		public ref T GetComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);
 
-			DebugHelper.AssertThrow<ComponentNotFoundException>(block.archetype.Has<T>());
+			if (!block.archetype.Has<T>()) {
+				throw new ComponentNotFoundException();
+			}
 
 			return ref block.GetComponentData<T>()[index.elementIndex];
+		}
+
+		public bool TryGetComponent<T>(Entity entity, out T component) where T : unmanaged, IComponent
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
+			world.SyncPoint();
+
+			EntityBlockIndex index = entityList[entity.id];
+			ComponentMemoryBlock block = GetMemoryBlock(index);
+
+			if (!block.archetype.Has<T>()) {
+				component = default;
+				return false;
+			}
+
+			component = block.GetReadOnlyComponentData<T>()[index.elementIndex];
+			return true;
 		}
 
 		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 
 			EntityBlockIndex index = entityList[entity.id];
 			ComponentMemoryBlock block = GetMemoryBlock(index);
@@ -442,7 +482,9 @@ namespace Core.ECS
 		public void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -471,7 +513,9 @@ namespace Core.ECS
 		public void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 
 			EntityBlockIndex oldIndex = entityList[entity.id];
@@ -502,17 +546,40 @@ namespace Core.ECS
 		public T GetSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 			world.SyncPoint();
 			EntityBlockIndex index = entityList[entity.id];
 			var archetype = archetypeBlocks[index.archetypeIndex].archetype;
 			return archetype.GetShared<T>();
 		}
 
+		public bool TryGetSharedComponent<T>(Entity entity, out T component) where T : class, ISharedComponent
+		{
+			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
+			world.SyncPoint();
+			EntityBlockIndex index = entityList[entity.id];
+			var archetype = archetypeBlocks[index.archetypeIndex].archetype;
+
+			if (!archetype.HasShared<T>()) {
+				component = null;
+				return false;
+			}
+
+			component = archetype.GetShared<T>();
+			return true;
+		}
+
 		public bool HasSharedComponent<T>(Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
-			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
+			if (!IsEntityValid(entity)) {
+				throw new InvalidEntityException();
+			}
 
 			EntityBlockIndex index = entityList[entity.id];
 			return archetypeBlocks[index.archetypeIndex].archetype.HasShared<T>();

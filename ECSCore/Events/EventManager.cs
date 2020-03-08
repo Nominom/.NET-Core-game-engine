@@ -7,6 +7,7 @@ namespace Core.ECS.Events
 
 	public sealed class EventManager{
 		internal Dictionary<int, IEventManager> eventManagers = new Dictionary<int, IEventManager>();
+		internal List<IEventManager> allEventManagers = new List<IEventManager>();
 		internal ECSWorld world;
 		private List<ISystem> systems;
 		internal EventManager(ECSWorld world) {
@@ -15,8 +16,8 @@ namespace Core.ECS.Events
 
 		public void UpdateSubscribers(List<ISystem> systems) {
 			this.systems = systems;
-			foreach (var manager in eventManagers) {
-				manager.Value.UpdateSubscribers(this.systems);
+			foreach (var manager in allEventManagers) {
+				manager.UpdateSubscribers(this.systems);
 			}
 		}
 
@@ -29,22 +30,24 @@ namespace Core.ECS.Events
 					manager.UpdateSubscribers(systems);
 				}
 				eventManagers.Add(hash, manager);
+				allEventManagers.Add(manager);
 			}
 			((EventManager<T>) manager).QueueEvent(_event);
 		}
 
 		public void DeliverEvents()
 		{
-			foreach (var manager in eventManagers) {
-				manager.Value.DeliverEvents();
-				manager.Value.ClearEvents();
+			for (int i = 0; i < allEventManagers.Count; i++) {
+				var manager = allEventManagers[i];
+				manager.DeliverEvents(world);
+				manager.ClearEvents();
 			}
 		}
 	}
 
 	internal interface IEventManager {
 		void UpdateSubscribers(List<ISystem> systems);
-		void DeliverEvents();
+		void DeliverEvents(ECSWorld world);
 		void ClearEvents();
 	}
 	internal sealed class EventManager<T> : IEventManager where T : struct, IEvent {
@@ -84,12 +87,12 @@ namespace Core.ECS.Events
 			}
 		}
 
-		public void DeliverEvents() {
+		public void DeliverEvents(ECSWorld world) {
 			if (numEvents > 0) {
 				foreach (var subscriber in subscribers) {
 					ReadOnlySpan<T> events = waitingEvents;
 					events = events.Slice(0, numEvents);
-					subscriber.ProcessEvents(events);
+					subscriber.ProcessEvents(world, events);
 				}
 			}
 		}

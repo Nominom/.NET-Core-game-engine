@@ -68,7 +68,7 @@ namespace Core.ECS
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			world.SyncPoint();
 			if (!componentManager.IsEntityValid(e)) {
-				throw new InvalidEntityException();
+				return; // Entity old or destroyed. Nothing to do
 			}
 			componentManager.RemoveEntity(e);
 			freeEntities.Push(e);

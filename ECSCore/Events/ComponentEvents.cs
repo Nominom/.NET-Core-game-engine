@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Core.Shared;
 
 namespace Core.ECS.Events
 {
@@ -62,6 +63,13 @@ namespace Core.ECS.Events
 
 		private static Dictionary<System.Type, IComponentEventCreator> eventCreators = FindComponentListeners();
 
+		internal static IComponentEventCreator GetEventCreator(System.Type type) {
+			if (eventCreators.TryGetValue(type, out var creator)) {
+				return creator;
+			}
+			return null;
+		}
+
 		internal static void FireComponentAddedEvent(ECSWorld world, Entity entity, System.Type componentType)
 		{
 			if(eventCreators.TryGetValue(componentType, out var creator))
@@ -70,17 +78,17 @@ namespace Core.ECS.Events
 			}
 		}
 
-		internal static void FireComponentRemovedEvent(ECSWorld world, Entity entity, System.Type componentType)
+		internal static void FireComponentRemovedEvent(ECSWorld world, Entity entity, System.Type componentType, Span<byte> data)
 		{
 			if(eventCreators.TryGetValue(componentType, out var creator))
 			{
-				creator.FireComponentRemovedEvent(world, entity);
+				creator.FireComponentRemovedEvent(world, entity, data);
 			}
 		}
 
-		private interface IComponentEventCreator {
+		internal interface IComponentEventCreator {
 			void FireComponentAddedEvent(ECSWorld world, Entity entity);
-			void FireComponentRemovedEvent(ECSWorld world, Entity entity);
+			void FireComponentRemovedEvent(ECSWorld world, Entity entity, ReadOnlySpan<byte> data);
 		}
 
 		private class ComponentEventCreator<T> : IComponentEventCreator where T : unmanaged, IComponent
@@ -89,8 +97,8 @@ namespace Core.ECS.Events
 				new ComponentAddedEvent<T>(entity).Fire(world);
 			}
 
-			public void FireComponentRemovedEvent(ECSWorld world, Entity entity) {
-				new ComponentRemovedEvent<T>(entity).Fire(world);
+			public void FireComponentRemovedEvent(ECSWorld world, Entity entity, ReadOnlySpan<byte> data) {
+				new ComponentRemovedEvent<T>(entity, data.Cast<byte, T>()[0]).Fire(world);
 			}
 		}
 	}
@@ -104,8 +112,10 @@ namespace Core.ECS.Events
 
 	public struct ComponentRemovedEvent<T> : IEvent where T : unmanaged, IComponent {
 		public Entity entity;
-		public ComponentRemovedEvent(Entity entity) {
+		public T oldComponentData;
+		public ComponentRemovedEvent(Entity entity, T oldComponentData) {
 			this.entity = entity;
+			this.oldComponentData = oldComponentData;
 		}
 	}
 }
