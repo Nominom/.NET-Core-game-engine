@@ -17,7 +17,7 @@ namespace CoreTests {
 		public void Size () {
 			ComponentMemoryBlock block = new ComponentMemoryBlock(testArchetype);
 			Assert.Equal(0, block.Size);
-			block.AddEntity(new Entity() {id = 1, version = 1});
+			block.AddEntity(new Entity (1,0));
 			Assert.Equal(1, block.Size);
 
 			block.Dispose();
@@ -35,7 +35,7 @@ namespace CoreTests {
 
 			for (int i = 0; i < block.MaxSize; i++) {
 				Assert.True(block.HasRoom);
-				Entity e = new Entity(){id = i + 1, version = 1};
+				Entity e = new Entity (i + 1,  0 );
 				block.AddEntity(e);
 			}
 
@@ -68,7 +68,7 @@ namespace CoreTests {
 			var componentData = block.GetComponentData<ComponentTests.TestComponentWithInt>();
 
 			for (int i = 0; i < block.MaxSize; i++) {
-				block.AddEntity(new Entity() {id = i + 1});
+				block.AddEntity(new Entity (i+1,0));
 				componentData[i].someInt = i;
 			}
 

@@ -17,9 +17,10 @@ namespace Core.ECS.JobSystem
 
 		internal static ConcurrentQueue<JobHandle>[] jobQueues = new ConcurrentQueue<JobHandle>[numGroups];
 
-		private const long numGroups = 2048;
+		private const long numGroups = 256;
 		private static long nextJobGroupId = 0;
-		private static readonly long[] groupWorkLeft = new long[numGroups];
+		private static readonly int[] groupWorkLeft = new int[numGroups];
+		private static readonly int[] groupWorkLeftToGrab = new int[numGroups];
 		private static readonly ComponentQuery[] groupDependencies = new ComponentQuery[numGroups];
 		private static readonly JobGroup[] jobGroups = new JobGroup[numGroups];
 
@@ -59,6 +60,7 @@ namespace Core.ECS.JobSystem
 			groupDependencies[nextJobGroupId] = ComponentQuery.Empty;
 			var result = new JobGroup(nextJobGroupId, -1);
 			jobGroups[nextJobGroupId] = result;
+			groupWorkLeftToGrab[nextJobGroupId] = 0;
 			return result;
 		}
 
@@ -92,6 +94,7 @@ namespace Core.ECS.JobSystem
 			groupDependencies[nextJobGroupId] = dependencies;
 			var result = new JobGroup(nextJobGroupId, dependency);
 			jobGroups[nextJobGroupId] = result;
+			groupWorkLeftToGrab[nextJobGroupId] = 0;
 			return result;
 		}
 
@@ -105,6 +108,7 @@ namespace Core.ECS.JobSystem
 			groupDependencies[nextJobGroupId] = ComponentQuery.Empty;
 			var result = new JobGroup(nextJobGroupId, dependency.groupId);
 			jobGroups[nextJobGroupId] = result;
+			groupWorkLeftToGrab[nextJobGroupId] = 0;
 			return result;
 		}
 
@@ -112,6 +116,7 @@ namespace Core.ECS.JobSystem
 		{
 			Interlocked.Increment(ref runningJobs);
 			Interlocked.Increment(ref groupWorkLeft[group.groupId]);
+			Interlocked.Increment(ref groupWorkLeftToGrab[group.groupId]);
 
 			var jobHandle = new JobHandle(nextJobId, group, JobExecutor<T>.Instance);
 
@@ -140,11 +145,11 @@ namespace Core.ECS.JobSystem
 
 		internal static bool CanExecuteGroup(JobGroup group) {
 			if (group.dependency == -1) return true;
-			return Interlocked.Read(ref groupWorkLeft[group.dependency]) == 0;
+			return groupWorkLeft[group.dependency] == 0;
 		}
 
 		internal static bool IsGroupComplete(JobGroup group) {
-			return Interlocked.Read(ref groupWorkLeft[group.groupId]) == 0;
+			return groupWorkLeft[group.groupId] == 0;
 		}
 
 		internal static bool HasWorkToDo() {
@@ -154,15 +159,20 @@ namespace Core.ECS.JobSystem
 		internal static bool TryWork() {
 			bool success = false;
 			for (int i = 0; i < numGroups; i++) {
-				if (Interlocked.Read(ref groupWorkLeft[i]) > 0) {
+				if (groupWorkLeftToGrab[i] > 0) {
 					if (!CanExecuteGroup(jobGroups[i])) {
 						continue;
 					}
 					while (jobQueues[i].TryDequeue(out var jobHandle)) {
+						Interlocked.Decrement(ref groupWorkLeftToGrab[i]);
 						if (jobHandle.executor.ExecuteJob(jobHandle))
 						{
 							SignalComplete(jobHandle);
 							success =  true;
+						}
+						else {
+							Console.WriteLine("Job couldn't be completed.");
+							Interlocked.Increment(ref groupWorkLeftToGrab[i]);
 						}
 					}
 				}

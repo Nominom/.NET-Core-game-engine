@@ -2,7 +2,7 @@
 
 namespace Core.ECS.JobSystem
 {
-	public struct JobHandle : IEquatable<JobHandle> {
+	public readonly struct JobHandle : IEquatable<JobHandle> {
 		public readonly long jobId;
 		public readonly JobGroup group;
 		internal readonly IJobExecutor executor;
@@ -38,7 +38,7 @@ namespace Core.ECS.JobSystem
 		}
 	}
 
-	public struct JobGroup : IEquatable<JobGroup> {
+	public readonly struct JobGroup : IEquatable<JobGroup> {
 		public readonly long groupId;
 		public readonly long dependency;
 

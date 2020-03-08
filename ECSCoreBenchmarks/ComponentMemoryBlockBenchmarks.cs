@@ -69,7 +69,7 @@ namespace CoreBenchmarks {
 				var data1 = testBlocks[n].GetComponentData<TestComponent1>();
 				var data2 = testBlocks[n].GetComponentData<TestComponent2>();
 				for (int i = 0; i < testBlocks[n].MaxSize; i++) {
-					testBlocks[n].AddEntity(new Entity() { id = i + 1, version = i + 1 });
+					testBlocks[n].AddEntity(new Entity (i + 1,  0 ));
 					data1[i].testInt = i;
 					data1[i].testDouble = i * 1.5;
 					data2[i].testInt = i * 2;

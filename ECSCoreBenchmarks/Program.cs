@@ -48,7 +48,7 @@ namespace CoreBenchmarks
 
 			BenchmarkRunner.Run<EntityAccessBenchmarks>();
 			//var eab = new EntityAccessBenchmarks();
-			//eab.numEntities = 1_000_000;
+			//eab.numEntities = 1_000;
 			//eab.Setup();
 			//for (int i = 0; i < 100; i++)
 			//{
@@ -62,7 +62,7 @@ namespace CoreBenchmarks
 			//{
 			//	eab.QueryAccess();
 			//}
-			//for (int i = 0; i < 100; i++)
+			//for (int i = 0; i < 100000; i++)
 			//{
 			//	eab.QueryJobAccess();
 			//}

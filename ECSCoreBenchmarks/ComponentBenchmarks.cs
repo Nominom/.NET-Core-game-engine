@@ -25,7 +25,7 @@ namespace CoreBenchmarks {
 			entities = new Entity[numEntities];
 
 			for (int i = 0; i < numEntities; i++) {
-				Entity e = new Entity { id = i + 1, version = 0 };
+				Entity e = new Entity (i + 1,  0 );
 				entities[i] = e;
 				cm.AddEntity(e, EntityArchetype.Empty);
 				cm.AddComponent(e, new TestComponent());

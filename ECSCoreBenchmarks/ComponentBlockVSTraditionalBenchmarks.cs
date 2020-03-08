@@ -85,7 +85,7 @@ namespace CoreBenchmarks {
 					entityBlocks.Add(currentBlock);
 				}
 
-				currentBlock.AddEntity(new Entity() {id = i + 1, version = 1});
+				currentBlock.AddEntity(new Entity (i + 1,  0 ));
 			}
 		}
 

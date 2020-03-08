@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Core.ECS.Events;
@@ -60,11 +61,13 @@ namespace Core.ECS
 
 			public static EntityBlockIndex Invalid => new EntityBlockIndex() { entityVersion = -1 };
 
-			public bool ValidateEntityCorrect(Entity e)
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			public bool ValidateEntityCorrect(in Entity e)
 			{
 				return e.version == entityVersion;
 			}
 
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			public bool IsValid()
 			{
 				return entityVersion >= 0;
@@ -272,7 +275,8 @@ namespace Core.ECS
 			
 		}
 
-		internal bool IsEntityValid(Entity entity)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal bool IsEntityValid(in Entity entity)
 		{
 			if (entity.id >= entityList.Length) return false;
 			if (entity.IsNull()) return false;
@@ -291,7 +295,7 @@ namespace Core.ECS
 			}
 		}
 
-		internal void AddPrefabComponents(Entity entity, Prefab prefab) {
+		internal void AddPrefabComponents(in Entity entity, Prefab prefab) {
 			DebugHelper.AssertThrow<InvalidEntityException>(IsEntityValid(entity));
 			world.SyncPoint();
 			EntityBlockIndex index = entityList[entity.id];
@@ -331,7 +335,7 @@ namespace Core.ECS
 			archetypeHashIndices.Add(0, 0);
 		}
 
-		public void AddComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
+		public void AddComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -372,7 +376,7 @@ namespace Core.ECS
 
 		}
 
-		public void SetComponent<T>(Entity entity, in T component) where T : unmanaged, IComponent
+		public void SetComponent<T>(in Entity entity, in T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -391,7 +395,7 @@ namespace Core.ECS
 			}
 		}
 
-		public void RemoveComponent<T>(Entity entity) where T : unmanaged, IComponent
+		public void RemoveComponent<T>(in Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -445,7 +449,7 @@ namespace Core.ECS
 			return ref block.GetComponentData<T>()[index.elementIndex];
 		}
 
-		public bool TryGetComponent<T>(Entity entity, out T component) where T : unmanaged, IComponent
+		public bool TryGetComponent<T>(in Entity entity, out T component) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -465,7 +469,7 @@ namespace Core.ECS
 			return true;
 		}
 
-		public bool HasComponent<T>(Entity entity) where T : unmanaged, IComponent
+		public bool HasComponent<T>(in Entity entity) where T : unmanaged, IComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -479,7 +483,7 @@ namespace Core.ECS
 		}
 
 
-		public void AddSharedComponent<T>(Entity entity, T component) where T : class, ISharedComponent
+		public void AddSharedComponent<T>(in Entity entity, T component) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -510,7 +514,7 @@ namespace Core.ECS
 			}
 		}
 
-		public void RemoveSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		public void RemoveSharedComponent<T>(in Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -543,7 +547,7 @@ namespace Core.ECS
 			entityList[entity.id] = newIndex;
 		}
 
-		public T GetSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		public T GetSharedComponent<T>(in Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -555,7 +559,7 @@ namespace Core.ECS
 			return archetype.GetShared<T>();
 		}
 
-		public bool TryGetSharedComponent<T>(Entity entity, out T component) where T : class, ISharedComponent
+		public bool TryGetSharedComponent<T>(in Entity entity, out T component) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {
@@ -574,7 +578,7 @@ namespace Core.ECS
 			return true;
 		}
 
-		public bool HasSharedComponent<T>(Entity entity) where T : class, ISharedComponent
+		public bool HasSharedComponent<T>(in Entity entity) where T : class, ISharedComponent
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(ECSWorld.CheckThreadIsMainThread());
 			if (!IsEntityValid(entity)) {

@@ -24,12 +24,11 @@ namespace Core.ECS
 
 		private readonly ComponentSliceValues entityComponentSlice;
 
-		//private fixed byte _data[16384];
 		private readonly BlockMemory _data;
-		//private Dictionary<System.Type, ComponentSliceValues> _typeLocations;
-		//private Dictionary<int, ComponentSliceValues> _typeLocations;
-		private readonly Dictionary<int, ComponentSliceValues> _typeLocations;
-		private readonly Dictionary<int, long> _componentVersions; 
+		private readonly ComponentSliceValues[] _typeLocations;
+		private readonly long[] _componentVersions;
+		private readonly int dictionaryMask = 0;
+		private readonly int dictionarySize = 0;
 
 		/// <summary>
 		/// Unique identifier of this block.
@@ -49,8 +48,9 @@ namespace Core.ECS
 			this.archetype = archetype;
 			//_typeLocations = new Dictionary<Type, ComponentSliceValues>();
 			//_typeLocations = new Dictionary<int, ComponentSliceValues>();
-			_typeLocations = new Dictionary<int, ComponentSliceValues>();
-			_componentVersions = new Dictionary<int, long>();
+			OptimizeDictionary(archetype, out dictionarySize, out dictionaryMask);
+			_typeLocations = new ComponentSliceValues[dictionarySize];
+			_componentVersions = new long[dictionarySize];
 
 			_data = allocator.Rent();
 			_data.Memory.Span.Fill(0);
@@ -72,11 +72,50 @@ namespace Core.ECS
 			int nextIdx = entitySize * _maxSize; //start from after entities
 			foreach (var component in archetype.components) {
 				int componentLength = component.Value * _maxSize;
-				_typeLocations.Add(component.Key.GetHashCode(), new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
-				_componentVersions.Add(component.Key.GetHashCode(), 0);
+				//_typeLocations.Add(component.Key.GetHashCode(), new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
+				//_componentVersions.Add(component.Key.GetHashCode(), 0);
+				_typeLocations[GetDictionaryKey(component.Key)] = new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value};
+				_componentVersions[GetDictionaryKey(component.Key)] = 0;
 				nextIdx += componentLength;
 			}
 		}
+
+		private static void OptimizeDictionary(EntityArchetype archetype, out int dictArraySize, out int dictionaryMask) {
+			dictArraySize = 1;
+			do {
+				dictArraySize *= 2;
+				dictionaryMask = dictArraySize - 1;
+				Span<bool> testDict = dictArraySize <= 256 ? stackalloc bool[dictArraySize] : new bool[dictArraySize];
+				bool collision = false;
+				foreach (var component in archetype.components) {
+					int hash = component.Key.GetHashCode();
+					int key = hash & dictionaryMask;
+					if (testDict[key]) {
+						collision = true;
+						break;
+					}
+					else {
+						testDict[key] = true;
+					}
+				}
+				if (!collision) {
+					return;
+				}
+			} while (true);
+		}
+
+		private int GetDictionaryKey<T>() {
+			return TypeHelper<T>.hashCode & dictionaryMask;
+		}
+		
+		private int GetDictionaryKey(System.Type type) {
+			return type.GetHashCode() & dictionaryMask;
+		}
+
+		private int GetDictionaryKey(int hash) {
+			return hash & dictionaryMask;
+		}
+
 
 		internal void IncrementComponentVersions()
 		{
@@ -87,16 +126,13 @@ namespace Core.ECS
 		}
 
 		internal void IncrementComponentVersion(int hash) {
-			_componentVersions[hash] = _componentVersions[hash] + 1;
-		}
-
-		internal void RollbackComponentVersion<T>() {
-			int hash = TypeHelper<T>.hashCode;
-			_componentVersions[hash] = _componentVersions[hash] - 1;
+			int key = GetDictionaryKey(hash);
+			_componentVersions[key] = _componentVersions[key] + 1;
 		}
 
 		internal long GetComponentVersion<T>() {
-			return _componentVersions[TypeHelper<T>.hashCode];
+			int key = GetDictionaryKey<T>();
+			return _componentVersions[key];
 		}
 
 		internal Span<Entity> GetEntityData() {
@@ -106,21 +142,21 @@ namespace Core.ECS
 		}
 
 		internal Span<T> GetComponentData<T>() where T : unmanaged, IComponent {
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
-			int hash = TypeHelper<T>.hashCode;
-			_componentVersions[hash] = _componentVersions[hash] + 1;
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.Has<T>());
+			int key = GetDictionaryKey<T>();
+			_componentVersions[key] = _componentVersions[key] + 1;
 
-			ComponentSliceValues componentSlice = _typeLocations[hash];
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			Span <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
 		}
 
 		internal Span<T> GetComponentDataNoVersionIncrement<T>() where T : unmanaged, IComponent {
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
-			int hash = TypeHelper<T>.hashCode;
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.Has<T>());
+			int key = GetDictionaryKey<T>();
 
-			ComponentSliceValues componentSlice = _typeLocations[hash];
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			Span <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			Span<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
@@ -128,41 +164,41 @@ namespace Core.ECS
 
 		internal ReadOnlySpan<T> GetReadOnlyComponentData<T>() where T : unmanaged, IComponent
 		{
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
-			ComponentSliceValues componentSlice = _typeLocations[TypeHelper<T>.hashCode];
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.Has<T>());
+			int key = GetDictionaryKey<T>();
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			ReadOnlySpan <byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			ReadOnlySpan<T> span = MemoryMarshal.Cast<byte, T>(bytes);
 			return span;
 		}
 
 		internal Span<byte> GetRawComponentData<T>() where T : unmanaged, IComponent {
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(TypeHelper<T>.hashCode));
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.Has<T>());
 			
-			int hash = TypeHelper<T>.hashCode;
-			_componentVersions[hash] = _componentVersions[hash] + 1;
+			int key = GetDictionaryKey<T>();
+			_componentVersions[key] = _componentVersions[key] + 1;
 
-			ComponentSliceValues componentSlice = _typeLocations[hash];
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			return bytes;
 		}
 
 		internal Span<byte> GetRawComponentData(System.Type type) {
-			int hash = type.GetHashCode();
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(hash));
-			
-			_componentVersions[hash] = _componentVersions[hash] + 1;
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.components.ContainsKey(type));
+			int key = GetDictionaryKey(type);
+			_componentVersions[key] = _componentVersions[key] + 1;
 
-			ComponentSliceValues componentSlice = _typeLocations[hash];
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			return bytes;
 		}
 
 		internal Span<byte> GetRawReadonlyComponentDataAtIndex(System.Type type, int elementIndex) {
-			int hash = type.GetHashCode();
-			DebugHelper.AssertThrow<ComponentNotFoundException>(_typeLocations.ContainsKey(hash));
+			DebugHelper.AssertThrow<ComponentNotFoundException>(archetype.components.ContainsKey(type));
 			DebugHelper.AssertThrow<IndexOutOfRangeException>(elementIndex < MaxSize);
+			int key = GetDictionaryKey(type);
 
-			ComponentSliceValues componentSlice = _typeLocations[hash];
+			ComponentSliceValues componentSlice = _typeLocations[key];
 			Span<byte> bytes = _data.Memory.Span.Slice(componentSlice.start, componentSlice.length);
 			bytes = bytes.Slice(componentSlice.componentSize * elementIndex, componentSlice.componentSize);
 			return bytes;
@@ -204,8 +240,10 @@ namespace Core.ECS
 			bool didMove = false;
 			if (e_idx != lastIdx) {//Move all component memory from last in place of e_idx
 				foreach (var slice in _typeLocations) {
-					int cSize = slice.Value.componentSize; //component size in bytes
-					int start = slice.Value.start;
+					if (slice.length == 0) continue; //skip over invalid dictionary entries
+
+					int cSize = slice.componentSize; //component size in bytes
+					int start = slice.start;
 					int idxOffset = cSize * e_idx;
 					int lastIdxOffset = cSize * lastIdx;
 
@@ -223,8 +261,10 @@ namespace Core.ECS
 			}
 			else { //remove last
 				foreach (var slice in _typeLocations) {
-					int cSize = slice.Value.componentSize; //component size in bytes
-					int start = slice.Value.start;
+					if (slice.length == 0) continue; //skip over invalid dictionary entries
+
+					int cSize = slice.componentSize; //component size in bytes
+					int start = slice.start;
 					int lastIdxOffset = cSize * lastIdx;
 
 					Span<byte> span = wholeMemory.Slice(start + lastIdxOffset, cSize);
@@ -248,13 +288,17 @@ namespace Core.ECS
 			Span<byte> destMemory = other._data.Memory.Span;
 
 			int newIdx = other.AddEntity(e);
-			foreach (var slice in other._typeLocations) {
-				int hash = slice.Key;
+			foreach (var component in other.archetype.components) {
+				if (this.archetype.components.ContainsKey(component.Key)) {
 
-				if (_typeLocations.TryGetValue(hash, out ComponentSliceValues src)) {
-					ComponentSliceValues dest = slice.Value;
+					int hash = component.Key.GetHashCode();
+					var slice = other._typeLocations[other.GetDictionaryKey(hash)];
+					var src = _typeLocations[GetDictionaryKey(hash)];
 
-					int cSize = slice.Value.componentSize; //component size in bytes
+					ComponentSliceValues dest = slice;
+
+					int cSize = slice.componentSize; //component size in bytes
+
 					int srcStart = src.start;
 					int srcIdxOffset = cSize * e_idx;
 

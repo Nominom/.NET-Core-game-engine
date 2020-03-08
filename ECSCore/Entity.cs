@@ -1,26 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Core.ECS
 {
-	public struct Entity {
+	public readonly struct Entity {
 		public const int NULL_ID = 0;
 
-		public int id;
-		public int version;
+		public readonly int id;
+		public readonly int version;
 
-		public bool IsNull() {
+		public Entity(int id, int version) {
+			this.id = id;
+			this.version = version;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public readonly bool IsNull() {
 			return id == NULL_ID;
 		}
 
 		#region equalityComparison
 
-		public bool Equals (Entity other) {
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public readonly bool Equals (Entity other) {
 			return id == other.id && version == other.version;
 		}
 
-		public override bool Equals (object obj) {
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public override readonly bool Equals (object obj) {
 			if (ReferenceEquals(null, obj)) {
 				return false;
 			}
@@ -28,23 +37,27 @@ namespace Core.ECS
 			return obj is Entity other && Equals(other);
 		}
 
-		public override int GetHashCode () {
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public override readonly int GetHashCode () {
 			unchecked {
 				return ((int)id * 397) ^ version;
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator == (Entity left, Entity right) {
 			return left.Equals(right);
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool operator != (Entity left, Entity right) {
 			return !left.Equals(right);
 		}
 
 		#endregion
 
-		public readonly override string ToString() {
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public override readonly string ToString() {
 #if _DEBUG
 			//find name from debug names
 #endif
