@@ -56,10 +56,6 @@ namespace Core.Graphics.VulkanBackend
             {
                 throw new InvalidOperationException("Could not create Vulkan instance. Error: " + err);
             }
-            if (Settings.Validation)
-            {
-
-            }
 
             // Physical Device
             uint gpuCount = 0;

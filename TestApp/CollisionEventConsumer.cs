@@ -22,14 +22,14 @@ namespace TestApp
 		public void Update(float deltaTime, ECSWorld world) {}
 		public void ProcessEvents(ECSWorld world, ReadOnlySpan<CollisionEnterEvent> events) {
 			foreach (var _event in events) {
-				Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} started.");
-				_event.A.Destroy(world);
+				//Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} started.");
+				//_event.A.Destroy(world);
 			}
 		}
 
 		public void ProcessEvents(ECSWorld world, ReadOnlySpan<CollisionExitEvent> events) {
 			foreach (var _event in events) {
-				Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} ended.");
+				//Console.WriteLine($"Collision between {_event.A.ToString()} and {_event.B.ToString()} ended.");
 			}
 		}
 	}

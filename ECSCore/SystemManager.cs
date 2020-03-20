@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Core.Profiling;
 
 namespace Core.ECS
 {
@@ -21,7 +22,7 @@ namespace Core.ECS
 
 		private ECSWorld world;
 
-		private readonly Dictionary<System.Type, ISystem> systems = new Dictionary<Type, ISystem>();
+		private readonly Dictionary<Type, ISystem> systems = new Dictionary<Type, ISystem>();
 
 		private readonly List<SystemHolder> earlyUpdateSystems = new List<SystemHolder>();
 		private readonly List<SystemHolder> updateSystems = new List<SystemHolder>();
@@ -48,7 +49,8 @@ namespace Core.ECS
 
 		private void RegisterSystemsWithAttribute()
 		{
-			foreach (var assembly in AssemblyHelper.GetAllUserAssemblies()) {
+			foreach (var assembly in AssemblyHelper.GetAllUserAssemblies())
+			{
 
 				foreach (Type type in AssemblyHelper.GetTypesWithAttribute(assembly, typeof(ECSSystemAttribute)))
 				{
@@ -188,7 +190,8 @@ namespace Core.ECS
 
 		internal void InitializeSystems()
 		{
-			foreach (var system in systems) {
+			foreach (var system in systems)
+			{
 				system.Value.OnCreateSystem(world);
 				system.Value.Enabled = true;
 				//system.Value.OnEnableSystem(world);
@@ -208,16 +211,21 @@ namespace Core.ECS
 		{
 			foreach (var system in earlyUpdateSystems)
 			{
-				try
+				if (system.system.Enabled)
 				{
-					if (system.system.Enabled)
+					Profiler.StartMethod(system.systemType.Name);
+					try
 					{
 						system.system.Update(deltaTime, world);
 					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+					finally
+					{
+						Profiler.EndMethod();
+					}
 				}
 			}
 		}
@@ -226,6 +234,7 @@ namespace Core.ECS
 		{
 			foreach (var system in updateSystems)
 			{
+				Profiler.StartMethod(system.systemType.Name);
 				try
 				{
 					if (system.system.Enabled)
@@ -236,6 +245,10 @@ namespace Core.ECS
 				catch (Exception ex)
 				{
 					Console.WriteLine(ex);
+				}
+				finally
+				{
+					Profiler.EndMethod();
 				}
 			}
 		}
@@ -244,6 +257,7 @@ namespace Core.ECS
 		{
 			foreach (var system in lateUpdateSystems)
 			{
+				Profiler.StartMethod(system.systemType.Name);
 				try
 				{
 					if (system.system.Enabled)
@@ -254,6 +268,10 @@ namespace Core.ECS
 				catch (Exception ex)
 				{
 					Console.WriteLine(ex);
+				}
+				finally
+				{
+					Profiler.EndMethod();
 				}
 			}
 		}
@@ -262,16 +280,21 @@ namespace Core.ECS
 		{
 			foreach (var system in fixedUpdateSystems)
 			{
-				try
+				if (system.system.Enabled)
 				{
-					if (system.system.Enabled)
+					Profiler.StartMethod(system.systemType.Name);
+					try
 					{
 						system.system.Update(deltaTime, world);
 					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+					finally
+					{
+						Profiler.EndMethod();
+					}
 				}
 			}
 		}
@@ -280,16 +303,21 @@ namespace Core.ECS
 		{
 			foreach (var system in beforeRenderSystems)
 			{
-				try
+				if (system.system.Enabled)
 				{
-					if (system.system.Enabled)
+					Profiler.StartMethod(system.systemType.Name);
+					try
 					{
 						system.system.Update(deltaTime, world);
 					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+					finally
+					{
+						Profiler.EndMethod();
+					}
 				}
 			}
 		}
@@ -298,16 +326,21 @@ namespace Core.ECS
 		{
 			foreach (var system in renderSystems)
 			{
-				try
+				if (system.system.Enabled)
 				{
-					if (system.system.Enabled)
+					Profiler.StartMethod(system.systemType.Name);
+					try
 					{
 						system.system.Update(deltaTime, world);
 					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+					finally
+					{
+						Profiler.EndMethod();
+					}
 				}
 			}
 		}
@@ -316,16 +349,22 @@ namespace Core.ECS
 		{
 			foreach (var system in afterRenderSystems)
 			{
-				try
+				if (system.system.Enabled)
 				{
-					if (system.system.Enabled)
+					Profiler.StartMethod(system.systemType.Name);
+					try
 					{
 						system.system.Update(deltaTime, world);
+
 					}
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex);
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex);
+					}
+					finally
+					{
+						Profiler.EndMethod();
+					}
 				}
 			}
 		}

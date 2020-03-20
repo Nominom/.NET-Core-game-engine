@@ -23,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core.Profiling\Core.Profiling.csproj" />
     <ProjectReference Include="..\Core.Shared\Core.Shared.csproj" />
   </ItemGroup>
 

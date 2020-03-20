@@ -6,6 +6,7 @@ using System.Threading;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using Core.ECS.JobSystem;
+using Core.Profiling;
 
 namespace Core.Physics
 {
@@ -84,6 +85,7 @@ namespace Core.Physics
                 workers[i].Thread.IsBackground = true;
                 workers[i].Thread.Name = "Physics thread" + i;
                 workers[i].Thread.Start(workers[i].Signal);
+				Profiler.RegisterThread(workers[i].Thread, "PhysicsWorker" + i);
             }
             finished = new AutoResetEvent(false);
             bufferPools = new BufferPool[threadCount];
@@ -96,7 +98,11 @@ namespace Core.Physics
         void DispatchThread(int workerIndex)
         {
             Debug.Assert(workerBody != null);
-            workerBody(workerIndex);
+			Profiler.StartMethod("PhysicsJob");
+			Profiler.StartMethod(workerBodyMethodName);
+			workerBody(workerIndex);
+			Profiler.EndMethod();
+			Profiler.EndMethod();
 
             if (Interlocked.Increment(ref completedWorkerCounter) == threadCount)
             {
@@ -105,6 +111,7 @@ namespace Core.Physics
         }
 
         volatile Action<int> workerBody;
+        volatile string workerBodyMethodName;
         int workerIndex;
         int completedWorkerCounter;
 
@@ -134,6 +141,7 @@ namespace Core.Physics
             workerIndex = 1; //Just make the inline thread worker 0. While the other threads might start executing first, the user should never rely on the dispatch order.
             completedWorkerCounter = 0;
             this.workerBody = workerBody;
+            this.workerBodyMethodName = workerBody.Method.Name;
             SignalThreads();
             //Calling thread does work. No reason to spin up another worker and block this one!
             DispatchThread(0);

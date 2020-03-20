@@ -100,8 +100,8 @@ void main()
 			if (initialized) return;
 			if (!Window.initialized) throw new InvalidOperationException("Window should be initialized before initializing Graphics.");
 			initialized = true;
-
-			graphicsDevice = new GraphicsDevice(true);
+			
+			graphicsDevice = new GraphicsDevice(false);
 			graphicsDevice.ConnectToWindow(Window.window.SdlWindowHandle);
 			graphicsDevice.SetupFrameBuffersAndRenderPass();
 

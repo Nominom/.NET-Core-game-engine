@@ -10,6 +10,7 @@ using Core.ECS.Components;
 using Core.Graphics;
 using Core.Graphics.VulkanBackend;
 using Core.Physics;
+using Core.Profiling;
 using Core.Shared;
 using GlmSharp;
 using Mesh = Core.Graphics.Mesh;
@@ -188,7 +189,7 @@ namespace TestApp
 			Prefab floor = new Prefab();
 			floor.AddComponent(new Position() { value = -vec3.UnitY * 2 });
 			floor.AddComponent(new Rotation() { value = quat.Identity });
-			floor.AddComponent(new Scale() { value = new vec3(100, 0.2f, 100) });
+			floor.AddComponent(new Scale() { value = new vec3(1000, 0.2f, 1000) });
 			floor.AddComponent(new ObjectToWorld() { model = mat4.Identity });
 			floor.AddComponent(new BoundingBox());
 			floor.AddSharedComponent(cubeMeshRend);
@@ -200,8 +201,8 @@ namespace TestApp
 			var world = CoreEngine.World;
 			var cm = world.ComponentManager;
 
-			const int numCubes = 3;
-			const int tallCubes = 3;
+			const int numCubes = 100;
+			const int tallCubes = 100;
 			for (int i = 0; i < tallCubes; i++)
 			{
 				for (int j = 0; j < numCubes; j++)
@@ -210,9 +211,9 @@ namespace TestApp
 					cm.SetComponent(entity, new Position()
 					{
 						value = new vec3(
-							random.Next(-(int)Math.Sqrt(numCubes) - 5, (int)Math.Sqrt(numCubes) + 5),
+							random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5),
 							i * 3 + 10,
-							random.Next(-(int)Math.Sqrt(numCubes) - 5, (int)Math.Sqrt(numCubes) + 5))
+							random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5))
 					});
 
 				}
@@ -274,6 +275,14 @@ namespace TestApp
 
 			var floorEnt = world.Instantiate(floor);
 
+			Profiler.ProfilingEnabled = true;
+
+			CoreEngine.Update += delegate(float time) {
+				if (CoreEngine.FrameNumber == 500) {
+					Profiler.WriteToFile(@"D:\ecs_profile_speedscope.json", ProfilingFormat.SpeedScope, FrameSelection.Shortest);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.All);
+				}
+			};
 
 			CoreEngine.Run();
 		}

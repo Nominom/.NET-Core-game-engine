@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Core.ECS.Filters;
 using Core.ECS.JobSystem;
+using Core.Profiling;
 
 namespace Core.ECS
 {
@@ -68,7 +69,13 @@ namespace Core.ECS
 			public JobComponentSystem instance;
 
 			public void Execute() {
-				instance.ProcessBlock(deltaTime, block);
+				try {
+					Profiler.StartMethod(instance.GetType().Name);
+					instance.ProcessBlock(deltaTime, block);
+				}
+				finally {
+					Profiler.EndMethod();
+				}
 			}
 		}
 

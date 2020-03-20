@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.AssetSystem", "Core.As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Shared", "Core.Shared\Core.Shared.csproj", "{AB987F0F-59D4-438F-93F2-E36C4DA07ED8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Physics", "Core.Physics\Core.Physics.csproj", "{493C0622-CB7B-4070-8AD2-73F89450AC3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Physics", "Core.Physics\Core.Physics.csproj", "{493C0622-CB7B-4070-8AD2-73F89450AC3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Profiling", "Core.Profiling\Core.Profiling.csproj", "{D5779829-A3AA-4017-A9D7-62346F35EAD3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +68,10 @@ Global
 		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{493C0622-CB7B-4070-8AD2-73F89450AC3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5779829-A3AA-4017-A9D7-62346F35EAD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5779829-A3AA-4017-A9D7-62346F35EAD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5779829-A3AA-4017-A9D7-62346F35EAD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5779829-A3AA-4017-A9D7-62346F35EAD3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

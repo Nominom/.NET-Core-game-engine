@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Profiling;
 
 namespace Core.ECS.JobSystem
 {
@@ -21,16 +22,21 @@ namespace Core.ECS.JobSystem
 
 		public bool ExecuteJob(JobHandle jobId) {
 			try {
+				Profiler.StartMethod(typeof(T).Name);
 				T job;
 				lock (jobs) {
 					if (!jobs.Remove(jobId, out job)) {
 						return false;
 					}
 				}
+
 				job.Execute();
 			}
 			catch (Exception ex) {
 				Console.WriteLine(ex);
+			}
+			finally {
+				Profiler.EndMethod();
 			}
 			
 			return true;

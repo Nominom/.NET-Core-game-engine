@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using Core.ECS.Events;
 using Core.ECS.JobSystem;
+using Core.Profiling;
 
 namespace Core.ECS
 {
@@ -56,6 +57,7 @@ namespace Core.ECS
 			EventManager = new EventManager(this);
 			IsMainWorld = mainWorld;
 			mainThread = Thread.CurrentThread;
+			Profiler.RegisterThread("MainThread");
 		}
 
 		internal static ECSWorld CreateMain() {
@@ -97,33 +99,56 @@ namespace Core.ECS
 					}
 
 				}
+				Profiler.StartMethod("ExecuteCommandBuffers");
 				foreach (IEntityCommandBuffer buffer in entityCommandBuffersToExecute) {
 					buffer.Playback();
 				}
 				entityCommandBuffersToExecute.Clear();
+				Profiler.EndMethod();
+
+				Profiler.StartMethod("DeliverEvents");
 				EventManager.DeliverEvents();
+				Profiler.EndMethod();
 			}
 		}
 
 		public void InvokeUpdate(float deltaTime)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
-			InvokeAllLogExceptions(deltaTime, EarlyUpdate); 
-			InvokeAllLogExceptions(deltaTime, Update); 
+			Profiler.StartMethod("EarlyUpdate");
+			InvokeAllLogExceptions(deltaTime, EarlyUpdate);
+			Profiler.EndMethod();
+
+			Profiler.StartMethod("Update");
+			InvokeAllLogExceptions(deltaTime, Update);
+			Profiler.EndMethod();
+
+			Profiler.StartMethod("LateUpdate");
 			InvokeAllLogExceptions(deltaTime, LateUpdate);
+			Profiler.EndMethod();
 		}
 
 		public void InvokeRender(float deltaTime)
 		{
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
+			Profiler.StartMethod("BeforeRender");
 			InvokeAllLogExceptions(deltaTime, BeforeRender);
+			Profiler.EndMethod();
+
+			Profiler.StartMethod("Render");
 			InvokeAllLogExceptions(deltaTime, Render);
+			Profiler.EndMethod();
+
+			Profiler.StartMethod("AfterRender");
 			InvokeAllLogExceptions(deltaTime, AfterRender);
+			Profiler.EndMethod();
 		}
 
 		public void InvokeFixedUpdate(float fixedUpdateStep) {
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
+			Profiler.StartMethod("FixedUpdate");
 			InvokeAllLogExceptions(fixedUpdateStep, FixedUpdate);
+			Profiler.EndMethod();
 		}
 
 		public Entity Instantiate(EntityArchetype archetype)
@@ -143,7 +168,9 @@ namespace Core.ECS
 
 		public void SyncPoint()
 		{
+			Profiler.StartMethod("Sync");
 			Jobs.CompleteAllJobs();
+			Profiler.EndMethod();
 		}
 
 		internal void RegisterForExecuteAfterUpdate(IEntityCommandBuffer buffer) {

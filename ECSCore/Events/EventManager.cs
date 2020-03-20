@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Core.Profiling;
 
 namespace Core.ECS.Events
 {
-
 	public sealed class EventManager{
 		internal Dictionary<int, IEventManager> eventManagers = new Dictionary<int, IEventManager>();
 		internal List<IEventManager> allEventManagers = new List<IEventManager>();
@@ -37,6 +37,7 @@ namespace Core.ECS.Events
 
 		public void DeliverEvents()
 		{
+			world.SyncPoint();
 			for (int i = 0; i < allEventManagers.Count; i++) {
 				var manager = allEventManagers[i];
 				manager.DeliverEvents(world);
@@ -89,10 +90,13 @@ namespace Core.ECS.Events
 
 		public void DeliverEvents(ECSWorld world) {
 			if (numEvents > 0) {
+				ReadOnlySpan<T> events = waitingEvents;
+				events = events.Slice(0, numEvents);
+
 				foreach (var subscriber in subscribers) {
-					ReadOnlySpan<T> events = waitingEvents;
-					events = events.Slice(0, numEvents);
+					Profiler.StartMethod(subscriber.GetType().Name);
 					subscriber.ProcessEvents(world, events);
+					Profiler.EndMethod();
 				}
 			}
 		}

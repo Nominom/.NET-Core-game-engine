@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Core.ECS;
+using Core.Profiling;
 using Veldrid;
 using Veldrid.Sdl2;
 
@@ -53,10 +54,12 @@ namespace Core.Graphics
 		}
 
 		private static void PumpEvents(float deltatime, ECSWorld ecsWorld) {
+			Profiler.StartMethod("PumpEvents");
 			if (window.Exists) {
 				InputSnapshot snapshot = window.PumpEvents();
 				Input.UpdateInput(snapshot);
 			}
+			Profiler.EndMethod();
 		}
 	}
 }

@@ -6,6 +6,7 @@ using System.Reflection;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
+using Core.Profiling;
 using Core.Shared;
 using GlmSharp;
 using Vulkan;
@@ -224,11 +225,15 @@ namespace Core.Graphics.RenderSystems
 
 		private void UpdateRenderSystems(List<RenderSystemHolder> systemList, ECSWorld world, in RenderContext context) {
 			foreach (RenderSystemHolder holder in systemList) {
+				Profiler.StartMethod(holder.systemType.Name);
 				try {
 					holder.system.Render(world, context);
-				}catch(Exception ex)
-				{
+				}
+				catch (Exception ex) {
 					Console.WriteLine(ex);
+				}
+				finally {
+					Profiler.EndMethod();
 				}
 			}
 		}
@@ -239,11 +244,13 @@ namespace Core.Graphics.RenderSystems
 			if (!GraphicsContext.initialized) return;
 
 			//Dispose commandbuffers from last frame before new frame
+			Profiler.StartMethod("WaitDeviceIdle");
 			GraphicsContext.graphicsDevice.WaitIdle();
 			foreach (var buffer in buffersToDispose) {
 				buffer.Dispose();
 			}
 			buffersToDispose.Clear();
+			Profiler.EndMethod();
 
 			//var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime * 0.01f);
 			//cameraRotation = Quaternion.Multiply(cameraRotation, rotation);
@@ -269,10 +276,12 @@ namespace Core.Graphics.RenderSystems
 				return;
 			}
 
-
+			
+			Profiler.StartMethod("StartRender");
 			GraphicsContext.graphicsDevice.StartFrame();
+			Profiler.EndMethod();
 
-
+			Profiler.StartMethod("SetUniformsAndRenderContext");
 			UniformBufferObject ubo = new UniformBufferObject();
 			ubo.cameraPos = new vec4(cameraPosition);
 			ubo.lightDir = new vec4(lightDir, 0);
@@ -291,43 +300,81 @@ namespace Core.Graphics.RenderSystems
 			context.ubo = ubo;
 
 			context.SetUniformNow(ubo);
+			Profiler.EndMethod();
 
+			Profiler.StartMethod("RentPrimaryCmd");
 			CommandBuffer primaryCmd =
 				GraphicsContext.graphicsDevice.GetCommandPool().Rent(VkCommandBufferLevel.Primary);
+			Profiler.EndMethod();
 
 			context.frameCommands = primaryCmd;
 
+			Profiler.StartMethod("BeginPrimaryCmd");
 			primaryCmd.Begin();
+			Profiler.EndMethod();
+
+			Profiler.StartMethod("BeginRenderPass");
 			//TODO: Clear color doesn't work
 			primaryCmd.BeginRenderPassClearColorDepth(context.currentRenderPass, context.currentFrameBuffer,
 				new VkClearColorValue(0, 40, 40),
 				new VkClearDepthStencilValue(1, 0), 
 				true);
-
+			Profiler.EndMethod();
+			
 
 			//Update systems
+			Profiler.StartMethod("BeforeRenderSystems");
 			UpdateRenderSystems(beforeRenderSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderShadowsSystems");
 			UpdateRenderSystems(renderShadowsSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderShadowsSystems");
 			UpdateRenderSystems(afterRenderShadowsSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderOpaquesSystems");
 			UpdateRenderSystems(renderOpaquesSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderOpaquesSystems");
 			UpdateRenderSystems(afterRenderOpaquesSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderSkyboxSystems");
 			UpdateRenderSystems(renderSkyboxSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderSkyboxSystems");
 			UpdateRenderSystems(afterRenderSkyboxSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderTransparentsSystems");
 			UpdateRenderSystems(renderTransparentsSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderTransparentsSystems");
 			UpdateRenderSystems(afterRenderTransparentsSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderPostProcessingSystems");
 			UpdateRenderSystems(renderPostProcessingSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderPostProcessingSystems");
 			UpdateRenderSystems(afterRenderPostProcessingSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("RenderUiSystems");
 			UpdateRenderSystems(renderUiSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderUiSystems");
 			UpdateRenderSystems(afterRenderUiSystems, world, context);
+			Profiler.EndMethod();
+			Profiler.StartMethod("AfterRenderSystems");
 			UpdateRenderSystems(afterRenderSystems, world, context);
+			Profiler.EndMethod();
 
 			foreach (var buffer in context.secondaryBuffers) {
 				primaryCmd.ExecuteSecondaryBuffer(buffer);
 			}
 
 			primaryCmd.End();
-
+			
+			Profiler.StartMethod("SubmitFrame");
 			GraphicsContext.graphicsDevice.SubmitAndFinalizeFrame(primaryCmd);
+			Profiler.EndMethod();
 			//GraphicsContext.graphicsDevice.WaitIdle();
 			foreach (CommandBuffer buffer in context.secondaryBuffers) {
 				buffersToDispose.Add(buffer);

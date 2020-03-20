@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Threading;
 using Core.ECS;
 using Core.Graphics;
+using Core.Profiling;
+
+
 
 namespace Core
 {
@@ -16,6 +19,7 @@ namespace Core
 
 
 		public static ECSWorld World { get; private set; }
+		public static long FrameNumber { get; private set; } = 0;
 		public static float Time => elapsedMs / 1000f;
 
 		public static float fixedUpdateStep = 1 / 20f;
@@ -46,8 +50,11 @@ namespace Core
 			watch.Start();
 			elapsedMs = watch.ElapsedMilliseconds;
 			float fixedUpdateTimer = 0;
+			
 			while (shouldRun)
 			{
+				Profiler.StartFrame(FrameNumber);
+
 				long newTimeMs = watch.ElapsedMilliseconds;
 				float deltaTime = (newTimeMs - elapsedMs) / 1000f;
 				if (deltaTime > 1) {
@@ -55,7 +62,6 @@ namespace Core
 				}
 				elapsedMs = newTimeMs;
 				fixedUpdateTimer += deltaTime;
-
 				Update?.Invoke(deltaTime);
 
 				if (fixedUpdateTimer > fixedUpdateStep)
@@ -66,6 +72,8 @@ namespace Core
 
 				Render?.Invoke(deltaTime);
 
+				Profiler.EndFrame();
+
 				if (targetFps > 0)
 				{
 					float targetFrameTime = 1f / targetFps;
@@ -75,6 +83,8 @@ namespace Core
 						Thread.Sleep((int)(sleepTime * 1000f));
 					}
 				}
+
+				FrameNumber++;
 			}
 
 			Update -= World.InvokeUpdate;

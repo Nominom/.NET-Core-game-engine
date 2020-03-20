@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
+using Core.Profiling;
 
 namespace Core.Graphics.RenderSystems
 {
