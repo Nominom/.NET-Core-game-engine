@@ -2,10 +2,12 @@
 using System.Collections.Concurrent;
 using System.Dynamic;
 using System.Threading;
+using Core.Profiling;
 using GlmSharp;
 
 namespace Core.ECS.JobSystem
 {
+
 	internal static class JobManager
 	{
 		private static long nextJobId = 0;
@@ -26,6 +28,9 @@ namespace Core.ECS.JobSystem
 
 		private static bool isSetup = false;
 
+		private static AutoResetEvent waitForWorkEvent = new AutoResetEvent(false);
+		private static int waitingThreads = 0; 
+
 		public static void Setup()
 		{
 			if (isSetup) return;
@@ -45,6 +50,7 @@ namespace Core.ECS.JobSystem
 				thread.Name = "JobWorker" + i.ToString();
 				thread.Priority = ThreadPriority.Normal;
 				thread.Start();
+				Profiler.RegisterThread(thread, thread.Name);
 			}
 
 			isSetup = true;
@@ -123,13 +129,17 @@ namespace Core.ECS.JobSystem
 			JobExecutor<T>.Instance.AddJob(jobHandle, job);
 			jobQueues[group.groupId].Enqueue(jobHandle);
 
-			if (workers[nextWorker].waiting)
-			{
-				workers[nextWorker].waitForWork.Set();
+			//if (workers[nextWorker].waiting) {
+			//	workers[nextWorker].waitForWork.Set();
+			//}
+
+			if (waitingThreads > 0) {
+				waitForWorkEvent.Set();
+				Interlocked.Decrement(ref waitingThreads);
 			}
 
-			++nextWorker;
-			nextWorker %= workerAmount;
+			//++nextWorker;
+			//nextWorker %= workerAmount;
 
 			++nextJobId;
 			return jobHandle;
@@ -184,6 +194,11 @@ namespace Core.ECS.JobSystem
 		{
 			Interlocked.Decrement(ref runningJobs);
 			Interlocked.Decrement(ref groupWorkLeft[handle.group.groupId]);
+		}
+
+		internal static void WaitForWorkSignal() {
+			Interlocked.Increment(ref waitingThreads);
+			waitForWorkEvent.WaitOne();
 		}
 	}
 }
