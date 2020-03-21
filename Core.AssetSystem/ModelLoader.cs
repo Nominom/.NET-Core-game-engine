@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using Assimp;
@@ -11,11 +12,15 @@ namespace Core.AssetSystem
 	public static class ModelLoader
 	{
 
-		public static MeshData LoadModel(string filename) {
+		public static MeshData LoadModel(Stream file) {
 			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices
 				| PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
 
-			var scene = new AssimpContext().ImportFile(filename, assimpFlags);
+			string extension = null;
+			if (file is FileStream fs) {
+				extension = Path.GetExtension(fs.Name);
+			}
+			var scene = new AssimpContext().ImportFileFromStream(file, assimpFlags, extension);
 
 			// Generate vertex buffer from ASSIMP scene data
 			float scale = 1.0f;
