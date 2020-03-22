@@ -75,6 +75,29 @@ namespace CoreTests {
 			}
 		}
 
+		[Theory]
+		[InlineData(2)]
+		[InlineData(4)]
+		[InlineData(16)]
+		[InlineData(128)]
+		[InlineData(1028)]
+		public void Alignment (int amount) {
+			BlockAllocator kb16 = BlockAllocator.KB16;
+
+			BlockMemory[] data = new BlockMemory[amount];
+			for (int i = 0; i < amount; i++) {
+				data[i] = kb16.Rent();
+				unsafe {
+					fixed (byte* bytes = data[i].memory.Span) {
+						Assert.True((long)bytes % 32 == 0);
+					}
+				}
+			}
+			for (int i = 0; i < amount; i++) {
+				data[i].Dispose();
+			}
+		}
+
 		[Fact]
 		public void RentReturnRent() {
 			BlockAllocator kb16 = BlockAllocator.KB16;

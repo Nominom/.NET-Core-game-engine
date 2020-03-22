@@ -179,7 +179,7 @@ namespace TestApp
 			cube.AddSharedComponent(cubeMeshRend);
 			cube.AddSharedComponent(RenderTag.Opaque);
 
-			cube.AddComponent(new RigidBody() { mass = 1 });
+			cube.AddComponent(new RigidBody() { mass = 1, detectionMode = CollisionDetectionMode.Continuous});
 			cube.AddComponent(new BoxCollider() { height = 1f, length = 1f, width = 1f });
 			cube.AddComponent(new Velocity());
 			cube.AddComponent(new AngularVelocity(){value = vec3.UnitX * 10});
@@ -189,7 +189,7 @@ namespace TestApp
 			Prefab floor = new Prefab();
 			floor.AddComponent(new Position() { value = -vec3.UnitY * 2 });
 			floor.AddComponent(new Rotation() { value = quat.Identity });
-			floor.AddComponent(new Scale() { value = new vec3(1000, 0.2f, 1000) });
+			floor.AddComponent(new Scale() { value = new vec3(1000, 10f, 1000) });
 			floor.AddComponent(new ObjectToWorld() { model = mat4.Identity });
 			floor.AddComponent(new BoundingBox());
 			floor.AddSharedComponent(cubeMeshRend);
@@ -280,7 +280,7 @@ namespace TestApp
 			CoreEngine.Update += delegate(float time) {
 				if (CoreEngine.FrameNumber == 500) {
 					Profiler.WriteToFile(@"D:\ecs_profile_speedscope.json", ProfilingFormat.SpeedScope, FrameSelection.Shortest);
-					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.All);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.Median);
 				}
 			};
 
