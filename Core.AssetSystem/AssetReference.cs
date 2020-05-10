@@ -19,8 +19,8 @@ namespace Core.AssetSystem
 			return AssetManager.Get(this);
 		}
 
-		public string GetFilename() {
-			return AssetManager.GetFilename(this);
+		public string GetAssetName() {
+			return AssetManager.GetAssetName(this);
 		}
 
 		public AssetState State => AssetManager.GetState(this);
@@ -28,11 +28,25 @@ namespace Core.AssetSystem
 		public bool IsLoaded => State == AssetState.Loaded;
 		public bool IsLoading => State == AssetState.Loading;
 		public bool IsUnloaded => State == AssetState.Unloaded;
+		public bool FailedToLoad => State == AssetState.FailedToLoad;
 
-		public void StartLoad() {
-			if (State == AssetState.Loading) {
+		public void StartLoad(LoadPriority priority) {
+			var state = State;
+			if (state == AssetState.Loading || state == AssetState.Loaded) {
 				return;
 			}
+			AssetLoader.QueueAssetLoad(this, priority);
+		}
+
+		public void LoadNow() {
+			var state = State;
+			if (state == AssetState.Loaded) {
+				return;
+			}
+			if (state == AssetState.Unloaded) {
+				AssetLoader.QueueAssetLoad(this, LoadPriority.High);
+			}
+			AssetLoader.WaitForAssetToLoad(assetIndex);
 		}
 	}
 }

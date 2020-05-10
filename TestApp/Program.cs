@@ -104,13 +104,19 @@ namespace TestApp
 			}
 		}
 
-		static void Main(string[] args)
+		static void InitializeWorld()
 		{
 			Random random = new Random(1);
-			CoreEngine.Initialize();
-			CoreEngine.targetFps = 0;
+			var houseModel = Assets.Create<MeshAsset>("House");
+			var satelliteModel = Assets.Create<MeshAsset>("voyager");
+			var satelliteTexture = Assets.Create<TextureAsset>("voyager_etc2_unorm");
+			var placeholderTexture = Assets.Create<TextureAsset>("test_gradient_1_512");
 
-			var houseModel = Assets.Create<ModelAsset>("data/House.fbx");
+
+			houseModel.StartLoad(LoadPriority.High);
+			satelliteModel.StartLoad(LoadPriority.Medium);
+			satelliteTexture.StartLoad(LoadPriority.Medium);
+			placeholderTexture.StartLoad(LoadPriority.Medium);
 
 			MeshRenderer houseRenderer = new MeshRenderer() { mesh = Mesh.Create(houseModel) };
 
@@ -124,9 +130,6 @@ namespace TestApp
 			house.AddSharedComponent(houseRenderer);
 			house.AddSharedComponent(RenderTag.Opaque);
 
-			var satelliteModel = Assets.Create<ModelAsset>("data/voyager.dae");
-			var satelliteTexture = Assets.Create<CompressedTextureAsset>("data/voyager_etc2_unorm.ktx");
-
 			var satelliteMesh = Mesh.Create(satelliteModel);
 			var satelliteTex = Texture2D.Create(satelliteTexture);
 			var satelliteMaterial = Material.Create(Color.white, satelliteTex);
@@ -139,41 +142,26 @@ namespace TestApp
 			satellite.AddComponent(new Scale() { value = vec3.Ones * 0.2f });
 			satellite.AddComponent(new ObjectToWorld() { model = mat4.Identity });
 			satellite.AddComponent(new BoundingBox());
-			//satellite.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			satellite.AddSharedComponent(renderer);
 			satellite.AddSharedComponent(RenderTag.Opaque);
 
-			satellite.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous});
-			satellite.AddSharedComponent(new MeshCollider(){mesh = satelliteModel.GetMeshData(), convex = true});
-			satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteModel.GetMeshData()));
-			satellite.AddComponent(new Velocity(){value = vec3.UnitY * 10});
-			satellite.AddComponent(new AngularVelocity(){value = vec3.UnitX * 1});
+			satelliteModel.LoadNow();
+			satellite.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
+			satellite.AddSharedComponent(new MeshCollider() { mesh = satelliteModel.Get().GetMeshData(), convex = true });
+			satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteModel.Get().GetMeshData()));
+			satellite.AddComponent(new Velocity() { value = vec3.UnitY * 10 });
+			satellite.AddComponent(new AngularVelocity() { value = vec3.UnitX * 1 });
 
-			var planeModel = Assets.Create<ModelAsset>("data/Porsche.obj");
-			var planeMesh = Mesh.Create(planeModel);
 
-			Prefab plane = new Prefab();
-			plane.AddComponent(new Position() { value = vec3.Zero });
-			plane.AddComponent(new Rotation() { value = quat.Identity });
-			plane.AddComponent(new Scale() { value = vec3.Ones * 1f });
-			plane.AddComponent(new ObjectToWorld() { model = mat4.Identity });
-			plane.AddComponent(new BoundingBox());
-			plane.AddSharedComponent(new MeshRenderer() { mesh = planeMesh });
-			plane.AddSharedComponent(RenderTag.Opaque);
-			//plane.AddSharedComponent(new FaceCameraComponent());
-
-			plane.AddComponent(new RigidBody() { mass = 100, detectionMode = CollisionDetectionMode.Continuous});
-			plane.AddSharedComponent(new MeshCollider(){mesh = planeModel.GetMeshData(), convex = true});
-			plane.AddSharedComponent(new DebugMeshConvexHullRenderer(planeModel.GetMeshData()));
-			plane.AddComponent(new Velocity(){value = vec3.UnitY * 10});
-			plane.AddComponent(new AngularVelocity(){value = vec3.UnitX * 20});
-
-			var cubeMeshRend = new MeshRenderer() { mesh = RenderUtilities.UnitCube };
+			
+			var cubeTex = Texture2D.Create(placeholderTexture);
+			var cubeMaterial = Material.Create(Color.white, cubeTex);
+			var cubeMeshRend = new MeshRenderer() { mesh = RenderUtilities.UnitCube, materials = new []{cubeMaterial}};
 
 			Prefab cube = new Prefab();
 			cube.AddComponent(new Position() { value = vec3.Zero });
 			cube.AddComponent(new Rotation() { value = quat.Identity });
-			//cube.AddComponent(new Scale() { value = vec3.Ones });
+			cube.AddComponent(new Scale() { value = vec3.Ones });
 			cube.AddComponent(new ObjectToWorld() { model = mat4.Identity });
 			cube.AddComponent(new BoundingBox());
 			cube.AddSharedComponent(cubeMeshRend);
@@ -182,9 +170,9 @@ namespace TestApp
 			cube.AddComponent(new RigidBody() { mass = 1 });
 			cube.AddComponent(new BoxCollider() { height = 1f, length = 1f, width = 1f });
 			cube.AddComponent(new Velocity());
-			cube.AddComponent(new AngularVelocity(){value = vec3.UnitX * 10});
+			cube.AddComponent(new AngularVelocity() { value = vec3.UnitX * 10 });
 
-			
+
 
 			Prefab floor = new Prefab();
 			floor.AddComponent(new Position() { value = -vec3.UnitY * 2 });
@@ -231,38 +219,13 @@ namespace TestApp
 						100,
 						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
 				});
-				//cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
-				cm.SetComponent(entity, new Scale(){value = new vec3((float)random.NextDouble()* 0.5f)});
-
-				//entity = world.Instantiate(cube);
-				//cm.SetComponent(entity, new Position()
-				//{
-				//	value = new vec3(
-				//		random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
-				//		0,
-				//		random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
-				//});
-				//cm.SetComponent(entity, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 4 });
-				//cm.RemoveComponent<RotateComponent>(entity);
+				cm.SetComponent(entity, new Scale() { value = new vec3((float)random.NextDouble() * 0.5f) });
 			}
-
-			//var entity2 = world.Instantiate(house);
-			//cm.SetComponent(entity2, new Position()
-			//{
-			//	value = new vec3(0, 0, 0)
-			//});
-			//cm.SetComponent(entity2, new RotateComponent() { rotationSpeed = (float)random.NextDouble() * 2 });
-
-
-			var entity2 = world.Instantiate(plane);
-			cm.SetComponent(entity2, new Position()
-			{
-				value = new vec3(20, 0, 0)
-			});
-			cm.SetComponent(entity2, new RotateComponent() { rotationSpeed = 4 });
 
 
 			var entity3 = world.Instantiate(satellite);
+
+			var entity2 = world.Instantiate(house);
 
 			var cameraEntity = world.Instantiate(Prefabs.Camera);
 			var cameraPosition = new vec3(4, 30, 20);
@@ -274,13 +237,27 @@ namespace TestApp
 
 
 			var floorEnt = world.Instantiate(floor);
+		}
+
+		//TODO: Weird heap corruption bug happens sometimes. -1073740940
+		static void Main(string[] args)
+		{
+			CoreEngine.Initialize();
+			CoreEngine.targetFps = 0;
+
+			Assets.LoadAssetPackage("data/assets.dat");
+
+			//var asset = Assets.Create<TextureAsset>("bootman");
+			//asset.LoadNow();
+
+			InitializeWorld();
 
 			Profiler.ProfilingEnabled = true;
 
 			CoreEngine.Update += delegate(float time) {
 				if (CoreEngine.FrameNumber == 500) {
 					Profiler.WriteToFile(@"D:\ecs_profile_speedscope.json", ProfilingFormat.SpeedScope, FrameSelection.Shortest);
-					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.All);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.Median);
 				}
 			};
 

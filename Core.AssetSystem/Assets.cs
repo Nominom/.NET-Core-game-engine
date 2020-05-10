@@ -4,11 +4,10 @@ using System.Text;
 
 namespace Core.AssetSystem
 {
-	public static class Assets
-	{
-		public static AssetReference<T> Create<T>(string filename) where T : class, IAsset, new() {
-			T asset = new T();
-			return AssetManager.RegisterAsset(asset, filename);
+	public static class Assets {
+		public static void LoadAssetPackage(string filename) => AssetManager.LoadAssetPackage(filename);
+		public static AssetReference<T> Create<T>(string assetName) where T : class, IAsset, new() {
+			return AssetManager.LoadOrRegisterAsset<T>(assetName);
 		}
 	}
 }

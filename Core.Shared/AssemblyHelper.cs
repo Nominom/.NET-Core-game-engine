@@ -2,17 +2,51 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace Core.ECS
+namespace Core.Shared
 {
 	public static class AssemblyHelper {
 		private static Assembly[] cachedUserAssemblies;
+		private static Assembly[] cachedAllAssemblies;
+
+		public static Assembly[] LoadAllAssemblies() {
+			if (cachedAllAssemblies != null) {
+				return cachedAllAssemblies;
+			}
+
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(ass => ass.IsDynamic == false);
+
+			List<Assembly> loadedAssemblies = assemblies.ToList();
+
+			for (int i = 0; i < loadedAssemblies.Count; i++) {
+				var loadedAssembly = loadedAssemblies[i];
+				foreach (AssemblyName referencedAssemblyName in loadedAssembly.GetReferencedAssemblies())
+				{
+
+					var found = loadedAssemblies.Any(x => x.FullName == referencedAssemblyName.FullName);
+					
+					if (!found)
+					{
+						try
+						{
+							var referencedAssembly = Assembly.Load(referencedAssemblyName);
+							loadedAssemblies.Add(referencedAssembly);
+						}
+						catch {
+							// ignored
+						}
+					}
+				}
+			}
+
+			cachedAllAssemblies = loadedAssemblies.ToArray();
+			return cachedAllAssemblies;
+		}
 
 		public static IEnumerable<Assembly> GetAllUserAssemblies() {
 			if (cachedUserAssemblies == null) {
-				var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(ass => ass.IsDynamic == false);
-				cachedUserAssemblies = assemblies.Where(x => !x.FullName.StartsWith("Microsoft")).ToArray();
+				cachedUserAssemblies = LoadAllAssemblies()
+					.Where(x => !x.FullName.StartsWith("Microsoft")).ToArray();
 			}
 
 			return cachedUserAssemblies;
@@ -44,7 +78,7 @@ namespace Core.ECS
 			}
 			foreach (Type type in types)
 			{
-				if (type.GetInterfaces().Contains(interfaceType))
+				if (type.GetInterfaces().Contains(interfaceType) && !type.IsInterface)
 				{
 					yield return type;
 				}

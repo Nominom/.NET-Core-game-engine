@@ -130,6 +130,8 @@ namespace Core.Profiling
 				return;
 			}
 
+			bool needsDispose = false;
+
 			switch (frameSelection) {
 				case FrameSelection.Median:
 					var ordered = collectedFrames.OrderBy(x => x.frameLength).ToArray();
@@ -183,6 +185,8 @@ namespace Core.Profiling
 						}
 						elapsedTime += collectedFrame.frameLength;
 					}
+
+					needsDispose = true;
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(frameSelection), frameSelection, null);
@@ -197,6 +201,10 @@ namespace Core.Profiling
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(format), format, null);
+			}
+
+			if (needsDispose) {
+				frame.Dispose();
 			}
 		}
 
@@ -219,10 +227,6 @@ namespace Core.Profiling
 					else {
 						outList = tuple.Item2;
 					}
-					//if (!frame.threadMethods.TryGetValue(threadName, out var outList)) {
-					//	outList = new List<ProfilerMethod>(dataList.Count);
-					//	frame.threadMethods.Add(threadName, outList);
-					//}
 
 					outList.AddRange(dataList);
 				}

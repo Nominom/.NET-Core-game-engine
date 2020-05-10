@@ -29,12 +29,12 @@ namespace Core.Graphics
 			}
 		}
 
-		public static Mesh Create( ModelAsset asset, bool readWrite = false) {
+		public static Mesh Create(AssetReference<MeshAsset> asset, bool readWrite = false) {
 			if (!asset.IsLoaded)
 			{
-				asset.Load();
+				asset.LoadNow();
 			}
-			MeshData meshData = asset.GetMeshData();
+			MeshData meshData = asset.Get().GetMeshData();
 
 			return new Mesh(GraphicsContext.graphicsDevice, meshData, readWrite);
 		}

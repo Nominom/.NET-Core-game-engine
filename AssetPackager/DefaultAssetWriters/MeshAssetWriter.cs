@@ -1,26 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
+using System.Text;
 using Assimp;
-using Core.ECS;
+using Core.AssetSystem;
 using Core.Shared;
 using GlmSharp;
 
-namespace Core.AssetSystem
+namespace AssetPackager.DefaultAssetWriters
 {
-	public static class ModelLoader
+	public class MeshAssetWriter : AssetWriter<MeshAsset>
 	{
+		public override IEnumerable<string> GetAssociatedInputExtensions() {
+			yield return ".obj";
+			yield return ".fbx";
+			yield return ".dae";
+			yield return ".3ds";
+			yield return ".gltf";
+			yield return ".glb";
+			yield return ".blend";
+			yield return ".xgl";
+			yield return ".zgl";
+			yield return ".ply";
+			yield return ".stl";
+		}
 
-		public static MeshData LoadModel(Stream file) {
+		public override void LoadAndWriteToStream(FileInfo inputFile, Stream outputStream) {
 			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices
-				| PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
+			                               | PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
 
-			string extension = null;
-			if (file is FileStream fs) {
-				extension = Path.GetExtension(fs.Name);
-			}
-			var scene = new AssimpContext().ImportFileFromStream(file, assimpFlags, extension);
+			string extension = inputFile.Extension;
+			using FileStream fs = inputFile.OpenRead();
+
+			var scene = new AssimpContext().ImportFileFromStream(fs, assimpFlags, extension);
 
 			// Generate vertex buffer from ASSIMP scene data
 			float scale = 1.0f;
@@ -62,7 +75,21 @@ namespace Core.AssetSystem
 				newMesh.subMeshes[m] = new SubMeshData(vertices, indices);
 			}
 
-			return newMesh;
+
+			//Write mesh to stream
+			using BinaryWriter writer = new BinaryWriter(outputStream, Encoding.UTF8, true);
+			writer.Write(newMesh.subMeshes.Length);
+			foreach (SubMeshData subMesh in newMesh.subMeshes) {
+				writer.Write(subMesh.vertices.Length);
+				Span<byte> verts = new Span<Vertex>(subMesh.vertices).Cast<Vertex, byte>();
+				writer.Write(verts);
+
+				writer.Write(subMesh.indices.Length);
+				Span<uint> indsU = subMesh.indices;
+				var inds = indsU.Cast<UInt32, byte>();
+				writer.Write(inds);
+			}
+			writer.Flush();
 		}
 	}
 }

@@ -6,6 +6,6 @@ using System.Text;
 namespace Core.AssetSystem
 {
 	public interface IAsset : IDisposable {
-		void LoadFromStream(Stream file);
+		void LoadFromStream(Stream stream);
 	}
 }

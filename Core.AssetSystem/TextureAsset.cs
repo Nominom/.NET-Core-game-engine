@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Core.AssetSystem
 {
-	public class CompressedTextureAsset : IAsset
+	public class TextureAsset : IAsset
 	{
 		private KtxFile tex2D;
 		//public string Filename { get; set; }

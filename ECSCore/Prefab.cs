@@ -34,6 +34,18 @@ namespace Core.ECS
 			this.archetype = archetype;
 		}
 
+		public Prefab Clone()
+		{
+			Prefab prefab = new Prefab();
+			prefab.name = this.name;
+			prefab.archetype = this.archetype;
+			prefab.componentSizes = new List<ComponentSliceValues>(this.componentSizes);
+			prefab.componentTypes = new List<Type>(this.componentTypes);
+			prefab.componentData = new byte[this.componentData.Length];
+			this.componentData.CopyTo(prefab.componentData, 0);
+			return prefab;
+		}
+
 		private void GrowComponentData(int newSize) {
 			var newBytes = new byte[newSize];
 			ReadOnlySpan<byte> old = componentData;

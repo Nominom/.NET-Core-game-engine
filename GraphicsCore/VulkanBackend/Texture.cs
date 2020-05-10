@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Core.AssetSystem;
 using Core.Graphics.VulkanBackend.Utility;
+using Core.Shared;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.ColorSpaces;
@@ -70,7 +71,7 @@ namespace Core.Graphics.VulkanBackend
         *
         */
 		public void FromTextureAsset(
-			CompressedTextureAsset asset,
+			TextureAsset asset,
 			GraphicsDevice device,
 			VkImageUsageFlags imageUsageFlags = VkImageUsageFlags.Sampled,
 			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal) {
@@ -78,11 +79,8 @@ namespace Core.Graphics.VulkanBackend
 
 			VkFormat format = VkFormat.Undefined;
 
-			if (!asset.IsLoaded) {
-				asset.Load();
-			}
 			KtxFile tex2D = asset.GetTexture();
-			format = GlFormatToVulkanFormat.vkGetFormatFromOpenGLInternalFormat((GlFormatToVulkanFormat.GlInternalFormat) tex2D.Header.GlInternalFormat);
+			format = GlFormatToVulkanFormat.vkGetFormatFromOpenGLInternalFormat(tex2D.Header.GlInternalFormat, tex2D.Header.GlFormat, tex2D.Header.GlType);
 
 			width = tex2D.Header.PixelWidth;
 			height = tex2D.Header.PixelHeight;
@@ -253,9 +251,6 @@ namespace Core.Graphics.VulkanBackend
 			VkImageUsageFlags imageUsageFlags = VkImageUsageFlags.Sampled,
 			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal) {
 
-			if (!asset.IsLoaded) {
-				asset.Load();
-			}
 			using Image<Rgba32> tex2D = asset.GetTexture();
 
 			CreateFromImage(tex2D, device, imageUsageFlags, imageLayout);
@@ -478,15 +473,23 @@ namespace Core.Graphics.VulkanBackend
 		}
 
 
-		public static Texture2D Create(CompressedTextureAsset asset) {
+		public static Texture2D Create(AssetReference<TextureAsset> asset) {
+			if (!asset.IsLoaded)
+			{
+				asset.LoadNow();
+			}
 			Texture2D texture = new Texture2D();
-			texture.FromTextureAsset(asset, GraphicsContext.graphicsDevice);
+			texture.FromTextureAsset(asset.Get(), GraphicsContext.graphicsDevice);
 			return texture;
 		}
 
-		public static Texture2D Create(ImageTextureAsset asset) {
+		public static Texture2D Create(AssetReference<ImageTextureAsset> asset) {
+			if (!asset.IsLoaded)
+			{
+				asset.LoadNow();
+			}
 			Texture2D texture = new Texture2D();
-			texture.FromTextureAsset(asset, GraphicsContext.graphicsDevice);
+			texture.FromTextureAsset(asset.Get(), GraphicsContext.graphicsDevice);
 			return texture;
 		}
 	}

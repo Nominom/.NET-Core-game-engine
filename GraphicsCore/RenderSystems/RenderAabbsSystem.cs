@@ -11,7 +11,7 @@ using GlmSharp;
 namespace Core.Graphics.RenderSystems
 {
 
-	[RenderSystem(RenderStage.RenderPostProcessing)]
+	//[RenderSystem(RenderStage.RenderPostProcessing)]
 	public class RenderAabbsSystem : IRenderSystem
 	{
 		

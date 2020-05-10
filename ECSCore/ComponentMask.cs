@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Core.ECS.Collections;
+using Core.Shared;
 
 namespace Core.ECS
 {

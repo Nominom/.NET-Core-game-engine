@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Core.Profiling;
+using Core.Shared;
 
 namespace Core.ECS
 {
