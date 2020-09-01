@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using BCnEncoder.Encoder;
 using BCnEncoder.Shared;
-using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
@@ -19,10 +19,16 @@ namespace AssetPackager.DefaultAssetWriters
 			yield return ".gif";
 		}
 
-		public override unsafe void LoadAndWriteToStream(FileInfo inputFile, Stream outputStream) {
-			//var image = Image.Load<Rgba32>(inputFile.FullName);
-			bool compressed = true;
-			bool generateMips = true;
+		public override void GetDefaultMeta(IAssetMeta meta) {
+			meta.SetValue("generateMipMaps", true);
+			meta.SetValue("compressionFormat", CompressionFormat.BC7);
+			meta.SetValue("compressionQuality", CompressionQuality.Balanced);
+		}
+
+		public override unsafe void LoadAndWriteToStream(FileInfo inputFile, IAssetMeta meta, Stream outputStream) {
+			bool generateMips = meta.GetValue("generateMipMaps", true);
+			CompressionFormat format = meta.GetValue("compressionFormat", CompressionFormat.BC3);
+			CompressionQuality quality = meta.GetValue("compressionQuality", CompressionQuality.Balanced);
 
 			using FileStream inputFs = File.OpenRead(inputFile.FullName);
 
@@ -30,20 +36,12 @@ namespace AssetPackager.DefaultAssetWriters
 			bool hasTransparency = imageFile.GetPixelSpan().ToArray().Any(x => x.A < 255);
 			BcEncoder encoder = new BcEncoder();
 
-			if (!compressed) {
-				encoder.OutputOptions.generateMipMaps = generateMips;
-				encoder.OutputOptions.format = CompressionFormat.RGBA;
-				encoder.OutputOptions.fileFormat = OutputFileFormat.Ktx;
-				encoder.Encode(imageFile, outputStream);
-			}
-			else {
+			encoder.OutputOptions.generateMipMaps = generateMips;
+			encoder.OutputOptions.format = format;
+			encoder.OutputOptions.fileFormat = OutputFileFormat.Ktx;
+			encoder.OutputOptions.quality = quality;
 
-				encoder.OutputOptions.generateMipMaps = generateMips;
-				encoder.OutputOptions.format = CompressionFormat.BC7;
-				encoder.OutputOptions.quality = EncodingQuality.Balanced;
-				encoder.OutputOptions.fileFormat = OutputFileFormat.Ktx;
-				encoder.Encode(imageFile, outputStream);
-			}
+			encoder.Encode(imageFile, outputStream);
 			
 			
 			/*

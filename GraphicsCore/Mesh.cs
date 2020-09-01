@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.Graphics.VulkanBackend;
 using Core.Shared;
 using Microsoft.VisualBasic;
@@ -11,11 +12,13 @@ using Veldrid;
 namespace Core.Graphics
 {
 	public class Mesh : IDisposable {
+		public readonly MeshData meshData;
 		public GpuMesh[] subMeshes;
 		public AabbBounds bounds;
 		public readonly bool readWrite;
 
 		public Mesh(GraphicsDevice device, MeshData meshData, bool readWrite = false) {
+			this.meshData = meshData;
 			this.readWrite = readWrite;
 			subMeshes = new GpuMesh[meshData.subMeshes.Length];
 			bounds = new AabbBounds(meshData.subMeshes[0].vertices[0].position);

@@ -38,8 +38,7 @@ namespace Core.Physics
 		public void OnCreateSystem(ECSWorld world) {
 			BufferPool = new BufferPool();
 
-			Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntergratorCallbacks(
-				-Vector3.UnitY * 9));
+			Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntergratorCallbacks());
 
 			threadDispatcher = new SimpleThreadDispatcher(Environment.ProcessorCount);
 

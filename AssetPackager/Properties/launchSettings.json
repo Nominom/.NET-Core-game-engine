@@ -2,7 +2,7 @@
   "profiles": {
     "AssetPackager": {
       "commandName": "Project",
-      "commandLineArgs": "data output.dat"
+      "commandLineArgs": "\"../../../../TestApp/data\" \"../../../../TestApp/data/assets.dat\""
     }
   }
 }

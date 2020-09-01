@@ -112,4 +112,44 @@ namespace Core.ECS
 		public abstract void ProcessBlock(float deltaTime, BlockAccessor block);
 	}
 
+
+	public abstract class WorldComponentSystem : ComponentSystemBase
+	{
+		private ComponentQuery query;
+		private IComponentFilter filter;
+		private bool initialized = false;
+		protected EntityCommandBuffer afterUpdateCommands;
+
+		public virtual void BeforeUpdate(float deltaTime, ECSWorld world) { }
+		public virtual void AfterUpdate(float deltaTime, ECSWorld world) { }
+
+		public sealed override void Update(float deltaTime, ECSWorld world)
+		{
+			if (!initialized)
+			{
+				afterUpdateCommands = new EntityCommandBuffer(world);
+				query = GetQuery();
+				filter = GetComponentFilter();
+				initialized = true;
+			}
+			BeforeUpdate(deltaTime, world);
+
+			var blocks = world.ComponentManager.GetBlocks(query, filter);
+			foreach (BlockAccessor block in blocks)
+			{
+				ProcessBlock(deltaTime, block, world);
+			}
+			afterUpdateCommands.Playback();
+			AfterUpdate(deltaTime, world);
+		}
+
+		public abstract ComponentQuery GetQuery();
+
+		public virtual IComponentFilter GetComponentFilter() {
+			return ComponentFilters.Empty();
+		}
+
+		public abstract void ProcessBlock(float deltaTime, BlockAccessor block, ECSWorld world);
+	}
+
 }

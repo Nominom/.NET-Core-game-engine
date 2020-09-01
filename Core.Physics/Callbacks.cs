@@ -13,30 +13,22 @@ namespace Core.Physics
 {
 	public struct PoseIntergratorCallbacks : IPoseIntegratorCallbacks
 	{
-		public Vector3 Gravity;
-		public float LinearDamping;
-		public float AngularDamping;
 		Vector3 gravityDt;
 		float linearDampingDt;
 		float angularDampingDt;
 
 		public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
 
-		public PoseIntergratorCallbacks(Vector3 gravity, float linearDamping = .03f, float angularDamping = .03f) : this()
-		{
-			Gravity = gravity;
-			LinearDamping = linearDamping;
-			AngularDamping = angularDamping;
-		}
 
 		public void PrepareForIntegration(float dt)
 		{
 			//No reason to recalculate gravity * dt for every body; just cache it ahead of time.
-			gravityDt = Gravity * dt;
+			gravityDt = Physics.Settings.Gravity * dt;
 			//Since this doesn't use per-body damping, we can precalculate everything.
-			linearDampingDt = MathF.Pow(MathHelper.Clamp(1 - LinearDamping, 0, 1), dt);
-			angularDampingDt = MathF.Pow(MathHelper.Clamp(1 - AngularDamping, 0, 1), dt);
+			linearDampingDt = MathF.Pow(MathHelper.Clamp(1 - Physics.Settings.LinearDamping, 0, 1), dt);
+			angularDampingDt = MathF.Pow(MathHelper.Clamp(1 - Physics.Settings.AngularDamping, 0, 1), dt);
 		}
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void IntegrateVelocity(int bodyIndex, in RigidPose pose, in BodyInertia localInertia, int workerIndex, ref BodyVelocity velocity)
 		{

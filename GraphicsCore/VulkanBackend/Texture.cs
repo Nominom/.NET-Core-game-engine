@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.Graphics.VulkanBackend.Utility;
 using Core.Shared;
 using SixLabors.ImageSharp;
@@ -245,17 +246,6 @@ namespace Core.Graphics.VulkanBackend
 			vkDestroyBuffer(device.device, stagingBuffer, null);
 		}
 
-		public void FromTextureAsset(
-			ImageTextureAsset asset,
-			GraphicsDevice device,
-			VkImageUsageFlags imageUsageFlags = VkImageUsageFlags.Sampled,
-			VkImageLayout imageLayout = VkImageLayout.ShaderReadOnlyOptimal) {
-
-			using Image<Rgba32> tex2D = asset.GetTexture();
-
-			CreateFromImage(tex2D, device, imageUsageFlags, imageLayout);
-		}
-
 		private void CreateFromImage(
 			Image<Rgba32> tex2D,
 			GraphicsDevice device,
@@ -483,15 +473,6 @@ namespace Core.Graphics.VulkanBackend
 			return texture;
 		}
 
-		public static Texture2D Create(AssetReference<ImageTextureAsset> asset) {
-			if (!asset.IsLoaded)
-			{
-				asset.LoadNow();
-			}
-			Texture2D texture = new Texture2D();
-			texture.FromTextureAsset(asset.Get(), GraphicsContext.graphicsDevice);
-			return texture;
-		}
 	}
 
 

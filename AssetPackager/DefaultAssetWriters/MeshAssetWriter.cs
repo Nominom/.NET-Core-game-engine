@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Assimp;
-using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.Shared;
 using GlmSharp;
 
@@ -26,7 +26,11 @@ namespace AssetPackager.DefaultAssetWriters
 			yield return ".stl";
 		}
 
-		public override void LoadAndWriteToStream(FileInfo inputFile, Stream outputStream) {
+		public override void GetDefaultMeta(IAssetMeta meta) {
+			
+		}
+
+		public override void LoadAndWriteToStream(FileInfo inputFile, IAssetMeta meta, Stream outputStream) {
 			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices
 			                               | PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
 

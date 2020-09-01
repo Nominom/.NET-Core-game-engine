@@ -65,14 +65,14 @@ namespace AssetPackager
 			foreach (FileInfo inputFile in inputFiles) {
 				if (AssetLoaderResolver.SupportedExtension(inputFile.Extension)) {
 					Console.WriteLine($"Found file: {inputFile}.");
-					if (inUseAssetNames.Contains(GetAssetName(inputFile))) {
-						Console.WriteLine($"Duplicate asset name found! {inputFile.FullName} collides with {supportedFiles.First(x => GetAssetName(x) == GetAssetName(inputFile)).FullName}");
+					if (inUseAssetNames.Contains(AssetFileHelpers.GetAssetName(inputFile))) {
+						Console.WriteLine($"Duplicate asset name found! {inputFile.FullName} collides with {supportedFiles.First(x => AssetFileHelpers.GetAssetName(x) == AssetFileHelpers.GetAssetName(inputFile)).FullName}");
 						Console.WriteLine("Aborting build.");
 						return;
 					}
 
 					supportedFiles.Add(inputFile);
-					inUseAssetNames.Add(GetAssetName(inputFile));
+					inUseAssetNames.Add(AssetFileHelpers.GetAssetName(inputFile));
 				}
 				else {
 					Console.WriteLine($"Found unsupported file: {inputFile}.");
@@ -82,59 +82,11 @@ namespace AssetPackager
 			Console.WriteLine("\n\nStarting build...\n\n");
 
 			using FileStream outputFileStream = File.OpenWrite(outputFile);
-			using BinaryWriter headerWriter = new BinaryWriter(outputFileStream, Encoding.UTF8);
 			
-			//Write amount of assets
-			headerWriter.Write(supportedFiles.Count);
-			headerWriter.Flush();
-
-			foreach (FileInfo file in supportedFiles) {
-				Stopwatch watch = new Stopwatch();
-				watch.Start();
-
-				var writer = AssetLoaderResolver.FindAssetWriter(file.Extension);
-				Console.WriteLine($"Processing file: {file}.");
-
-				using MemoryStream uncompressedOutput = new MemoryStream();
-				using MemoryStream compressedOutput = new MemoryStream();
-
-				if (AssetCacher.HasCachedFile(file)) {
-
-				}
-				else {
-					writer.LoadAndWriteToStream(file, uncompressedOutput);
-					AssetCacher.SaveCachedFile(file, uncompressedOutput);
-				}
-
-				Console.WriteLine($"Processing took: {watch.ElapsedMilliseconds} milliseconds.");
-
-				watch.Restart();
-				Console.WriteLine("Compressing...");
-
-				using DeflateStream deflate = new DeflateStream(compressedOutput, CompressionLevel.Optimal, true);
-				
-				uncompressedOutput.Seek(0, SeekOrigin.Begin);
-				uncompressedOutput.CopyTo(deflate);
-				deflate.Flush();
-
-				string assetName = GetAssetName(file);
-				System.Type assetType = writer.GetAssetType();
-
-				long length = uncompressedOutput.Length;
-				long compressedLength = compressedOutput.Length;
-
-				AssetHeader.WriteAssetHeader(headerWriter, assetName, assetType, AssetCompression.Deflate, length, compressedLength);
-				compressedOutput.Seek(0, SeekOrigin.Begin);
-				compressedOutput.CopyTo(outputFileStream);
-
-				watch.Stop();
-				Console.WriteLine($"Compression took: {watch.ElapsedMilliseconds} milliseconds.");
-			}
+			AssetPackageWriter.WriteAssetPackage(outputFileStream, supportedFiles, true);
 		}
 
-		private static string GetAssetName(FileInfo file) {
-			return Path.GetFileNameWithoutExtension(file.FullName);
-		}
+		
 
 		private static List<FileInfo> ExploreFolder(string folderPath)
 		{

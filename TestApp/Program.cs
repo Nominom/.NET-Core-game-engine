@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics.X86;
 using BepuPhysics.Collidables;
 using Core;
 using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics;
@@ -107,32 +108,36 @@ namespace TestApp
 		static void InitializeWorld()
 		{
 			Random random = new Random(1);
-			var houseModel = Assets.Create<MeshAsset>("House");
-			var satelliteModel = Assets.Create<MeshAsset>("voyager");
-			var satelliteTexture = Assets.Create<TextureAsset>("voyager_etc2_unorm");
-			var placeholderTexture = Assets.Create<TextureAsset>("test_gradient_1_512");
+			var fragShader = Asset.Create<ShaderAsset>("mesh_instanced.frag");
+			var vertShader = Asset.Create<ShaderAsset>("mesh_instanced.vert");
+
+			var shader = new ShaderPipeline(fragShader, vertShader, ShaderType.Instanced);
+			var playerModel = Asset.Create<MeshAsset>("spaceship");
+			var satelliteModel = Asset.Create<MeshAsset>("voyager");
+			var satelliteTexture = Asset.Create<TextureAsset>("voyager_etc2_unorm");
+			var placeholderTexture = Asset.Create<TextureAsset>("test_gradient_1_512");
 
 
-			houseModel.StartLoad(LoadPriority.High);
+			playerModel.StartLoad(LoadPriority.High);
 			satelliteModel.StartLoad(LoadPriority.Medium);
 			satelliteTexture.StartLoad(LoadPriority.Medium);
 			placeholderTexture.StartLoad(LoadPriority.Medium);
 
-			MeshRenderer houseRenderer = new MeshRenderer() { mesh = Mesh.Create(houseModel) };
+			MeshRenderer playerRenderer = new MeshRenderer() { mesh = Mesh.Create(playerModel) };
 
-			Prefab house = new Prefab();
-			house.AddComponent(new Position() { value = vec3.Zero });
-			house.AddComponent(new Rotation() { value = quat.Identity });
-			house.AddComponent(new Scale() { value = vec3.Ones * 0.01f });
-			house.AddComponent(new ObjectToWorld() { model = mat4.Identity });
-			house.AddComponent(new BoundingBox());
-			house.AddComponent(new RotateComponent() { rotationSpeed = 1 });
-			house.AddSharedComponent(houseRenderer);
-			house.AddSharedComponent(RenderTag.Opaque);
+			Prefab player = new Prefab();
+			player.AddComponent(new Position() { value = vec3.Zero });
+			player.AddComponent(new Rotation() { value = quat.Identity });
+			player.AddComponent(new Scale() { value = vec3.Ones * 0.01f });
+			player.AddComponent(new ObjectToWorld() { model = mat4.Identity });
+			player.AddComponent(new BoundingBox());
+			player.AddComponent(new RotateComponent() { rotationSpeed = 1 });
+			player.AddSharedComponent(playerRenderer);
+			player.AddSharedComponent(RenderTag.Opaque);
 
 			var satelliteMesh = Mesh.Create(satelliteModel);
 			var satelliteTex = Texture2D.Create(satelliteTexture);
-			var satelliteMaterial = Material.Create(Color.white, satelliteTex);
+			var satelliteMaterial = Material.Create(Color.white, satelliteTex, shader);
 
 			MeshRenderer renderer = new MeshRenderer(satelliteMesh, satelliteMaterial);
 
@@ -147,16 +152,16 @@ namespace TestApp
 
 			satelliteModel.LoadNow();
 			satellite.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
-			satellite.AddSharedComponent(new MeshCollider() { mesh = satelliteModel.Get().GetMeshData(), convex = true });
-			satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteModel.Get().GetMeshData()));
+			satellite.AddSharedComponent(new MeshCollider(satelliteMesh.meshData, true));
+			satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteMesh.meshData));
 			satellite.AddComponent(new Velocity() { value = vec3.UnitY * 10 });
 			satellite.AddComponent(new AngularVelocity() { value = vec3.UnitX * 1 });
 
 
-			
+
 			var cubeTex = Texture2D.Create(placeholderTexture);
-			var cubeMaterial = Material.Create(Color.white, cubeTex);
-			var cubeMeshRend = new MeshRenderer() { mesh = RenderUtilities.UnitCube, materials = new []{cubeMaterial}};
+			var cubeMaterial = Material.Create(Color.white, cubeTex, shader);
+			var cubeMeshRend = new MeshRenderer() { mesh = RenderUtilities.UnitCube, materials = new[] { cubeMaterial } };
 
 			Prefab cube = new Prefab();
 			cube.AddComponent(new Position() { value = vec3.Zero });
@@ -171,7 +176,6 @@ namespace TestApp
 			cube.AddComponent(new BoxCollider() { height = 1f, length = 1f, width = 1f });
 			cube.AddComponent(new Velocity());
 			cube.AddComponent(new AngularVelocity() { value = vec3.UnitX * 10 });
-
 
 
 			Prefab floor = new Prefab();
@@ -225,7 +229,7 @@ namespace TestApp
 
 			var entity3 = world.Instantiate(satellite);
 
-			var entity2 = world.Instantiate(house);
+			var playerEntity = world.Instantiate(player);
 
 			var cameraEntity = world.Instantiate(Prefabs.Camera);
 			var cameraPosition = new vec3(4, 30, 20);
@@ -234,6 +238,8 @@ namespace TestApp
 				new Position() { value = cameraPosition });
 			cm.SetComponent(cameraEntity,
 				new Rotation() { value = cameraRotation });
+			cm.AddComponent(cameraEntity,
+				new CameraFlightComponent() { flightSpeed = 5 });
 
 
 			var floorEnt = world.Instantiate(floor);
@@ -245,17 +251,18 @@ namespace TestApp
 			CoreEngine.Initialize();
 			CoreEngine.targetFps = 0;
 
-			Assets.LoadAssetPackage("data/assets.dat");
+			Asset.LoadAssetPackage("data/assets.dat");
 
-			//var asset = Assets.Create<TextureAsset>("bootman");
-			//asset.LoadNow();
+			Physics.Settings.Gravity = Vector3.Zero;
 
 			InitializeWorld();
 
 			Profiler.ProfilingEnabled = true;
 
-			CoreEngine.Update += delegate(float time) {
-				if (CoreEngine.FrameNumber == 500) {
+			CoreEngine.Update += delegate (float time)
+			{
+				if (CoreEngine.FrameNumber == 500)
+				{
 					Profiler.WriteToFile(@"D:\ecs_profile_speedscope.json", ProfilingFormat.SpeedScope, FrameSelection.Shortest);
 					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.Median);
 				}

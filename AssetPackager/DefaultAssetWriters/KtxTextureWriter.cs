@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 
 namespace AssetPackager.DefaultAssetWriters
 {
@@ -12,7 +11,11 @@ namespace AssetPackager.DefaultAssetWriters
 			yield return ".ktx";
 		}
 
-		public override void LoadAndWriteToStream(FileInfo inputFile, Stream outputStream) {
+		public override void GetDefaultMeta(IAssetMeta meta) {
+			
+		}
+
+		public override void LoadAndWriteToStream(FileInfo inputFile, IAssetMeta meta, Stream outputStream) {
 			using FileStream fileReadStream = File.OpenRead(inputFile.FullName);
 			fileReadStream.CopyTo(outputStream);
 		}

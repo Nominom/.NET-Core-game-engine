@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCnEncoder.Net" Version="1.2.1" />
+    <PackageReference Include="BCnEncoder.Net" Version="1.2.2" />
     <PackageReference Include="AssimpNet" Version="4.1.0" />
   </ItemGroup>
 

@@ -7,6 +7,8 @@ using System.Text;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
+using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.ECS;
 using Core.Shared;
 using GlmSharp;
@@ -21,13 +23,15 @@ namespace Core.Physics
 
 	public class MeshCollider : ISharedComponent {
 		public MeshData mesh;
-		public bool convex = false;
+		public bool convex;
+		public MeshCollider(MeshData mesh, bool convex = false) {
+			this.mesh = mesh;
+			this.convex = convex;
+		}
 
 		private Buffer<Triangle>? triangles;
 		public Buffer<Triangle> GetTriangles() {
-			if (mesh == null) {
-				throw new NullReferenceException("The mesh of this MeshCollider is null");
-			}
+
 			if (triangles == null) {
 
 				if (!convex) {

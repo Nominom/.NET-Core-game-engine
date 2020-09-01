@@ -4,28 +4,12 @@ using System.IO;
 using System.Text;
 using Core.Shared;
 
-namespace Core.AssetSystem
+namespace Core.AssetSystem.Assets
 {
 	public class MeshAsset : IAsset
 	{
-		//public string Filename { get; set; }
-		//public bool IsLoaded { get; private set; }
 
 		private MeshData meshData;
-
-		//public void Load() {
-		//	if (IsLoaded) {
-		//		return;
-		//	}
-
-		//	meshData = ModelLoader.LoadModel(Filename);
-		//	IsLoaded = true;
-		//}
-
-		//public void UnLoad() {
-		//	meshData = null;
-		//	IsLoaded = false;
-		//}
 
 		public void Dispose()
 		{
