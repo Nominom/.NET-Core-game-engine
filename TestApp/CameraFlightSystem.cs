@@ -10,6 +10,11 @@ using Veldrid;
 
 namespace TestApp
 {
+
+	public struct CameraFlightComponent : IComponent {
+		public float flightSpeed;
+	}
+
 	[ECSSystem(UpdateEvent.Update)]
 	public class CameraFlightSystem : ComponentSystem
 	{
@@ -18,15 +23,19 @@ namespace TestApp
 			query.IncludeShared<Camera>();
 			query.IncludeReadWrite<Position>();
 			query.IncludeReadWrite<Rotation>();
+			query.IncludeReadonly<CameraFlightComponent>();
 			return query;
 		}
 
 		public override void ProcessBlock(float deltaTime, BlockAccessor block) {
 			var positions = block.GetComponentData<Position>();
 			var rotations = block.GetComponentData<Rotation>();
+			var cameraFlights = block.GetReadOnlyComponentData<CameraFlightComponent>();
 
-			float flightSpeed = 5;
+			
 			for (int i = 0; i < block.length; i++) {
+				float flightSpeed = cameraFlights[i].flightSpeed;
+
 				if (Input.GetKey(Key.Space)) {
 					vec2 mouseDelta = Input.GetMouseDelta() * 0.002f;
 					dvec3 euler = rotations[i].value.EulerAngles;

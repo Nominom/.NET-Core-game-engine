@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AssetPackager": {
+      "commandName": "Project",
+      "commandLineArgs": "\"../../../../DefaultAssets\" \"../../../../DefaultAssets/defaultassets.dat\""
+    }
+  }
+}

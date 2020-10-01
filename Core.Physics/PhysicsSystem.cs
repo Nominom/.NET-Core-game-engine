@@ -15,12 +15,12 @@ using Core.Shared;
 
 namespace Core.Physics
 {
-	
+
 	[ECSSystem(UpdateEvent.FixedUpdate)]
 	public class PhysicsSystem : ISystem
 	{
 		public bool Enabled { get; set; }
-		
+
 		internal static ThreadLocal<List<CollisionEventData>> collisionsToFire = new ThreadLocal<List<CollisionEventData>>(() => new List<CollisionEventData>(), true);
 		private static IList<List<CollisionEventData>> collisionsToFireCached = null;
 		internal static ConcurrentMemoryPool<CollisionData> collisionDataPool = new ConcurrentMemoryPool<CollisionData>();
@@ -35,34 +35,47 @@ namespace Core.Physics
 
 		private SimpleThreadDispatcher threadDispatcher;
 
-		public void OnCreateSystem(ECSWorld world) {
+		public void OnCreateSystem(ECSWorld world)
+		{
 			BufferPool = new BufferPool();
 
-			Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntergratorCallbacks(
-				-Vector3.UnitY * 9));
+			Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(), new PoseIntergratorCallbacks());
+			Simulation.Solver.IterationCount = Physics.Settings.solverIterationCount;
+			Console.WriteLine("SolverItCount= " + Simulation.Solver.IterationCount);
 
 			threadDispatcher = new SimpleThreadDispatcher(Environment.ProcessorCount);
 
 		}
 
-		public void OnDestroySystem(ECSWorld world) {
+		public void OnDestroySystem(ECSWorld world)
+		{
 			Simulation?.Dispose();
 			BufferPool?.Clear();
 			threadDispatcher?.Dispose();
 		}
 
-		public void Update(float deltaTime, ECSWorld world) {
+		public void Update(float deltaTime, ECSWorld world)
+		{
 			collisionDataPool.FreeAll();
+			Physics.ResetFrame();
+
+			if (Simulation.Solver.IterationCount != Physics.Settings.solverIterationCount)
+			{
+				Simulation.Solver.IterationCount = Physics.Settings.solverIterationCount;
+			}
 
 			Simulation.Timestep(deltaTime, threadDispatcher);
 
-			if (collisionsToFireCached == null || collisionsToFireCached.Count < threadDispatcher.ThreadCount) {
+			if (collisionsToFireCached == null || collisionsToFireCached.Count < threadDispatcher.ThreadCount)
+			{
 				collisionsToFireCached = collisionsToFire.Values;
 			}
 
-			for(int i = 0; i < collisionsToFireCached.Count; i++) {
+			for (int i = 0; i < collisionsToFireCached.Count; i++)
+			{
 				var list = collisionsToFireCached[i];
-				foreach (var ced in list) {
+				foreach (var ced in list)
+				{
 					Entity a = ced.pair.A.Mobility == CollidableMobility.Static
 						? staticBodyEntityDictionary[ced.pair.A.Handle]
 						: rigidBodyEntityDictionary[ced.pair.A.Handle];
@@ -70,7 +83,8 @@ namespace Core.Physics
 						? staticBodyEntityDictionary[ced.pair.B.Handle]
 						: rigidBodyEntityDictionary[ced.pair.B.Handle];
 
-					new CollisionEvent() {
+					new CollisionEvent()
+					{
 						A = a,
 						B = b,
 						collisions = ced.collisionMemory
@@ -78,8 +92,10 @@ namespace Core.Physics
 
 					EntityPair key = new EntityPair(a, b);
 					thisFrameCollisions.Add(key);
-					if (!lastFrameCollisions.Contains(key)) {
-						new CollisionEnterEvent() {
+					if (!lastFrameCollisions.Contains(key))
+					{
+						new CollisionEnterEvent()
+						{
 							A = a,
 							B = b,
 							collisions = ced.collisionMemory
@@ -90,9 +106,12 @@ namespace Core.Physics
 				list.Clear();
 			}
 
-			foreach (EntityPair lastFrameCollision in lastFrameCollisions) {
-				if (!thisFrameCollisions.Contains(lastFrameCollision)) {
-					new CollisionExitEvent() {
+			foreach (EntityPair lastFrameCollision in lastFrameCollisions)
+			{
+				if (!thisFrameCollisions.Contains(lastFrameCollision))
+				{
+					new CollisionExitEvent()
+					{
 						A = lastFrameCollision.A,
 						B = lastFrameCollision.B
 					}.Fire(world);

@@ -29,6 +29,7 @@ namespace Core.Shared
 		{
 			if (ListPool.TryDequeue(out var result)) {
 				result.disposed = false;
+				result.allocStackTrace = $"{filePath}.{methodName}:{lineNumber.ToString()}";
 				GC.ReRegisterForFinalize(result);
 				return result;
 			}

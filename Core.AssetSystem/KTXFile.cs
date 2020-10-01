@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.Shared;
 
 namespace Core.AssetSystem
 {
@@ -27,9 +28,10 @@ namespace Core.AssetSystem
 
         public static KtxFile Load(Stream s, bool readKeyValuePairs)
         {
-            using (BinaryReader br = new BinaryReader(s))
+			
+            using (BinaryReader br = new BinaryReader(s, Encoding.UTF8, true))
             {
-                KtxHeader header = ReadStruct<KtxHeader>(br);
+                KtxHeader header = br.ReadStruct<KtxHeader>();
 
                 KtxKeyValuePair[] kvps = null;
                 if (readKeyValuePairs)
@@ -48,7 +50,7 @@ namespace Core.AssetSystem
                 }
                 else
                 {
-                    br.BaseStream.Seek(header.BytesOfKeyValueData, SeekOrigin.Current); // Skip over header data.
+                    br.SkipPadding(header.BytesOfKeyValueData); // Skip over header data.
                 }
 
                 uint numberOfFaces = Math.Max(1, header.NumberOfFaces);
@@ -71,11 +73,11 @@ namespace Core.AssetSystem
                         {
                             cubePadding = 3 - ((imageSize + 3) % 4);
                         }
-                        br.BaseStream.Seek(cubePadding, SeekOrigin.Current);
+                        br.SkipPadding(cubePadding);
                     }
 
                     uint mipPaddingBytes = 3 - ((imageSize + 3) % 4);
-                    br.BaseStream.Seek(mipPaddingBytes, SeekOrigin.Current);
+                    br.SkipPadding(mipPaddingBytes);
                 }
 
                 return new KtxFile(header, kvps, faces.ToArray());
@@ -114,18 +116,6 @@ namespace Core.AssetSystem
 
             bytesRead = (int)(keyAndValueByteSize + paddingByteCount + sizeof(uint));
             return new KtxKeyValuePair(key, value);
-        }
-
-        private static unsafe T ReadStruct<T>(BinaryReader br)
-        {
-            int size = Unsafe.SizeOf<T>();
-            byte* bytes = stackalloc byte[size];
-            for (int i = 0; i < size; i++)
-            {
-                bytes[i] = br.ReadByte();
-            }
-
-            return Unsafe.Read<T>(bytes);
         }
 
         private static unsafe void ReadBytes(BinaryReader br, byte* destination, int count)
@@ -185,20 +175,25 @@ namespace Core.AssetSystem
     public unsafe struct KtxHeader
     {
         public fixed byte Identifier[12];
-        public readonly uint Endianness;
-        public readonly uint GlType;
-        public readonly uint GlTypeSize;
-        public readonly uint GlFormat;
-        public readonly uint GlInternalFormat;
-        public readonly uint GlBaseInternalFormat;
-        public readonly uint PixelWidth;
-        private readonly uint _pixelHeight;
-        public uint PixelHeight => Math.Max(1, _pixelHeight);
-        public readonly uint PixelDepth;
-        public readonly uint NumberOfArrayElements;
-        public readonly uint NumberOfFaces;
-        public readonly uint NumberOfMipmapLevels;
-        public readonly uint BytesOfKeyValueData;
+        public uint Endianness;
+        public GLType GlType;
+        public uint GlTypeSize;
+        public GLFormat GlFormat;
+        public GlInternalFormat GlInternalFormat;
+        public GLFormat GlBaseInternalFormat;
+        public uint PixelWidth;
+        private uint _pixelHeight;
+        public uint PixelHeight {
+	        get => Math.Max(1, _pixelHeight);
+	        set => _pixelHeight = value;
+        }
+
+        public uint PixelDepth;
+        public uint NumberOfArrayElements;
+        public uint NumberOfFaces;
+        public uint NumberOfMipmapLevels;
+        public uint BytesOfKeyValueData;
+
     }
 
     public class KtxFace

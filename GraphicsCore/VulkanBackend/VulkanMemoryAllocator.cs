@@ -53,8 +53,8 @@ namespace Core.Graphics.VulkanBackend
 	}
 
 	public unsafe class VulkanMemoryAllocator : IDisposable {
-		//256 MB
-		public const ulong PoolSize = 1024 * 1024 * 256;
+		//128 MB
+		public const ulong PoolSize = 1024 * 1024 * 128;
 		public GraphicsDevice device;
 		private List<VulkanMemoryPool> memoryPools = new List<VulkanMemoryPool>();
 

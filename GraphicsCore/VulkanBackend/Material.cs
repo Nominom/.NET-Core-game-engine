@@ -6,7 +6,8 @@ using Core.Shared;
 
 namespace Core.Graphics.VulkanBackend
 {
-	public unsafe class Material : IDisposable {
+	public unsafe class Material : IDisposable
+	{
 		private Pipeline pipeline;
 		private UniformBuffer uniformBuffer; // Not disposed here.
 		public ShaderPair shaderPair;
@@ -15,7 +16,8 @@ namespace Core.Graphics.VulkanBackend
 		public Color mainColor;
 		public bool wireframe = false;
 
-		public Material(GraphicsDevice device, UniformBuffer uniformBuffer, ShaderPair shaders, Color mainColor, Texture2D mainTexture = null) {
+		internal Material(GraphicsDevice device, UniformBuffer uniformBuffer, ShaderPair shaders, Color mainColor, Texture2D mainTexture = null)
+		{
 			this.device = device;
 			this.uniformBuffer = uniformBuffer;
 			this.shaderPair = shaders;
@@ -23,7 +25,8 @@ namespace Core.Graphics.VulkanBackend
 			this.mainTexture = mainTexture ?? Texture2D.White;
 		}
 
-		public Material(GraphicsDevice device, UniformBuffer uniformBuffer, ShaderPair shaders, Texture2D mainTexture = null) {
+		internal Material(GraphicsDevice device, UniformBuffer uniformBuffer, ShaderPair shaders, Texture2D mainTexture = null)
+		{
 			this.device = device;
 			this.uniformBuffer = uniformBuffer;
 			this.shaderPair = shaders;
@@ -32,38 +35,47 @@ namespace Core.Graphics.VulkanBackend
 		}
 
 
-		public Pipeline GetPipeline() {
-			if (pipeline == null) {
+		public Pipeline GetPipeline()
+		{
+			if (pipeline == null)
+			{
 				InitializePipeline();
 			}
 			return pipeline;
 		}
 
-		private void InitializePipeline() {
+		private void InitializePipeline()
+		{
 			using PipelineCreator pipelineCreator = new PipelineCreator();
 			this.pipeline = pipelineCreator.CreatePipeline(device, device.renderPass, this, uniformBuffer);
 		}
 
-		public void Dispose() {
+		public void Dispose()
+		{
 			pipeline?.Dispose();
 			pipeline = null;
 		}
 
-		public static Material Create(Color mainColor, Texture2D mainTexture)
+		public static Material Create(ShaderPipeline shader, Color mainColor, Texture2D mainTexture)
 		{
 			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
-				GraphicsContext.defaultShader, mainColor, mainTexture);
+				shader.ShaderPair, mainColor, mainTexture);
+			return material;
+		}
+
+		public static Material Create(ShaderPipeline shader, Color mainColor)
+		{
+			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
+				shader.ShaderPair, mainColor, Texture2D.White);
 
 			return material;
 		}
 
-		public static Material Create(Color mainColor)
+		public static Material Create(ShaderPipeline shader)
 		{
 			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
-				GraphicsContext.defaultShader, mainColor, Texture2D.White);
-
+				shader.ShaderPair, Color.white, Texture2D.White);
 			return material;
 		}
-
 	}
 }
