@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Core.ECS
@@ -56,7 +57,7 @@ namespace Core.ECS
 			_data.Memory.Span.Fill(0);
 
 			int amountOfBytes = _data.Size();
-			int entitySize = Marshal.SizeOf<Entity>();
+			int entitySize = Unsafe.SizeOf<Entity>();
 			int bytesPerEntity = entitySize;
 			foreach (var component in archetype.components) {
 				bytesPerEntity += component.Value;
@@ -375,7 +376,7 @@ namespace Core.ECS
 			_data.Span.Clear();
 
 			int amountOfBytes = _data.Size();
-			int entitySize = Marshal.SizeOf<Entity>();
+			int entitySize = Unsafe.SizeOf<Entity>();
 			int bytesPerEntity = entitySize;
 			foreach (var component in archetype.components)
 			{

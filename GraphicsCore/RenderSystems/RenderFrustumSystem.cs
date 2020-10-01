@@ -43,7 +43,7 @@ namespace Core.Graphics.RenderSystems
 				GraphicsContext.uniform0, defaultShader);
 			defaultMaterial.wireframe = true;
 
-			instanceMatrix = new DeviceBuffer(GraphicsContext.graphicsDevice, (ulong)Marshal.SizeOf<ObjectToWorld>(),
+			instanceMatrix = new DeviceBuffer(GraphicsContext.graphicsDevice, (ulong)Unsafe.SizeOf<ObjectToWorld>(),
 				BufferUsageFlags.VertexBuffer, BufferMemoryUsageHint.Dynamic);
 			
 

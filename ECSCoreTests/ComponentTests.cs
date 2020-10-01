@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS;
@@ -20,8 +21,8 @@ namespace CoreTests {
 			unsafe {
 				Assert.Equal(sizeof(TestEmptyComponent), 1);
 
-				Assert.Equal(4, Marshal.SizeOf<TestComponentWithInt>());
-				Assert.Equal(sizeof(TestComponentWithInt), Marshal.SizeOf<TestComponentWithInt>());
+				Assert.Equal(4, Unsafe.SizeOf<TestComponentWithInt>());
+				Assert.Equal(sizeof(TestComponentWithInt), Unsafe.SizeOf<TestComponentWithInt>());
 			}
 		}
 

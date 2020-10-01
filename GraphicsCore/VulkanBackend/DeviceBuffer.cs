@@ -65,15 +65,15 @@ namespace Core.Graphics.VulkanBackend
 
 		public static DeviceBuffer CreateFrom<T>(GraphicsDevice device, ReadOnlySpan<T> data, BufferUsageFlags flags, BufferMemoryUsageHint usageHint) where T : unmanaged {
 			fixed (T* ptr = data) {
-				return new DeviceBuffer(device, (ulong)(data.Length * Marshal.SizeOf<T>()), ptr, flags, usageHint);
+				return new DeviceBuffer(device, (ulong)(data.Length * Unsafe.SizeOf<T>()), ptr, flags, usageHint);
 			}
 		}
 
 
 		public void SetData<T>(ReadOnlySpan<T> data, UInt64 dstOffsetInBytes = 0) where T : unmanaged {
-			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)(data.Length * Marshal.SizeOf<T>()));
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)(data.Length * Unsafe.SizeOf<T>()));
 			fixed (T* ptr = data) {
-				uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)(data.Length * Marshal.SizeOf<T>()));
+				uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)(data.Length * Unsafe.SizeOf<T>()));
 
 				if (memory.hostVisible) {
 
@@ -93,8 +93,8 @@ namespace Core.Graphics.VulkanBackend
 			=> SetData((ReadOnlySpan<T>) data, dstOffsetInBytes);
 
 		public void SetData<T>(T data, UInt64 dstOffsetInBytes = 0) where T : unmanaged {
-			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)Marshal.SizeOf<T>());
-			uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)Marshal.SizeOf<T>());
+			DebugHelper.AssertThrow<IndexOutOfRangeException>(size - dstOffsetInBytes >= (ulong)Unsafe.SizeOf<T>());
+			uint len = (uint)Math.Min(size - dstOffsetInBytes, (ulong)Unsafe.SizeOf<T>());
 			if (memory.hostVisible) {
 				Unsafe.Copy((byte*)memory.Mapped + dstOffsetInBytes, ref data);
 				//Flush(dstOffsetInBytes, len);

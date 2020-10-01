@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS.Collections;
@@ -21,7 +22,7 @@ namespace Core.ECS
 
 		public EntityArchetype Add<T>() where T : unmanaged, IComponent {
 			EntityArchetype archetype = this.Clone() as EntityArchetype;
-			archetype.components.Add(typeof(T), Marshal.SizeOf<T>());
+			archetype.components.Add(typeof(T), Unsafe.SizeOf<T>());
 			archetype.CalculateHashAndMask();
 			return archetype;
 		}
