@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
@@ -25,8 +28,12 @@ namespace Core.Graphics.RenderSystems
 		public void OnCreate(ECSWorld world) {
 			query.IncludeReadonly<BoundingBox>();
 			query.ExcludeShared<CulledRenderTag>();
+
+			var fragShader = Asset.Load<ShaderAsset>("mesh_instanced_default.frag");
+			var vertShader = Asset.Load<ShaderAsset>("mesh_instanced_default.vert");
+			var shader = new ShaderPipeline(fragShader, vertShader, ShaderType.Instanced);
+			defaultShader = shader.ShaderPair;
 			
-			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
 			defaultMaterial = new Material(GraphicsContext.graphicsDevice,
 				GraphicsContext.uniform0, defaultShader);
 			defaultMaterial.wireframe = true;
@@ -82,7 +89,7 @@ namespace Core.Graphics.RenderSystems
 				var boundingBox = block.GetReadOnlyComponentData<BoundingBox>();
 
 				for (int i = 0; i < block.length; i++) {
-					if ((instanceIndex+1) * Marshal.SizeOf<ObjectToWorld>() >= instanceMatricesBufferSize) {
+					if ((instanceIndex+1) * Unsafe.SizeOf<ObjectToWorld>() >= instanceMatricesBufferSize) {
 						RenderMeshInstances(cmd, defaultMesh, defaultMaterial, instanceMatricesBuffers[bufferIndex], instanceAmount, instanceIndex, context);
 
 						bufferIndex++;
@@ -105,7 +112,7 @@ namespace Core.Graphics.RenderSystems
 						normal = normalMatrix
 					};
 
-					instanceMatricesBuffers[bufferIndex].SetData(matrices, instanceIndex * (uint)Marshal.SizeOf<ObjectToWorld>());
+					instanceMatricesBuffers[bufferIndex].SetData(matrices, instanceIndex * (uint)Unsafe.SizeOf<ObjectToWorld>());
 					instanceAmount++;
 					instanceIndex++;
 				}

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Assimp;
+using Assimp.Configs;
 using Core.AssetSystem.Assets;
 using Core.Shared;
 using GlmSharp;
@@ -31,13 +32,21 @@ namespace AssetPackager.DefaultAssetWriters
 		}
 
 		public override void LoadAndWriteToStream(FileInfo inputFile, IAssetMeta meta, Stream outputStream) {
-			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder | PostProcessSteps.Triangulate | PostProcessSteps.PreTransformVertices
-			                               | PostProcessSteps.GenerateUVCoords | PostProcessSteps.GenerateNormals;
+			PostProcessSteps assimpFlags = PostProcessSteps.FlipWindingOrder
+										   | PostProcessSteps.Triangulate
+										   | PostProcessSteps.PreTransformVertices
+										   | PostProcessSteps.GenerateUVCoords
+										   | PostProcessSteps.GenerateSmoothNormals
+										   | PostProcessSteps.FlipUVs
+										   ;
+
+			var context = new AssimpContext();
+			context.SetConfig(new FloatPropertyConfig("AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE", 80f));
 
 			string extension = inputFile.Extension;
 			using FileStream fs = inputFile.OpenRead();
 
-			var scene = new AssimpContext().ImportFileFromStream(fs, assimpFlags, extension);
+			var scene = context.ImportFileFromStream(fs, assimpFlags, extension);
 
 			// Generate vertex buffer from ASSIMP scene data
 			float scale = 1.0f;

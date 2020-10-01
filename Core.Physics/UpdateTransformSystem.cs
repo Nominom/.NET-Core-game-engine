@@ -11,7 +11,7 @@ namespace Core.Physics
 	[ECSSystem(updateEvent:UpdateEvent.FixedUpdate, 
 		updateAfter:typeof(PhysicsSystem), 
 		updateBefore:typeof(PhysicsBodyInitializerSystem))]
-	public class UpdateTransformSystem : ComponentSystem
+	public class UpdateTransformSystem : JobComponentSystem
 	{
 		public override ComponentQuery GetQuery() {
 			ComponentQuery query = new ComponentQuery();

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="XCOPY &quot;$(ProjectDir)data&quot; &quot;$(TargetDir)\data\&quot; /S /Y" />
+    <Exec Command="$(SolutionDir)AssetPackager/bin/Release/netcoreapp3.1/AssetPackager.exe $(ProjectDir)data $(ProjectDir)data/assets.dat&#xD;&#xA;XCOPY &quot;$(ProjectDir)data\*.dat&quot; &quot;$(TargetDir)\data\&quot; /S /Y" />
   </Target>
 
 </Project>

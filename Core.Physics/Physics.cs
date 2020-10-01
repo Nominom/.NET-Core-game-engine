@@ -16,5 +16,6 @@ namespace Core.Physics
 		public Vector3 Gravity = Vector3.UnitY * -9;
 		public float LinearDamping = .03f;
 		public float AngularDamping = .03f;
+		public int solverIterationCount = 6;
 	}
 }

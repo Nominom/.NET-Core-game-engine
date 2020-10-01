@@ -105,62 +105,107 @@ namespace TestApp
 			}
 		}
 
+		//TODO: Texture flipping needs to happen somewhere in y axis
 		static void InitializeWorld()
 		{
+
+			var world = CoreEngine.World;
+			var cm = world.ComponentManager;
+
 			Random random = new Random(1);
-			var fragShader = Asset.Create<ShaderAsset>("mesh_instanced.frag");
-			var vertShader = Asset.Create<ShaderAsset>("mesh_instanced.vert");
+			var fragShader = Asset.Load<ShaderAsset>("mesh_instanced.frag");
+			var vertShader = Asset.Load<ShaderAsset>("mesh_instanced.vert");
 
 			var shader = new ShaderPipeline(fragShader, vertShader, ShaderType.Instanced);
-			var playerModel = Asset.Create<MeshAsset>("spaceship");
-			var satelliteModel = Asset.Create<MeshAsset>("voyager");
-			var satelliteTexture = Asset.Create<TextureAsset>("voyager_etc2_unorm");
-			var placeholderTexture = Asset.Create<TextureAsset>("test_gradient_1_512");
+			var playerModel = Asset.Load<MeshAsset>("PUSHILIN_rocket_ship");
+			var playerTexture = Asset.Load<TextureAsset>("PUSHILIN_rocket_ship_color");
+
+
+			var asteroidModel0 = Asset.Load<MeshAsset>("asteroid0");
+			var asteroidTexture = Asset.Load<TextureAsset>("Asteroids_BaseColor");
 
 
 			playerModel.StartLoad(LoadPriority.High);
-			satelliteModel.StartLoad(LoadPriority.Medium);
-			satelliteTexture.StartLoad(LoadPriority.Medium);
-			placeholderTexture.StartLoad(LoadPriority.Medium);
+			playerTexture.StartLoad(LoadPriority.Medium);
+			asteroidModel0.StartLoad(LoadPriority.Medium);
+			asteroidTexture.StartLoad(LoadPriority.Medium);
 
-			MeshRenderer playerRenderer = new MeshRenderer() { mesh = Mesh.Create(playerModel) };
+
+			var playerTex = Texture2D.Create(playerTexture);
+			var playerMat = Material.Create(shader, Color.white, playerTex);
+
+			MeshRenderer playerRenderer = new MeshRenderer(Mesh.Create(playerModel), playerMat);
 
 			Prefab player = new Prefab();
-			player.AddComponent(new Position() { value = vec3.Zero });
+			player.AddComponent(new Position() { value = vec3.UnitY });
 			player.AddComponent(new Rotation() { value = quat.Identity });
-			player.AddComponent(new Scale() { value = vec3.Ones * 0.01f });
+			player.AddComponent(new Scale() { value = vec3.Ones });
 			player.AddComponent(new ObjectToWorld() { model = mat4.Identity });
 			player.AddComponent(new BoundingBox());
-			player.AddComponent(new RotateComponent() { rotationSpeed = 1 });
 			player.AddSharedComponent(playerRenderer);
 			player.AddSharedComponent(RenderTag.Opaque);
-
-			var satelliteMesh = Mesh.Create(satelliteModel);
-			var satelliteTex = Texture2D.Create(satelliteTexture);
-			var satelliteMaterial = Material.Create(Color.white, satelliteTex, shader);
-
-			MeshRenderer renderer = new MeshRenderer(satelliteMesh, satelliteMaterial);
-
-			Prefab satellite = new Prefab();
-			satellite.AddComponent(new Position() { value = vec3.Zero });
-			satellite.AddComponent(new Rotation() { value = quat.Identity });
-			satellite.AddComponent(new Scale() { value = vec3.Ones * 0.2f });
-			satellite.AddComponent(new ObjectToWorld() { model = mat4.Identity });
-			satellite.AddComponent(new BoundingBox());
-			satellite.AddSharedComponent(renderer);
-			satellite.AddSharedComponent(RenderTag.Opaque);
-
-			satelliteModel.LoadNow();
-			satellite.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
-			satellite.AddSharedComponent(new MeshCollider(satelliteMesh.meshData, true));
-			satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteMesh.meshData));
-			satellite.AddComponent(new Velocity() { value = vec3.UnitY * 10 });
-			satellite.AddComponent(new AngularVelocity() { value = vec3.UnitX * 1 });
+			player.AddComponent(new Player() { movementSpeed = 5, turningSpeed = 5 });
+			player.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
+			player.AddSharedComponent(new MeshCollider(playerRenderer.mesh.meshData, true));
+			player.AddSharedComponent(new DebugMeshConvexHullRenderer(playerRenderer.mesh.meshData));
+			player.AddComponent(new Velocity() { });
+			player.AddComponent(new AngularVelocity() { });
+			player.AddComponent(new PhysicsBodyLockAxis() { lockZ = true, lockRotX = true, lockRotY = true });
 
 
+			//var satelliteMesh = Mesh.Create(satelliteModel);
+			//var satelliteTex = Texture2D.Create(satelliteTexture);
+			//var satelliteMaterial = Material.Create(shader, Color.white, satelliteTex);
 
-			var cubeTex = Texture2D.Create(placeholderTexture);
-			var cubeMaterial = Material.Create(Color.white, cubeTex, shader);
+			//MeshRenderer renderer = new MeshRenderer(satelliteMesh, satelliteMaterial);
+
+			//Prefab satellite = new Prefab();
+			//satellite.AddComponent(new Position() { value = vec3.Zero });
+			//satellite.AddComponent(new Rotation() { value = quat.Identity });
+			//satellite.AddComponent(new Scale() { value = vec3.Ones * 0.2f });
+			//satellite.AddComponent(new ObjectToWorld() { model = mat4.Identity });
+			//satellite.AddComponent(new BoundingBox());
+			//satellite.AddSharedComponent(renderer);
+			//satellite.AddSharedComponent(RenderTag.Opaque);
+
+			//satelliteModel.LoadNow();
+			//satellite.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
+			//satellite.AddSharedComponent(new MeshCollider(satelliteMesh.meshData, true));
+			//satellite.AddSharedComponent(new DebugMeshConvexHullRenderer(satelliteMesh.meshData));
+			//satellite.AddComponent(new Velocity() { value = vec3.UnitY * 10 });
+			//satellite.AddComponent(new AngularVelocity() { value = vec3.UnitX * 1 });
+
+
+			var asteroidTex = Texture2D.Create(asteroidTexture);
+			var asteroidMat = Material.Create(shader, Color.white, asteroidTex);
+
+			var asteroidMesh0 = Mesh.Create(asteroidModel0);
+
+			MeshRenderer asteroidRenderer0 = new MeshRenderer(asteroidMesh0, asteroidMat);
+
+			Prefab asteroid0 = new Prefab();
+			asteroid0.AddComponent(new Position() { value = vec3.Zero });
+			asteroid0.AddComponent(new Rotation() { value = quat.Identity });
+			asteroid0.AddComponent(new Scale() { value = vec3.Ones * 0.2f });
+			asteroid0.AddComponent(new ObjectToWorld() { model = mat4.Identity });
+			asteroid0.AddComponent(new BoundingBox());
+			asteroid0.AddSharedComponent(asteroidRenderer0);
+			asteroid0.AddSharedComponent(RenderTag.Opaque);
+
+			asteroid0.AddComponent(new RigidBody() { mass = 10, detectionMode = CollisionDetectionMode.Continuous });
+			asteroid0.AddSharedComponent(new MeshCollider(asteroidMesh0.meshData, true));
+
+			//asteroid0.AddComponent(new BoxCollider() { width = asteroidMesh0.bounds.Size.x, height = asteroidMesh0.bounds.Size.y, length = asteroidMesh0.bounds.Size.z });
+			//asteroid0.AddSharedComponent(new DebugMeshConvexHullRenderer(asteroidMesh0.meshData));
+			asteroid0.AddComponent(new Velocity() { value = vec3.UnitY * 10 });
+			asteroid0.AddComponent(new AngularVelocity() { value = vec3.UnitX * 1 });
+			asteroid0.AddComponent(new PhysicsBodyLockAxis() { lockZ = true });
+			asteroid0.AddComponent(new Asteroid());
+
+			
+
+			var cubeTex = Texture2D.Create(playerTexture);
+			var cubeMaterial = Material.Create(shader, Color.white, cubeTex);
 			var cubeMeshRend = new MeshRenderer() { mesh = RenderUtilities.UnitCube, materials = new[] { cubeMaterial } };
 
 			Prefab cube = new Prefab();
@@ -178,71 +223,96 @@ namespace TestApp
 			cube.AddComponent(new AngularVelocity() { value = vec3.UnitX * 10 });
 
 
-			Prefab floor = new Prefab();
-			floor.AddComponent(new Position() { value = -vec3.UnitY * 2 });
-			floor.AddComponent(new Rotation() { value = quat.Identity });
-			floor.AddComponent(new Scale() { value = new vec3(1000, 0.2f, 1000) });
-			floor.AddComponent(new ObjectToWorld() { model = mat4.Identity });
-			floor.AddComponent(new BoundingBox());
-			floor.AddSharedComponent(cubeMeshRend);
-			floor.AddSharedComponent(RenderTag.Opaque);
-			floor.AddComponent(new StaticRigidBody());
-			floor.AddComponent(new BoxCollider() { height = 1f, length = 1f, width = 1f });
+			//Prefab floor = new Prefab();
+			//floor.AddComponent(new Position() { value = -vec3.UnitY * 2 });
+			//floor.AddComponent(new Rotation() { value = quat.Identity });
+			//floor.AddComponent(new Scale() { value = new vec3(1000, 0.2f, 1000) });
+			//floor.AddComponent(new ObjectToWorld() { model = mat4.Identity });
+			//floor.AddComponent(new BoundingBox());
+			//floor.AddSharedComponent(cubeMeshRend);
+			//floor.AddSharedComponent(RenderTag.Opaque);
+			//floor.AddComponent(new StaticRigidBody());
+			//floor.AddComponent(new BoxCollider() { height = 1f, length = 1f, width = 1f });
 
 
-			var world = CoreEngine.World;
-			var cm = world.ComponentManager;
 
-			const int numCubes = 100;
-			const int tallCubes = 100;
-			for (int i = 0; i < tallCubes; i++)
-			{
-				for (int j = 0; j < numCubes; j++)
-				{
-					var entity = world.Instantiate(cube);
-					cm.SetComponent(entity, new Position()
-					{
-						value = new vec3(
-							random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5),
-							i * 3 + 10,
-							random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5))
-					});
+			//const int numCubes = 10;
+			//const int tallCubes = 10;
+			//for (int i = 0; i < tallCubes; i++)
+			//{
+			//	for (int j = 0; j < numCubes; j++)
+			//	{
+			//		var entity = world.Instantiate(cube);
+			//		cm.SetComponent(entity, new Position()
+			//		{
+			//			value = new vec3(
+			//				random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5),
+			//				i * 3 + 10,
+			//				random.Next(-(int)Math.Sqrt(numCubes) * 10 - 5, (int)Math.Sqrt(numCubes) * 10 + 5))
+			//		});
 
-				}
-			}
+			//	}
+			//}
 
-			const int numThings = 10;
+			const int numThings = 10000;
 
 			for (int i = 0; i < numThings; i++)
 			{
-				var entity = world.Instantiate(satellite);
+				var entity = world.Instantiate(asteroid0);
+				const int multi = 10;
 				cm.SetComponent(entity, new Position()
 				{
 					value = new vec3(
-						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5),
-						100,
-						random.Next(-(int)Math.Sqrt(numThings) - 5, (int)Math.Sqrt(numThings) + 5))
+						random.Next(-(int)Math.Sqrt(numThings) * multi, (int)Math.Sqrt(numThings) * multi),
+						random.Next(-(int)Math.Sqrt(numThings) * multi, (int)Math.Sqrt(numThings) * multi),
+						0
+						)
 				});
-				cm.SetComponent(entity, new Scale() { value = new vec3((float)random.NextDouble() * 0.5f) });
+				var maxVel = 10f;
+				cm.SetComponent(entity, new Velocity()
+				{
+					value = new vec3(
+					(float)random.NextDouble() * maxVel * 2 - maxVel,
+					(float)random.NextDouble() * maxVel * 2 - maxVel,
+					0
+					)
+				});
+				cm.SetComponent(entity, new AngularVelocity()
+				{
+					value = new vec3(
+					(float)random.NextDouble() * 10 - 5,
+					(float)random.NextDouble() * 10 - 5,
+					(float)random.NextDouble() * 10 - 5
+				)
+				});
+				cm.SetComponent(entity, new Scale() { value = new vec3((float)random.NextDouble() + 0.5f) });
 			}
 
-
-			var entity3 = world.Instantiate(satellite);
 
 			var playerEntity = world.Instantiate(player);
 
 			var cameraEntity = world.Instantiate(Prefabs.Camera);
-			var cameraPosition = new vec3(4, 30, 20);
-			var cameraRotation = MathHelper.LookAt(cameraPosition, vec3.Zero, vec3.UnitY);
+			var cameraPosition = new vec3(4, 4, 10);
+			//var cameraRotation = MathHelper.LookAt(cameraPosition, vec3.Zero, vec3.UnitY);
+			var cameraRotation = quat.Identity;
 			cm.SetComponent(cameraEntity,
 				new Position() { value = cameraPosition });
 			cm.SetComponent(cameraEntity,
 				new Rotation() { value = cameraRotation });
-			cm.AddComponent(cameraEntity,
-				new CameraFlightComponent() { flightSpeed = 5 });
+			//cm.AddComponent(cameraEntity,
+			//	new CameraFlightComponent() { flightSpeed = 5 });
+			cm.AddComponent(cameraEntity, new CameraFollow() { entityToFollow = playerEntity, zDistance = 40 });
 
 
-			var floorEnt = world.Instantiate(floor);
+			//var floorEnt = world.Instantiate(floor);
+
+			world.SystemManager.RegisterSystem(new AsteroidSpawner()
+			{
+				asteroidPrefabs = new[] { asteroid0 },
+				maxCount = 5000,
+				playerEntity = playerEntity
+			});
+
 		}
 
 		//TODO: Weird heap corruption bug happens sometimes. -1073740940
@@ -253,18 +323,23 @@ namespace TestApp
 
 			Asset.LoadAssetPackage("data/assets.dat");
 
-			Physics.Settings.Gravity = Vector3.Zero;
+			//Physics.Settings.Gravity = Vector3.Zero;
 
 			InitializeWorld();
 
 			Profiler.ProfilingEnabled = true;
 
-			CoreEngine.Update += delegate (float time)
+			Physics.Settings.Gravity = Vector3.Zero;
+			Physics.Settings.solverIterationCount = 2;
+
+			CoreEngine.Update += delegate
 			{
 				if (CoreEngine.FrameNumber == 500)
 				{
 					Profiler.WriteToFile(@"D:\ecs_profile_speedscope.json", ProfilingFormat.SpeedScope, FrameSelection.Shortest);
-					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing.json", ProfilingFormat.ChromeTracing, FrameSelection.Median);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing_95.json", ProfilingFormat.ChromeTracing, FrameSelection.Percentile95);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing_median.json", ProfilingFormat.ChromeTracing, FrameSelection.Median);
+					Profiler.WriteToFile(@"D:\ecs_profile_chrometracing_shortest.json", ProfilingFormat.ChromeTracing, FrameSelection.Shortest);
 				}
 			};
 

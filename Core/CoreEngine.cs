@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Core.AssetSystem;
 using Core.ECS;
 using Core.Graphics;
 using Core.Profiling;
@@ -22,7 +23,8 @@ namespace Core
 		public static long FrameNumber { get; private set; } = 0;
 		public static float Time => elapsedMs / 1000f;
 
-		public static float fixedUpdateStep = 1 / 20f;
+		public static float fixedUpdateStep = 1 / 30f;
+		public static float maxFixedUpdateCatchup = 0.1f;
 		public static float targetFps = 60;
 
 		private static bool shouldRun = false;
@@ -33,6 +35,9 @@ namespace Core
 		public static void Initialize() {
 			World = ECSWorld.CreateMain();
 			Window.Initialize(World);
+			
+			Asset.LoadAssetPackage("data/defaultassets.dat");
+
 			World.Initialize(true);
 
 			Update += World.InvokeUpdate;
@@ -40,6 +45,7 @@ namespace Core
 			FixedUpdate += World.InvokeFixedUpdate;
 
 			Window.OnWindowClose += Stop;
+			
 		}
 
 		public static void Run()
@@ -47,6 +53,7 @@ namespace Core
 			shouldRun = true;
 
 			Stopwatch watch = new Stopwatch();
+			Stopwatch frameTimeWatch = new Stopwatch();
 			watch.Start();
 			elapsedMs = watch.ElapsedMilliseconds;
 			float fixedUpdateTimer = 0;
@@ -54,6 +61,7 @@ namespace Core
 			while (shouldRun)
 			{
 				Profiler.StartFrame(FrameNumber);
+				frameTimeWatch.Restart();
 
 				long newTimeMs = watch.ElapsedMilliseconds;
 				float deltaTime = (newTimeMs - elapsedMs) / 1000f;
@@ -62,22 +70,30 @@ namespace Core
 				}
 				elapsedMs = newTimeMs;
 				fixedUpdateTimer += deltaTime;
-				Update?.Invoke(deltaTime);
 
-				if (fixedUpdateTimer > fixedUpdateStep)
-				{
+				int fixedUpdatesPerformed = 0;
+				while (fixedUpdateTimer > fixedUpdateStep) {
+					fixedUpdatesPerformed++;
 					FixedUpdate?.Invoke(fixedUpdateStep);
 					fixedUpdateTimer -= fixedUpdateStep;
+					if (frameTimeWatch.ElapsedMilliseconds / 1000f > maxFixedUpdateCatchup) {
+						fixedUpdateTimer = 0;
+						deltaTime = fixedUpdateStep * fixedUpdatesPerformed;
+						elapsedMs = watch.ElapsedMilliseconds;
+					}
 				}
+
+				Update?.Invoke(deltaTime);
 
 				Render?.Invoke(deltaTime);
 
 				Profiler.EndFrame();
+				frameTimeWatch.Stop();
 
 				if (targetFps > 0)
 				{
 					float targetFrameTime = 1f / targetFps;
-					float sleepTime = targetFrameTime - deltaTime;
+					float sleepTime = targetFrameTime - (frameTimeWatch.ElapsedMilliseconds / 1000f);
 					if (sleepTime > 0)
 					{
 						Thread.Sleep((int)(sleepTime * 1000f));

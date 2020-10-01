@@ -2,7 +2,7 @@
   "profiles": {
     "AssetPackager": {
       "commandName": "Project",
-      "commandLineArgs": "\"../../../../TestApp/data\" \"../../../../TestApp/data/assets.dat\""
+      "commandLineArgs": "\"../../../../DefaultAssets\" \"../../../../DefaultAssets/defaultassets.dat\""
     }
   }
 }

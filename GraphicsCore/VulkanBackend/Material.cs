@@ -56,26 +56,18 @@ namespace Core.Graphics.VulkanBackend
 			pipeline = null;
 		}
 
-		public static Material Create(Color mainColor, Texture2D mainTexture)
-		{
-			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
-				GraphicsContext.defaultShader, mainColor, mainTexture);
-
-			return material;
-		}
-
-		public static Material Create(Color mainColor)
-		{
-			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
-				GraphicsContext.defaultShader, mainColor, Texture2D.White);
-
-			return material;
-		}
-
-		public static Material Create(Color mainColor, Texture2D mainTexture, ShaderPipeline shader)
+		public static Material Create(ShaderPipeline shader, Color mainColor, Texture2D mainTexture)
 		{
 			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
 				shader.ShaderPair, mainColor, mainTexture);
+			return material;
+		}
+
+		public static Material Create(ShaderPipeline shader, Color mainColor)
+		{
+			Material material = new Material(GraphicsContext.graphicsDevice, GraphicsContext.uniform0,
+				shader.ShaderPair, mainColor, Texture2D.White);
+
 			return material;
 		}
 

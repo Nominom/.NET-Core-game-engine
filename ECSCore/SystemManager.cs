@@ -85,7 +85,7 @@ namespace Core.ECS
 
 		private void SortSystemList(List<SystemHolder> list)
 		{
-			list.Sort((a, b) =>
+			list.SortWithComparer((a, b) =>
 			{
 				if (a.updateBefore == b.systemType || b.updateAfter == a.systemType)
 				{
@@ -95,6 +95,17 @@ namespace Core.ECS
 				if (a.updateAfter == b.systemType || b.updateBefore == a.systemType)
 				{
 					return 1;
+				}
+
+				if (a.updateAfter == null && b.updateAfter == null && a.updateBefore == null &&
+				    b.updateBefore == null) {
+
+					if ((a.system is JobComponentSystem && !(b.system is JobComponentSystem))) {
+						return -1; 
+					}
+					if (b.system is JobComponentSystem && !(a.system is JobComponentSystem)) {
+						return 1; 
+					}
 				}
 
 				return 0;

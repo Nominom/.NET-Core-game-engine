@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Core.AssetSystem;
+using Core.AssetSystem.Assets;
 using Core.ECS;
 using Core.ECS.Components;
 using Core.Graphics.VulkanBackend;
@@ -21,7 +24,12 @@ namespace Core.Graphics.RenderSystems
 			query.IncludeReadonly<ObjectToWorld>();
 			query.IncludeShared<DebugMeshConvexHullRenderer>();
 			query.ExcludeShared<CulledRenderTag>();
-			defaultShader = ShaderPair.Load(GraphicsContext.graphicsDevice, "data/mesh_instanced.frag.spv", "data/mesh_instanced.vert.spv", ShaderType.Instanced);
+			
+			var fragShader = Asset.Load<ShaderAsset>("mesh_instanced_default.frag");
+			var vertShader = Asset.Load<ShaderAsset>("mesh_instanced_default.vert");
+			var shader = new ShaderPipeline(fragShader, vertShader, ShaderType.Instanced);
+			defaultShader = shader.ShaderPair;
+
 			defaultMaterial = new Material(GraphicsContext.graphicsDevice,
 				GraphicsContext.uniform0, defaultShader);
 			defaultMaterial.wireframe = true;

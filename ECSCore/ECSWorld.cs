@@ -60,7 +60,8 @@ namespace Core.ECS
 			Profiler.RegisterThread("MainThread");
 		}
 
-		internal static ECSWorld CreateMain() {
+		internal static ECSWorld CreateMain()
+		{
 			ECSWorld world = new ECSWorld(true);
 			return world;
 		}
@@ -87,20 +88,26 @@ namespace Core.ECS
 			OnWorldDispose?.Invoke();
 		}
 
-		private void InvokeAllLogExceptions(float deltaTime, UpdateDelegate evt) {
-			if (evt != null) {
-				foreach (var @delegate in evt.GetInvocationList()) {
-					try {
+		private void InvokeAllLogExceptions(float deltaTime, UpdateDelegate evt)
+		{
+			if (evt != null)
+			{
+				foreach (var @delegate in evt.GetInvocationList())
+				{
+					try
+					{
 						var del = (UpdateDelegate)@delegate;
 						del.Invoke(deltaTime, this);
-					}catch(Exception ex)
+					}
+					catch (Exception ex)
 					{
 						Console.WriteLine(ex);
 					}
 
 				}
 				Profiler.StartMethod("ExecuteCommandBuffers");
-				foreach (IEntityCommandBuffer buffer in entityCommandBuffersToExecute) {
+				foreach (IEntityCommandBuffer buffer in entityCommandBuffersToExecute)
+				{
 					buffer.Playback();
 				}
 				entityCommandBuffersToExecute.Clear();
@@ -144,7 +151,8 @@ namespace Core.ECS
 			Profiler.EndMethod();
 		}
 
-		public void InvokeFixedUpdate(float fixedUpdateStep) {
+		public void InvokeFixedUpdate(float fixedUpdateStep)
+		{
 			DebugHelper.AssertThrow<ThreadAccessException>(CheckThreadIsMainThread());
 			Profiler.StartMethod("FixedUpdate");
 			InvokeAllLogExceptions(fixedUpdateStep, FixedUpdate);
@@ -166,6 +174,11 @@ namespace Core.ECS
 			return entity;
 		}
 
+		public bool EntityExists(Entity entity)
+		{
+			return ComponentManager.IsEntityValid(entity);
+		}
+
 		public void SyncPoint()
 		{
 			Profiler.StartMethod("Sync");
@@ -173,11 +186,13 @@ namespace Core.ECS
 			Profiler.EndMethod();
 		}
 
-		internal void RegisterForExecuteAfterUpdate(IEntityCommandBuffer buffer) {
+		internal void RegisterForExecuteAfterUpdate(IEntityCommandBuffer buffer)
+		{
 			entityCommandBuffersToExecute.Add(buffer);
 		}
 
-		internal static bool CheckThreadIsMainThread() {
+		internal static bool CheckThreadIsMainThread()
+		{
 			return Thread.CurrentThread.ManagedThreadId == mainThread.ManagedThreadId;
 		}
 	}
