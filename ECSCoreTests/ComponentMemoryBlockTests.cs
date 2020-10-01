@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS;
+using Core.Shared;
 using Xunit;
 
 namespace CoreTests {
@@ -89,14 +90,40 @@ namespace CoreTests {
 			var componentData = block.GetComponentData<ComponentTests.TestComponentWithInt>();
 			var componentData2 = block.GetComponentData<ComponentTests.TestEmptyComponent>();
 
-			Span<byte> entityBytes = MemoryMarshal.Cast<Entity, byte>(entityData);
-			Span<byte> com1Bytes = MemoryMarshal.Cast<ComponentTests.TestComponentWithInt, byte>(componentData);
-			Span<byte> com2Bytes = MemoryMarshal.Cast<ComponentTests.TestEmptyComponent, byte>(componentData2);
+			Span<byte> entityBytes = entityData.Cast<Entity, byte>();
+			Span<byte> com1Bytes = componentData.Cast<ComponentTests.TestComponentWithInt, byte>();
+			Span<byte> com2Bytes = componentData2.Cast<ComponentTests.TestEmptyComponent, byte>();
 
 
 			Assert.False(entityBytes.Overlaps(com1Bytes));
 			Assert.False(entityBytes.Overlaps(com2Bytes));
 			Assert.False(com1Bytes.Overlaps(com2Bytes));
+		}
+
+		[Fact]
+		public void Aligned() {
+			ComponentMemoryBlock block = new ComponentMemoryBlock(testArchetype);
+
+
+			var entityData = block.GetEntityData();
+			var componentData = block.GetComponentData<ComponentTests.TestComponentWithInt>();
+			var componentData2 = block.GetComponentData<ComponentTests.TestEmptyComponent>();
+
+			Span<byte> entityBytes = entityData.Cast<Entity, byte>();
+			Span<byte> com1Bytes = componentData.Cast<ComponentTests.TestComponentWithInt, byte>();
+			Span<byte> com2Bytes = componentData2.Cast<ComponentTests.TestEmptyComponent, byte>();
+			unsafe {
+				fixed (byte* bytes = entityBytes) {
+					Assert.True((long)bytes % 32 == 0);
+				}
+				fixed (byte* bytes = com1Bytes) {
+					Assert.True((long)bytes % 32 == 0);
+				}
+				fixed (byte* bytes = com2Bytes) {
+					Assert.True((long)bytes % 32 == 0);
+				}
+			}
+			
 		}
 	}
 }

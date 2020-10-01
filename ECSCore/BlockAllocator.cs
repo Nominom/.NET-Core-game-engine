@@ -12,11 +12,18 @@ namespace Core.ECS
 		public readonly byte[] data;
 		public readonly int length;
 		public readonly bool[] inUse;
+		public readonly int padding;
 
 		public BigChunk (int chunkSizeKb, int chunkAmount) {
-			data = new byte[1024 * chunkSizeKb * chunkAmount];
+			data = new byte[1024 * chunkSizeKb * chunkAmount + 28]; // Add max padding amount to allocation size.
 			length = chunkAmount;
 			inUse = new bool[chunkAmount];
+			unsafe {
+				fixed (byte* bytes = data) {
+					long address = (long)bytes;
+					padding = (int)(address % 32 == 0 ? 0 : 32 - (address % 32));
+				}
+			}
 		}
 
 		public bool HasFreeBlocks() {
@@ -51,7 +58,7 @@ namespace Core.ECS
 			this.chunk = chunk;
 			chunkIndex = cIndex;
 			chunkSize = cSize;
-			memory = new Memory<byte>(chunk.data, chunkSize * chunkIndex, chunkSize);
+			memory = new Memory<byte>(chunk.data, chunkSize * chunkIndex + chunk.padding, chunkSize);
 		}
 
 		public void Dispose() {

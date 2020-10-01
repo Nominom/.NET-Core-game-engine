@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -62,23 +63,47 @@ namespace Core.ECS
 			foreach (var component in archetype.components) {
 				bytesPerEntity += component.Value;
 			}
+			int maxPaddingBytes = (28 * archetype.components.Count);
 
 			//calculate maximum size of entities held by this memory block
-			_maxSize = (int) MathF.Floor((float)amountOfBytes / (float) bytesPerEntity);
+			_maxSize = (int) MathF.Floor((float)(amountOfBytes - maxPaddingBytes) / (float) bytesPerEntity);
 			_size = 0;
 
 			//place entities as the first "component"
-			entityComponentSlice = new ComponentSliceValues { start = 0, length = entitySize * _maxSize, componentSize = entitySize};
+			entityComponentSlice = new ComponentSliceValues {
+				start = 0, 
+				length = entitySize * _maxSize, 
+				componentSize = entitySize
+			};
 
 			int nextIdx = entitySize * _maxSize; //start from after entities
+			nextIdx = ScanToNext32(nextIdx);
 			foreach (var component in archetype.components) {
 				int componentLength = component.Value * _maxSize;
 				//_typeLocations.Add(component.Key.GetHashCode(), new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value});
 				//_componentVersions.Add(component.Key.GetHashCode(), 0);
-				_typeLocations[GetDictionaryKey(component.Key)] = new ComponentSliceValues { start = nextIdx, length = componentLength, componentSize = component.Value};
+				_typeLocations[GetDictionaryKey(component.Key)] = 
+					new ComponentSliceValues {
+						start = nextIdx, 
+						length = componentLength, 
+						componentSize = component.Value
+					};
 				_componentVersions[GetDictionaryKey(component.Key)] = 0;
 				nextIdx += componentLength;
+				nextIdx = ScanToNext32(nextIdx);
 			}
+#if DEBUG
+			unsafe {
+				fixed (byte* bytes = _data.memory.Span) {
+					long address = (long) bytes;
+					DebugHelper.AssertThrow<ApplicationException>(_typeLocations.All(x => (address + x.start) % 32 == 0));
+				}
+			}
+#endif
+		}
+
+		private static int ScanToNext32(int index) {
+			return index % 32 == 0 ? index : index + (32 - (index % 32));
 		}
 
 		private static void OptimizeDictionary(EntityArchetype archetype, out int dictArraySize, out int dictionaryMask) {
