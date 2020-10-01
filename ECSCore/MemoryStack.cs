@@ -50,7 +50,7 @@ namespace Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void Increment<T>(int numElements) where T : unmanaged
 		{
-			long elementSize = Marshal.SizeOf<T>();
+			long elementSize = Unsafe.SizeOf<T>();
 			long current = next.ToInt64();
 			next = new IntPtr(current + (elementSize * numElements));
 		}
@@ -58,7 +58,7 @@ namespace Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private bool HasRoom<T>(int numElements) where T : unmanaged
 		{
-			long elementSize = Marshal.SizeOf<T>();
+			long elementSize = Unsafe.SizeOf<T>();
 			long currentPtr = next.ToInt64();
 			long bufferEnd = buffer.ToInt64() + numBytes;
 

@@ -324,7 +324,7 @@ namespace Core.Graphics.VulkanBackend
 
 
 			var pixels = tex2D.GetPixelSpan();
-			var byteCount = (ulong)(pixels.Length * Marshal.SizeOf<Rgba32>());
+			var byteCount = (ulong)(pixels.Length * Unsafe.SizeOf<Rgba32>());
 
 			VkBufferCreateInfo bufferCreateInfo = Initializers.bufferCreateInfo();
 			bufferCreateInfo.size = byteCount;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Core.ECS;
 using Core.Graphics.VulkanBackend.Utility;
@@ -123,7 +124,7 @@ namespace Core.Graphics.VulkanBackend
 			if (vkCmd.Handle == NullHandle) {
 				return;
 			}
-			ulong size = (ulong)Marshal.SizeOf<T>();
+			ulong size = (ulong)Unsafe.SizeOf<T>();
 			DebugHelper.AssertThrow<InvalidOperationException>(size <= 65536);
 			CheckBegun();
 			CheckNotInRenderPass();
@@ -135,7 +136,7 @@ namespace Core.Graphics.VulkanBackend
 			if (vkCmd.Handle == NullHandle) {
 				return;
 			}
-			ulong size = (ulong)Marshal.SizeOf<T>() * (ulong)values.Length;
+			ulong size = (ulong)Unsafe.SizeOf<T>() * (ulong)values.Length;
 			DebugHelper.AssertThrow<InvalidOperationException>(size <= 65536);
 			CheckBegun();
 			CheckNotInRenderPass();

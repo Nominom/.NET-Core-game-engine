@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -65,7 +66,7 @@ namespace Core.ECS
 			}
 			else {
 				archetype = archetype.Add<T>();
-				int cSize = Marshal.SizeOf<T>();
+				int cSize = Unsafe.SizeOf<T>();
 				ComponentSliceValues slice = new ComponentSliceValues() {
 					componentSize = cSize,
 					start = componentData.Length,

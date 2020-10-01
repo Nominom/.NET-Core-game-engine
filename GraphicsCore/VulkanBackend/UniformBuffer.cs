@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -15,6 +16,6 @@ namespace Core.Graphics.VulkanBackend
 	}
 	public class UniformBuffer<T> : UniformBuffer where T : unmanaged {
 		public UniformBuffer(GraphicsDevice device, uint location)
-			: base(device, (ulong)Marshal.SizeOf<T>(), BufferUsageFlags.UniformBuffer, BufferMemoryUsageHint.Dynamic, location) { }
+			: base(device, (ulong)Unsafe.SizeOf<T>(), BufferUsageFlags.UniformBuffer, BufferMemoryUsageHint.Dynamic, location) { }
 	}
 }

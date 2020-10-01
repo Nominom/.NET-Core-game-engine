@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Core.ECS;
@@ -11,8 +12,8 @@ namespace Core.Shared
 	{
 		[Conditional("DEBUG")]
 		private static void CheckSize<TFrom, TTo>() {
-			int fromSize = Marshal.SizeOf<TFrom>();
-			int toSize = Marshal.SizeOf<TTo>();
+			int fromSize = Unsafe.SizeOf<TFrom>();
+			int toSize = Unsafe.SizeOf<TTo>();
 			if (fromSize > toSize && fromSize % toSize != 0) {
 				throw new InvalidOperationException(
 					$"Cannot cast type {typeof(TFrom).Name} to {typeof(TTo).Name}. Because their sizes are not divisible.");

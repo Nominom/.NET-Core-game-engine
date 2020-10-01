@@ -111,7 +111,7 @@ namespace Core.Graphics.RenderSystems
 					instanceAmount = 0;
 				}
 
-				if ((instanceIndex + block.length) * Marshal.SizeOf<ObjectToWorld>() >= instanceMatricesBufferSize) {
+				if ((instanceIndex + block.length) * Unsafe.SizeOf<ObjectToWorld>() >= instanceMatricesBufferSize) {
 					if (instanceAmount > 0) {
 						RenderMeshInstances(cmd, renderer, instanceMatricesBuffers[bufferIndex], instanceAmount, instanceIndex, context);
 					}
@@ -126,7 +126,7 @@ namespace Core.Graphics.RenderSystems
 
 				var objectToWorld = block.GetReadOnlyComponentData<ObjectToWorld>();
 
-				instanceMatricesBuffers[bufferIndex].SetData(objectToWorld, instanceIndex * (uint)Marshal.SizeOf<ObjectToWorld>());
+				instanceMatricesBuffers[bufferIndex].SetData(objectToWorld, instanceIndex * (uint)Unsafe.SizeOf<ObjectToWorld>());
 				instanceAmount += (uint) block.length;
 				instanceIndex += (uint) block.length;
 
